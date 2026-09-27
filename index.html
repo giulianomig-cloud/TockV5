@@ -4142,6 +4142,128 @@ async function isRoundComplete(roundTables) {
   return true;
 }
 
+// Vero se ALMENO UN tavolo del round risulta già concluso — usato per
+// bloccare la rigenerazione del round corrente: se un tavolo ha già
+// finito, la sua vittoria è (forse) già stata accreditata in classifica
+// (tryClaimTournamentTableCredit) e rigenerare cancellerebbe quel tavolo
+// senza annullare il credito già dato, disallineando la classifica.
+// Rigenerare resta sicuro solo finché NESSUN tavolo del round è finito.
+async function roundHasAnyFinishedTable(roundTables) {
+  const entries = Object.values(roundTables || {});
+  for (const t of entries) {
+    const snap = await roomRef(t.roomCode).get();
+    const s = snap.val();
+    if (s && s.phase === "finished") return true;
+  }
+  return false;
+}
+
+// Ricostruisce, da un tavolo già generato, le due chiavi di coppia usate
+// nello storico accoppiamenti (stesso schema di avviaRound: colonna
+// rosso+giallo = coppia A, verde+blu = coppia B) — serve a rigeneraRound
+// per "disfare" il contributo allo storico del round che sta per essere
+// ricreato, prima di ricalcolarlo da capo.
+function storicoKeyForTable(giocatori) {
+  const byColor = {};
+  for (const g of giocatori || []) byColor[g.colore] = g;
+  const a1 = byColor.red, a2 = byColor.yellow, b1 = byColor.green, b2 = byColor.blue;
+  if (!a1 || !a2 || !b1 || !b2 || !a1.playerId || !a2.playerId || !b1.playerId || !b2.playerId) return null;
+  const coupleA = [a1.playerId, a2.playerId].sort().join("+");
+  const coupleB = [b1.playerId, b2.playerId].sort().join("+");
+  return [coupleA, coupleB].sort().join("|");
+}
+
+// Rigenera i tavoli del round CORRENTE (stesso numero di round, non se ne
+// avvia uno nuovo) — pensato per correggere un errore appena dopo l'avvio
+// (es. un iscritto dimenticato, una coppia sbagliata): ricrea da zero le
+// stanze di quel round con la stessa logica di avviaRound. Per sicurezza
+// è permesso SOLO se nessun tavolo del round ha già finito la partita
+// (roundHasAnyFinishedTable) — altrimenti si rischia di disallineare la
+// classifica già accreditata (vedi commento sopra).
+async function rigeneraRoundCorrente(code) {
+  const tournament = await loadTournament(code);
+  if (!tournament) return { ok: false, reason: "notFound" };
+  if (tournament.organizerToken !== getOrCreateOrganizerToken(code)) {
+    return { ok: false, reason: "notOrganizer" };
+  }
+  const round = tournament.roundCorrente || 0;
+  if (round < 1) return { ok: false, reason: "nessunRound" };
+  const oldTables = (tournament.rounds && tournament.rounds[round] && tournament.rounds[round].tables) || {};
+  if (await roundHasAnyFinishedTable(oldTables)) {
+    return { ok: false, reason: "roundGiaFinito" };
+  }
+
+  // Disfa il contributo allo storico accoppiamenti del round che stiamo
+  // per ricreare (solo coppie_fisse), poi ricalcola i tavoli su questa
+  // base "pulita".
+  const storico = Object.assign({}, tournament.storicoAccoppiamenti || {});
+  if (tournament.formato === "coppie_fisse") {
+    for (const t of Object.values(oldTables)) {
+      const key = storicoKeyForTable(t.giocatori);
+      if (key && storico[key]) {
+        storico[key] = storico[key] - 1;
+        if (storico[key] <= 0) delete storico[key];
+      }
+    }
+  }
+  const tournamentForRebuild = Object.assign({}, tournament, { storicoAccoppiamenti: storico });
+
+  const postiTables = tournament.formato === "rotante_8"
+    ? buildRotante8Tables(tournamentForRebuild, round)
+    : buildCoppieFisseTables(tournamentForRebuild);
+  const usableTables = postiTables.filter((posti) => posti.filter(Boolean).length >= 1);
+  if (usableTables.length === 0) return { ok: false, reason: "nessunoIscritto" };
+
+  const roundTables = {};
+  const storicoUpdates = {};
+  for (let i = 0; i < usableTables.length; i++) {
+    const posti = usableTables[i];
+    const roomCode = tournamentTableRoomCode(code, round, i);
+    const { state, giocatori } = buildTableGameState(posti, code, round, i);
+    await roomRef(roomCode).set(state);
+    await codesRef().child(roomCode).transaction((cur) => (cur ? cur : "room"));
+    roundTables[i] = { roomCode, giocatori };
+    if (tournament.formato === "coppie_fisse" && posti[0] && posti[2]) {
+      const coupleA = [posti[0].playerId, posti[1].playerId].sort().join("+");
+      const coupleB = [posti[2].playerId, posti[3].playerId].sort().join("+");
+      const key = [coupleA, coupleB].sort().join("|");
+      storicoUpdates[key] = (storico[key] || 0) + 1;
+    }
+  }
+
+  await tournamentsRef().child(code).update({
+    ["rounds/" + round]: { tables: roundTables },
+    storicoAccoppiamenti: Object.assign({}, storico, storicoUpdates),
+  });
+  return { ok: true, round };
+}
+
+// Elimina un torneo (in qualunque stato, tipicamente uno già concluso):
+// libera anche i codici occupati — quello del torneo stesso e quelli di
+// tutti i tavoli generati nei vari round — e rimuove le stanze di gioco
+// dei tavoli, così non restano stanze orfane in giro. Solo l'organizzatore
+// può farlo. Non tocca la classifica generale (leaderboard/*): le
+// vittorie già accreditate lì restano, coerente con l'essere "tutti i
+// tempi" e indipendente dal singolo torneo.
+async function deleteTournament(code) {
+  const tournament = await loadTournament(code);
+  if (!tournament) return { ok: false, reason: "notFound" };
+  if (tournament.organizerToken !== getOrCreateOrganizerToken(code)) {
+    return { ok: false, reason: "notOrganizer" };
+  }
+  const updates = {};
+  updates["tournaments/" + code] = null;
+  updates["codes/" + code] = null;
+  for (const round of Object.values(tournament.rounds || {})) {
+    for (const t of Object.values(round.tables || {})) {
+      updates["games/" + t.roomCode] = null;
+      updates["codes/" + t.roomCode] = null;
+    }
+  }
+  await db.ref().update(updates);
+  return { ok: true };
+}
+
 function watchRoom(roomId, callback) {
   roomRef(roomId).on("value", (snap) => {
     callback(normalizeState(snap.val()));
@@ -5421,7 +5543,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.2";
+const APP_VERSION = "v5.3";
 
 let myColor = null;
 let myRoomId = null;
@@ -5912,6 +6034,26 @@ function renderTournamentLobby(code) {
         el("p", { class: "muted", style: "font-size:0.74rem; margin-top:6px;" },
           "Semplificato per ora: si considerano presenti tutti gli iscritti. La presenza serata-per-serata arriva in un passo successivo.")
       );
+      if (currentRound > 0) {
+        body.appendChild(
+          el(
+            "div",
+            { class: "sound-test-row", style: "margin-top:8px;" },
+            el("button", { class: "sound-test-btn", style: "flex:1;", onclick: () => handleRigeneraRound(code) }, "↻ Rigenera tavoli round corrente")
+          )
+        );
+        body.appendChild(
+          el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" },
+            "Utile se hai sbagliato ad avviarlo o è arrivato un iscritto in ritardo — funziona solo finché nessun tavolo del round ha già finito.")
+        );
+      }
+      body.appendChild(
+        el(
+          "div",
+          { class: "sound-test-row", style: "margin-top:12px;" },
+          el("button", { class: "danger", style: "flex:1;", onclick: () => handleDeleteTournament(code) }, "🗑️ Elimina torneo")
+        )
+      );
     }
 
     const classifica = Object.entries(t.classifica || {})
@@ -5982,6 +6124,36 @@ async function handleAvviaRound(code, hasCurrentRound) {
     return showToast("Non riesco ad avviare il round, riprova.");
   }
   showToast(`Round ${result.round} avviato!`);
+}
+
+// L'organizzatore rigenera i tavoli del round corrente (es. ha sbagliato
+// ad avviarlo, o un iscritto è arrivato tardi) — chiede sempre conferma
+// perché azzera lo stato di eventuali partite già iniziate a quei tavoli.
+async function handleRigeneraRound(code) {
+  if (!confirm("Rigenerare i tavoli del round corrente? Le partite eventualmente già iniziate a quei tavoli ripartiranno da capo.")) return;
+  const result = await rigeneraRoundCorrente(code);
+  if (!result.ok) {
+    if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può rigenerare i tavoli.");
+    if (result.reason === "roundGiaFinito") return showToast("Non posso rigenerare: almeno un tavolo di questo round ha già finito (la vittoria è già in classifica).");
+    if (result.reason === "nessunoIscritto") return showToast("Servono almeno due iscritti per rigenerare i tavoli.");
+    return showToast("Non riesco a rigenerare il round, riprova.");
+  }
+  showToast(`Round ${result.round} rigenerato.`);
+}
+
+// L'organizzatore elimina il torneo (tipicamente uno già concluso) —
+// conferma esplicita perché è irreversibile: libera i codici e rimuove
+// le stanze dei tavoli, e riporta tutti alla home.
+async function handleDeleteTournament(code) {
+  if (!confirm(`Eliminare definitivamente il torneo "${code}"? L'azione non si può annullare.`)) return;
+  const result = await deleteTournament(code);
+  if (!result.ok) {
+    if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può eliminare il torneo.");
+    return showToast("Non riesco a eliminare il torneo, riprova.");
+  }
+  showToast("Torneo eliminato.");
+  tournamentsRef().child(code).off();
+  renderLobby();
 }
 
 // Entra nel proprio tavolo di torneo: a differenza dell'ingresso normale
