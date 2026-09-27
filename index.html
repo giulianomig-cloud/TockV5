@@ -3957,6 +3957,24 @@ async function loadTournament(code) {
   return snap.val();
 }
 
+// "Diventa organizzatore da questo dispositivo": scrive incondizionatamente
+// il token dell'organizzatore su QUESTO device come nuovo organizerToken
+// del torneo. Serve a sbloccare il caso in cui il device che ha creato il
+// torneo non viene più riconosciuto (es. il link è stato aperto nel
+// browser interno di un'app di messaggistica invece che in Safari/PWA —
+// quel browser tiene una memoria locale separata anche sullo stesso
+// telefono, quindi non trova il token salvato lì) — coerente con il resto
+// dell'app, dove il ruolo organizzatore è un controllo leggero legato al
+// device e non una vera autenticazione, quindi non serve altro per
+// riprendersi il controllo.
+async function reclaimOrganizer(code) {
+  const tournament = await loadTournament(code);
+  if (!tournament) return { ok: false, reason: "notFound" };
+  const myToken = getOrCreateOrganizerToken(code);
+  await tournamentsRef().child(code).child("organizerToken").set(myToken);
+  return { ok: true };
+}
+
 // Elenco dei tornei da mostrare in home — solo quelli pubblici e non
 // ancora conclusi (vedi roadmap, "Scoperta senza codice"). L'interruttore
 // pubblico/privato non è ancora selezionabile in creazione, quindi per ora
@@ -4260,7 +4278,19 @@ async function deleteTournament(code) {
       updates["codes/" + t.roomCode] = null;
     }
   }
-  await db.ref().update(updates);
+  try {
+    await db.ref().update(updates);
+  } catch (e) {
+    // Le regole Firebase su "codes/$code" ("!data.exists()") permettono di
+    // CREARE un codice solo se libero, ma per come sono scritte bloccano
+    // anche la sua cancellazione quando esiste già — un aggiornamento
+    // multi-path viene rifiutato TUTTO insieme se anche solo un ramo non è
+    // permesso. Se le regole non sono ancora state aggiornate per
+    // permettere anche la liberazione dei codici, l'eliminazione fallisce
+    // qui: lo segnaliamo esplicitamente invece di fallire in silenzio.
+    console.error("deleteTournament fallito (regole Firebase?):", e);
+    return { ok: false, reason: "permessoNegato" };
+  }
   return { ok: true };
 }
 
@@ -5543,7 +5573,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.3";
+const APP_VERSION = "v5.5";
 
 let myColor = null;
 let myRoomId = null;
@@ -6095,6 +6125,20 @@ function renderTournamentLobby(code) {
             )
       )
     );
+    if (!isOrganizer) {
+      body.appendChild(
+        el(
+          "div",
+          { class: "sound-test-row", style: "margin-top:12px;" },
+          el("button", { class: "sound-test-btn", style: "flex:1;", onclick: () => handleReclaimOrganizer(code) }, "👑 Diventa organizzatore da questo dispositivo")
+        )
+      );
+      body.appendChild(
+        el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" },
+          "Usalo se hai creato tu questo torneo ma da qui non risulti organizzatore (es. hai aperto il link da WhatsApp/un'altra app invece che dal browser).")
+      );
+    }
+
     body.appendChild(
       el(
         "div",
@@ -6149,11 +6193,24 @@ async function handleDeleteTournament(code) {
   const result = await deleteTournament(code);
   if (!result.ok) {
     if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può eliminare il torneo.");
+    if (result.reason === "permessoNegato") return showToast("Le regole del database non permettono ancora questa azione — aggiorna le regole Firebase (vedi indicazioni ricevute) e riprova.");
     return showToast("Non riesco a eliminare il torneo, riprova.");
   }
   showToast("Torneo eliminato.");
   tournamentsRef().child(code).off();
   renderLobby();
+}
+
+// Chi non risulta organizzatore da questo dispositivo può "reclamare" il
+// ruolo (es. il device che ha creato il torneo ha aperto il link in un
+// browser diverso e ha perso il riconoscimento — vedi commento su
+// reclaimOrganizer). Conferma esplicita perché toglie il controllo a
+// eventuali altri dispositivi che lo avessero.
+async function handleReclaimOrganizer(code) {
+  if (!confirm("Diventare organizzatore di questo torneo da questo dispositivo? Se un altro dispositivo aveva il controllo, lo perderà.")) return;
+  const result = await reclaimOrganizer(code);
+  if (!result.ok) return showToast("Non riesco a diventare organizzatore, riprova.");
+  showToast("Ora sei l'organizzatore di questo torneo.");
 }
 
 // Entra nel proprio tavolo di torneo: a differenza dell'ingresso normale
