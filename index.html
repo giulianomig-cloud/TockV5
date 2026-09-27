@@ -1280,13 +1280,17 @@ button.danger:active {
      la versione "forte", il livello leggero iniziale era troppo poco
      visibile su schermo reale). Il fallback per browser senza
      backdrop-filter è comunque un cream quasi pieno (niente sfocatura,
-     ma resta leggibile). */
+     ma resta leggibile).
+     IMPORTANTE: backdrop-filter e overflow-y:auto sullo STESSO elemento
+     non si sposano su iOS Safari — su iPhone reale il risultato era una
+     lastra completamente OPACA, nessuna sfocatura né trasparenza
+     visibile (segnalato dall'utente, non riproducibile su desktop dove
+     invece funzionava). Per questo overflow/max-height/padding dello
+     scroll interno sono ora su .picker-scroll (vedi sotto): qui, che
+     resta senza overflow, backdrop-filter funziona anche su iOS. */
   background: rgba(251,245,233,0.6);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
-  max-height: 78vh;
-  overflow-y: auto;
   box-shadow: 0 -14px 32px rgba(36,28,21,0.28);
   animation: pickerSlideUp 0.22s ease-out;
   /* Trascinando la maniglia (vedi setupPickerDragToClose) il pannello
@@ -1296,6 +1300,13 @@ button.danger:active {
      solo per lo scatto morbido all'apertura/rilascio e per tornare su
      quando il trascinamento non basta a chiudere. */
   transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+/* Contenuto scrollabile interno — vedi il commento sopra su
+   backdrop-filter + overflow-y sullo stesso elemento. */
+.picker-scroll {
+  padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
+  max-height: 78vh;
+  overflow-y: auto;
 }
 @keyframes pickerSlideUp {
   from { opacity: 0; transform: translateY(18px); }
@@ -5634,7 +5645,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.16";
+const APP_VERSION = "v5.17";
 
 let myColor = null;
 let myRoomId = null;
@@ -10225,8 +10236,12 @@ function openPicker(contentEl) {
   wrap.className = "picker-overlay";
   wrap.style.transform = ""; // azzera un eventuale trascinamento rimasto da un picker precedente
   const handleZone = el("div", { class: "picker-handle-zone" }, el("div", { class: "picker-handle" }));
-  wrap.appendChild(handleZone);
-  wrap.appendChild(contentEl);
+  // handleZone + contentEl stanno in un contenitore interno scrollabile
+  // (.picker-scroll), separato da quello con lo sfondo trasparente/sfocato
+  // (.picker-overlay stesso) — vedi il commento CSS su backdrop-filter +
+  // overflow-y sullo stesso elemento, che su iOS rompeva la trasparenza.
+  const scroll = el("div", { class: "picker-scroll" }, handleZone, contentEl);
+  wrap.appendChild(scroll);
   const bd = ensurePickerBackdrop();
   bd.classList.add("show");
   bd.style.opacity = "";
