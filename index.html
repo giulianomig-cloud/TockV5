@@ -1256,6 +1256,18 @@ button.danger:active {
   padding: 0;
   margin-top: 0;
 }
+/* Titoli/sottotitoli dei picker trasparenti (es. "Scegli la mossa") stanno
+   fuori dalle righe/chip già rese più opache sopra — sedevano ancora
+   direttamente sullo sfondo quasi trasparente del foglio, illeggibili sopra
+   pedine e colori vivaci del tabellone sotto (segnalato). text-shadow si
+   eredita di suo su tutto il testo dentro .choice-box, quindi basta questa
+   riga: un alone chiaro dietro le lettere, sempre coerente col tabellone
+   (che resta chiaro/legno) indipendentemente dal tema chiaro/scuro
+   dell'app. Non tocca il picker "estrazione del mazziere" (.picker-opaque),
+   che è già a sfondo pieno e non ne ha bisogno. */
+.picker-overlay:not(.picker-opaque) .choice-box {
+  text-shadow: 0 1px 2px rgba(255,252,244,0.9), 0 0 9px rgba(255,252,244,0.75);
+}
 
 /* Bottom sheet: sale dal fondo dello schermo sopra un backdrop scurito,
    invece del vecchio riquadro incorniciato in linea nella pagina — stesso
@@ -1314,6 +1326,15 @@ button.danger:active {
      solo per lo scatto morbido all'apertura/rilascio e per tornare su
      quando il trascinamento non basta a chiudere. */
   transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+/* Estrazione del mazziere: sfondo pieno invece che trasparente (vedi
+   openPicker/opts.opaque) — qui sopra la griglia ci sono carte vere e
+   nomi dei giocatori, e col tabellone a fare da sfondo diventavano
+   illeggibili. Gli altri picker (7, Jack, regole...) restano trasparenti
+   come scelto dall'utente. */
+.picker-overlay.picker-opaque {
+  background: var(--panel);
+  box-shadow: 0 -14px 32px rgba(36,28,21,0.4);
 }
 /* Contenuto scrollabile interno — vedi il commento sopra su
    backdrop-filter + overflow-y sullo stesso elemento. */
@@ -1432,17 +1453,18 @@ button.secondary.selected {
   display: flex;
   align-items: center;
   gap: 12px;
-  /* Semi-trasparente come il resto del foglio (vedi .picker-overlay):
-     righe piene una sopra l'altra riempivano quasi tutta l'altezza
-     visibile, lasciando pochissimo spazio per intravedere il tabellone
-     dietro — segnalato dall'utente ("il 7 non è trasparente"). */
-  background: color-mix(in srgb, var(--panel) 25%, transparent);
+  /* Il foglio stesso (.picker-overlay) resta molto trasparente, ma le
+     righe erano scese così tanto (25%) che testo e pedine sopra sfondi
+     "vivaci" del tabellone diventavano illeggibili (segnalato). Qui
+     serve più corpo — il tabellone resta comunque visibile negli spazi
+     tra le righe e ai bordi del foglio. */
+  background: color-mix(in srgb, var(--panel) 62%, transparent);
   border: 1.5px solid var(--panel-border);
   border-radius: 14px;
   padding: 10px 12px;
   margin-bottom: 10px;
 }
-.seven-row.has-steps { background: rgba(251,241,216,0.3); border-color: var(--gold); }
+.seven-row.has-steps { background: rgba(251,241,216,0.75); border-color: var(--gold); }
 /* Erano colorati con "#5A5145" fisso invece del token --muted-3: identico
    in chiaro, ma su sfondo scuro (var(--cream)/var(--panel) invertiti dal
    tema) restava un marrone scuro su fondo quasi nero, quasi illeggibile —
@@ -1483,7 +1505,7 @@ button.secondary.selected {
   border-radius: 12px; padding: 8px 12px; font-size: 0.78rem; font-weight: 700;
   flex: 1; min-width: 0;
 }
-.jack-slot.filled { background: rgba(251,241,216,0.3); border: 1.5px solid var(--gold); color: #6B4E12; }
+.jack-slot.filled { background: rgba(251,241,216,0.75); border: 1.5px solid var(--gold); color: #6B4E12; }
 .jack-slot.empty {
   background: var(--panel); border: 1.5px dashed var(--panel-border); color: var(--muted-3);
   justify-content: center;
@@ -1492,9 +1514,9 @@ button.secondary.selected {
 .jack-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
 .jack-chip {
   display: flex; align-items: center; gap: 9px;
-  /* Semi-trasparente come .seven-row — stessa coerenza col resto del
-     foglio (vedi .picker-overlay). */
-  background: color-mix(in srgb, var(--panel) 25%, transparent);
+  /* Stesso ritocco di .seven-row: più corpo qui, il foglio intorno
+     resta trasparente. */
+  background: color-mix(in srgb, var(--panel) 62%, transparent);
   border: 1.5px solid var(--panel-border); border-radius: 14px;
   padding: 10px; cursor: pointer; text-align: left;
 }
@@ -5694,7 +5716,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.25";
+const APP_VERSION = "v5.28";
 
 let myColor = null;
 let myRoomId = null;
@@ -9574,7 +9596,8 @@ function renderDealerDrawScreen(state) {
       el("p", { class: "muted", style: "margin:0 auto 14px;font-weight:500;" }, "Si pesca a turno: chi trova l'Asso di Cuori dà le carte per primo."),
       grid,
       el("div", { id: "dealer-draw-banner" })
-    )
+    ),
+    { opaque: true }
   );
   animateDealerDraw(state.dealerDraw.sequence);
 }
@@ -10297,10 +10320,15 @@ function unlockBodyScroll() {
   window.scrollTo(0, y);
 }
 
-function openPicker(contentEl) {
+function openPicker(contentEl, opts) {
   const wrap = $("#picker-wrap");
   wrap.innerHTML = "";
-  wrap.className = "picker-overlay";
+  // Di norma il foglio è trasparente (vedi il commento CSS su
+  // .picker-overlay), ma l'estrazione del mazziere mostra carte vere
+  // sopra la griglia del tabellone: lì la trasparenza rendeva pedine e
+  // scritte illeggibili (segnalato dall'utente), quindi quel picker
+  // chiede esplicitamente lo sfondo pieno con opts.opaque.
+  wrap.className = "picker-overlay" + (opts && opts.opaque ? " picker-opaque" : "");
   wrap.style.transform = ""; // azzera un eventuale trascinamento rimasto da un picker precedente
   const handleZone = el("div", { class: "picker-handle-zone" }, el("div", { class: "picker-handle" }));
   // handleZone + contentEl stanno in un contenitore interno scrollabile
