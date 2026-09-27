@@ -1288,9 +1288,9 @@ button.danger:active {
      invece funzionava). Per questo overflow/max-height/padding dello
      scroll interno sono ora su .picker-scroll (vedi sotto): qui, che
      resta senza overflow, backdrop-filter funziona anche su iOS. */
-  background: rgba(251,245,233,0.6);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+  background: rgba(251,245,233,0.2);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
   box-shadow: 0 -14px 32px rgba(36,28,21,0.28);
   animation: pickerSlideUp 0.22s ease-out;
   /* Trascinando la maniglia (vedi setupPickerDragToClose) il pannello
@@ -5645,7 +5645,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.17";
+const APP_VERSION = "v5.19";
 
 let myColor = null;
 let myRoomId = null;
@@ -10702,7 +10702,7 @@ function jackSlot(t, emptyLabel) {
     "div",
     { class: "jack-slot filled" },
     pipIcon(t.color, t.pawnIndex, 24),
-    el("span", {}, `${colorLabel(t.color)} · casella ${t.pos}`)
+    el("span", {}, colorLabel(t.color))
   );
 }
 function renderJackPicker(active, card) {
@@ -10735,12 +10735,7 @@ function renderJackPicker(active, card) {
             "button",
             { class: "jack-chip", onclick: () => toggleJackPick(active, card, t) },
             pipIcon(t.color, t.pawnIndex, 28),
-            el(
-              "span",
-              {},
-              el("span", { style: "display:block;" }, colorLabel(t.color)),
-              el("span", { style: "display:block;" }, `casella ${t.pos}`)
-            )
+            el("span", {}, colorLabel(t.color))
           )
         )
       ),
