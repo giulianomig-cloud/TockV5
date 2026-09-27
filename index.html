@@ -133,6 +133,15 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
    sul 100vh sopra come fallback). */
 #app { max-width: 480px; margin: 0 auto; padding: calc(26px + env(safe-area-inset-top)) 20px 20px; min-height: 100vh; min-height: 100dvh; }
 
+/* Su schermi più larghi del telefono (tablet in verticale, es. iPad) fa
+   crescere la colonna principale e i fogli/toast che condividono lo stesso
+   max-width, invece di lasciarli piccoli in mezzo a bordi vuoti. Sotto i
+   700px (qualsiasi telefono) questa regola non si applica: tutto resta
+   identico a prima. */
+@media (min-width: 700px) {
+  #app, .picker-overlay, .toast-overlay { max-width: 640px; }
+}
+
 h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
 /* Il logo era prima ricostruito a mano con pallini CSS + testo + una
    "squiggle" SVG (rimasti come commento nella storia del file) — ora è
@@ -1234,6 +1243,22 @@ button.danger:active {
 /* Bottom sheet: sale dal fondo dello schermo sopra un backdrop scurito,
    invece del vecchio riquadro incorniciato in linea nella pagina — stesso
    pattern usato per 7/Jack/Regole (vedi openPicker/closePicker). */
+/* Fascia neutra fissa dietro la notch/status bar (che su iPhone, con
+   status bar traslucida, lascia intravedere quel che c'è dietro): senza
+   questa, quando il body diventa "position: fixed" per bloccare lo scroll
+   durante un picker (vedi lockBodyScroll), su alcuni iPhone si intravedeva
+   il colore della fascia squadra proprio dietro l'orologio/segnale —
+   segnalato dall'utente come "colori della squadra nello spazio sotto il
+   menu" che spuntavano sopra la barra STANZA. z-index più alto di tutto
+   (picker compresi) così resta sempre neutra, qualunque cosa sia aperta. */
+.status-bar-shield {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--cream);
+  z-index: 600;
+  pointer-events: none;
+}
+
 .picker-backdrop {
   position: fixed; inset: 0; z-index: 399;
   background: rgba(36,28,21,0.14);
@@ -1251,11 +1276,14 @@ button.danger:active {
   border: none;
   border-radius: 24px 24px 0 0;
   /* Semi-trasparente con sfocatura: si intravede il tabellone dietro,
-     ma il testo resta leggibile (vedi discussione mockup combo3.png). Il
-     fallback per browser senza backdrop-filter è un cream quasi pieno. */
-  background: rgba(251,245,233,0.88);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+     ma il testo resta leggibile (vedi discussione mockup combo3.png — qui
+     la versione "forte", il livello leggero iniziale era troppo poco
+     visibile su schermo reale). Il fallback per browser senza
+     backdrop-filter è comunque un cream quasi pieno (niente sfocatura,
+     ma resta leggibile). */
+  background: rgba(251,245,233,0.6);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
   max-height: 78vh;
   overflow-y: auto;
@@ -1806,6 +1834,7 @@ button.secondary.selected {
 </style>
 </head>
 <body>
+<div class="status-bar-shield"></div>
 <div id="app"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin="anonymous"></script>
@@ -5605,7 +5634,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.13";
+const APP_VERSION = "v5.16";
 
 let myColor = null;
 let myRoomId = null;
@@ -8382,8 +8411,16 @@ function maybePlaySounds(state) {
       soundTracker.captureId = cap.id;
       const ageMs = Date.now() - (cap.ts || 0);
       if (ageMs >= 0 && ageMs < 4000) {
-        playSound("captureMade"); // one shared sound for everyone, regardless of who captured whom
-        vibrate(60);
+        // cap.color è il colore della pedina MANGIATA: se è la tua, senti il
+        // thud "uh-oh" (captureLost); altrimenti il "gulp" soddisfatto
+        // (captureMade) — anche se a mangiare è stato il compagno, non tu.
+        if (cap.color === myColor) {
+          playSound("captureLost");
+          vibrate([50, 40, 90]);
+        } else {
+          playSound("captureMade");
+          vibrate(60);
+        }
       }
     }
   }
