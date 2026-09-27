@@ -1418,13 +1418,17 @@ button.secondary.selected {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--panel);
+  /* Semi-trasparente come il resto del foglio (vedi .picker-overlay):
+     righe piene una sopra l'altra riempivano quasi tutta l'altezza
+     visibile, lasciando pochissimo spazio per intravedere il tabellone
+     dietro — segnalato dall'utente ("il 7 non è trasparente"). */
+  background: color-mix(in srgb, var(--panel) 55%, transparent);
   border: 1.5px solid var(--panel-border);
   border-radius: 14px;
   padding: 10px 12px;
   margin-bottom: 10px;
 }
-.seven-row.has-steps { background: #FBF1D8; border-color: var(--gold); }
+.seven-row.has-steps { background: rgba(251,241,216,0.62); border-color: var(--gold); }
 /* Erano colorati con "#5A5145" fisso invece del token --muted-3: identico
    in chiaro, ma su sfondo scuro (var(--cream)/var(--panel) invertiti dal
    tema) restava un marrone scuro su fondo quasi nero, quasi illeggibile —
@@ -1465,7 +1469,7 @@ button.secondary.selected {
   border-radius: 12px; padding: 8px 12px; font-size: 0.78rem; font-weight: 700;
   flex: 1; min-width: 0;
 }
-.jack-slot.filled { background: #FBF1D8; border: 1.5px solid var(--gold); color: #6B4E12; }
+.jack-slot.filled { background: rgba(251,241,216,0.62); border: 1.5px solid var(--gold); color: #6B4E12; }
 .jack-slot.empty {
   background: var(--panel); border: 1.5px dashed var(--panel-border); color: var(--muted-3);
   justify-content: center;
@@ -1474,7 +1478,10 @@ button.secondary.selected {
 .jack-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
 .jack-chip {
   display: flex; align-items: center; gap: 9px;
-  background: var(--panel); border: 1.5px solid var(--panel-border); border-radius: 14px;
+  /* Semi-trasparente come .seven-row — stessa coerenza col resto del
+     foglio (vedi .picker-overlay). */
+  background: color-mix(in srgb, var(--panel) 55%, transparent);
+  border: 1.5px solid var(--panel-border); border-radius: 14px;
   padding: 10px; cursor: pointer; text-align: left;
 }
 .jack-chip:hover { border-color: var(--gold); }
@@ -1533,7 +1540,14 @@ button.secondary.selected {
 .log-dot {
   width: 21px; height: 21px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  z-index: 1; box-shadow: 0 0 0 3px #FFFFFF;
+  z-index: 1;
+  /* Prima c'era un alone bianco fisso (box-shadow) per staccare il
+     pallino dalla lineetta della timeline dietro — pensato quando il
+     foglio picker era pieno. Ora che è trasparente (vedi .picker-overlay)
+     quell'alone bianco restava comunque opaco e stonava, "fluttuando"
+     sopra lo sfondo sfocato (segnalato dall'utente). Il pallino stesso è
+     già opaco e sopra la linea (z-index), quindi la staccano a
+     sufficienza senza bisogno dell'alone. */
 }
 /* Il pipIcon disegna già il proprio cerchio colorato (stesso stile dei
    picker Jack/7) — qui serve solo il contenitore giusto, senza sfondo
@@ -5645,7 +5659,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.19";
+const APP_VERSION = "v5.21";
 
 let myColor = null;
 let myRoomId = null;
