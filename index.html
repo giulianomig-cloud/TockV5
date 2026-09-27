@@ -1141,6 +1141,23 @@ button.danger:active {
 .dealer-icon .dc-bg { fill: var(--gold, #C99A3A); }
 .dealer-icon .dc-card { fill: #FFFFFF; stroke: #6B4E17; stroke-width: 1.5; }
 .dealer-icon .dc-heart { fill: #C1414B; }
+/* Icona mazziere + numero di mani rimaste, in un unico contenitore
+   "pillola" invece di due badge separati affiancati (richiesto
+   dall'utente) — vedi dealerBadge(). */
+.dealer-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: var(--gold-metallic, var(--gold, #C99A3A));
+  border-radius: 999px;
+  padding: 2px 7px 2px 2px;
+  flex-shrink: 0;
+}
+.dealer-badge .dealer-icon { width: 16px; height: 16px; }
+.dealer-badge-count {
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1;
+}
 .dealer-icon .dc-letter { fill: #C1414B; font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; }
 
 .hand-row {
@@ -1275,22 +1292,19 @@ button.danger:active {
   z-index: 400;
   border: none;
   border-radius: 24px 24px 0 0;
-  /* Semi-trasparente con sfocatura: si intravede il tabellone dietro,
-     ma il testo resta leggibile (vedi discussione mockup combo3.png — qui
-     la versione "forte", il livello leggero iniziale era troppo poco
-     visibile su schermo reale). Il fallback per browser senza
-     backdrop-filter è comunque un cream quasi pieno (niente sfocatura,
-     ma resta leggibile).
+  /* Trasparenza piena, niente sfocatura: dopo vari passaggi (0.88 -> 0.6
+     -> 0.42 -> 0.2 di opacità) l'utente ha scelto esplicitamente la
+     versione più trasparente tra i mockup (variante "F" — vedi
+     combo.png), che lascia vedere chiaramente cosa c'è sotto (turno,
+     carte) invece di un semplice sfumato. Il testo resta comunque
+     leggibile (verificato nel mockup).
      IMPORTANTE: backdrop-filter e overflow-y:auto sullo STESSO elemento
      non si sposano su iOS Safari — su iPhone reale il risultato era una
-     lastra completamente OPACA, nessuna sfocatura né trasparenza
-     visibile (segnalato dall'utente, non riproducibile su desktop dove
-     invece funzionava). Per questo overflow/max-height/padding dello
-     scroll interno sono ora su .picker-scroll (vedi sotto): qui, che
-     resta senza overflow, backdrop-filter funziona anche su iOS. */
-  background: rgba(251,245,233,0.2);
-  -webkit-backdrop-filter: blur(9px);
-  backdrop-filter: blur(9px);
+     lastra completamente OPACA (segnalato dall'utente, non riproducibile
+     su desktop). Per questo overflow/max-height/padding dello scroll
+     interno sono ora su .picker-scroll (vedi sotto): qui, che resta
+     senza overflow, la trasparenza funziona anche su iOS. */
+  background: rgba(251,245,233,0.12);
   box-shadow: 0 -14px 32px rgba(36,28,21,0.28);
   animation: pickerSlideUp 0.22s ease-out;
   /* Trascinando la maniglia (vedi setupPickerDragToClose) il pannello
@@ -1422,13 +1436,13 @@ button.secondary.selected {
      righe piene una sopra l'altra riempivano quasi tutta l'altezza
      visibile, lasciando pochissimo spazio per intravedere il tabellone
      dietro — segnalato dall'utente ("il 7 non è trasparente"). */
-  background: color-mix(in srgb, var(--panel) 55%, transparent);
+  background: color-mix(in srgb, var(--panel) 25%, transparent);
   border: 1.5px solid var(--panel-border);
   border-radius: 14px;
   padding: 10px 12px;
   margin-bottom: 10px;
 }
-.seven-row.has-steps { background: rgba(251,241,216,0.62); border-color: var(--gold); }
+.seven-row.has-steps { background: rgba(251,241,216,0.3); border-color: var(--gold); }
 /* Erano colorati con "#5A5145" fisso invece del token --muted-3: identico
    in chiaro, ma su sfondo scuro (var(--cream)/var(--panel) invertiti dal
    tema) restava un marrone scuro su fondo quasi nero, quasi illeggibile —
@@ -1469,7 +1483,7 @@ button.secondary.selected {
   border-radius: 12px; padding: 8px 12px; font-size: 0.78rem; font-weight: 700;
   flex: 1; min-width: 0;
 }
-.jack-slot.filled { background: rgba(251,241,216,0.62); border: 1.5px solid var(--gold); color: #6B4E12; }
+.jack-slot.filled { background: rgba(251,241,216,0.3); border: 1.5px solid var(--gold); color: #6B4E12; }
 .jack-slot.empty {
   background: var(--panel); border: 1.5px dashed var(--panel-border); color: var(--muted-3);
   justify-content: center;
@@ -1480,7 +1494,7 @@ button.secondary.selected {
   display: flex; align-items: center; gap: 9px;
   /* Semi-trasparente come .seven-row — stessa coerenza col resto del
      foglio (vedi .picker-overlay). */
-  background: color-mix(in srgb, var(--panel) 55%, transparent);
+  background: color-mix(in srgb, var(--panel) 25%, transparent);
   border: 1.5px solid var(--panel-border); border-radius: 14px;
   padding: 10px; cursor: pointer; text-align: left;
 }
@@ -2689,7 +2703,18 @@ function buildDealerDrawSequence() {
 // can start playing.
 function dealNewHand(state) {
   let deck = state.deck.filter(Boolean);
-  if (deck.length < 4 * 5) {
+  // Quante carte servono per QUESTA mano: 5 a testa se è la prima del giro
+  // (mazzo appena rimescolato), altrimenti 4. PRIMA questo controllo usava
+  // sempre "4 * 5" (20) a prescindere, quindi con le 32 carte rimaste dopo
+  // la prima mano si faceva una sola mano da 4 (16 carte) e poi si
+  // rimescolava con 16 carte ancora buone in mano — mai usate. Con un
+  // mazzo da 52 le mani dovrebbero essere 5+4+4=13 a testa (13×4=52,
+  // esatto, senza sprechi): ora il controllo usa la soglia giusta per la
+  // mano che sta per essere data, non sempre quella della prima
+  // (segnalato dall'utente: "ma se le carte sono 52" non tornava il conto
+  // con solo 2 mani da 5+4=9 a testa, 16 carte restavano inutilizzate).
+  const neededForThisHand = 4 * (state.firstHandOfCycle ? 5 : 4);
+  if (deck.length < neededForThisHand) {
     deck = shuffle(buildDeck());
     state.firstHandOfCycle = true;
     // Nuovo mazzo intero rimescolato: tutte le carte viste finora nel giro
@@ -2722,6 +2747,16 @@ function dealNewHand(state) {
   // giocata) — non deve restare evidenziata oltre la mano in cui è arrivata.
   state.lastReceivedCard = {};
   state.log.push(`Nuova mano distribuita (mazziere: ${cn(state.dealerColor)}). In attesa dello scambio tra compagni.`);
+}
+
+// Quante altre mani il mazziere può ancora dare col mazzo attuale prima del
+// prossimo rimescolamento automatico (vedi dealNewHand): dopo la prima mano
+// di un giro (5 a testa) restano sempre multipli di 16 (4 a testa × 4
+// giocatori), quindi basta dividere per 16. Mostrata accanto all'icona del
+// mazziere (vedi renderPlayerStatus) — richiesto dall'utente dopo aver
+// scoperto il bug delle mani sprecate (v5.23).
+function handsRemainingBeforeReshuffle(state) {
+  return Math.max(0, Math.floor((state.deck ? state.deck.length : 0) / 16));
 }
 
 // A player submits one card, face-down, to give to their partner.
@@ -5659,7 +5694,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.21";
+const APP_VERSION = "v5.25";
 
 let myColor = null;
 let myRoomId = null;
@@ -9789,7 +9824,8 @@ function renderPlayerStatus(state) {
       "div",
       { class: "board-player-head" },
       el("span", { class: "board-player-name" }, playerName(state, c)),
-      isDealer ? dealerIcon() : "",
+      // Icona mazziere + mani rimaste in un unico contenitore (dealerBadge).
+      isDealer ? dealerBadge(handsRemainingBeforeReshuffle(state)) : "",
       // Solo l'icona (senza la scritta "offline"): il motivo resta
       // comunque leggibile al tocco/hover tramite il title.
       !isBotSeat && state.players[c] && !isOnline
@@ -9816,7 +9852,10 @@ function renderPlayerStatus(state) {
 // reale del gioco. Distintivo pieno in oro (stesso linguaggio degli altri
 // badge tondi dell'app, es. exchange-done-badge) con la carta bianca sopra,
 // leggibile a colpo d'occhio anche piccolissimo.
-function dealerIcon() {
+// withBg=false disegna solo la cartina, senza il proprio cerchio dorato:
+// usata dentro dealerBadge(), che mette icona + numero mani rimaste in un
+// unico contenitore pillola (prima erano due badge separati affiancati).
+function dealerIcon(withBg) {
   const ns = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(ns, "svg");
   svg.setAttribute("viewBox", "0 0 40 40");
@@ -9824,12 +9863,14 @@ function dealerIcon() {
   const title = document.createElementNS(ns, "title");
   title.textContent = "Mazziere (Asso di Cuori)";
   svg.appendChild(title);
-  const bg = document.createElementNS(ns, "circle");
-  bg.setAttribute("class", "dc-bg");
-  bg.setAttribute("cx", 20);
-  bg.setAttribute("cy", 20);
-  bg.setAttribute("r", 20);
-  svg.appendChild(bg);
+  if (withBg !== false) {
+    const bg = document.createElementNS(ns, "circle");
+    bg.setAttribute("class", "dc-bg");
+    bg.setAttribute("cx", 20);
+    bg.setAttribute("cy", 20);
+    bg.setAttribute("r", 20);
+    svg.appendChild(bg);
+  }
   const card = document.createElementNS(ns, "rect");
   card.setAttribute("class", "dc-card");
   card.setAttribute("x", 11);
@@ -9857,6 +9898,18 @@ function dealerIcon() {
   g.appendChild(heart);
   svg.appendChild(g);
   return svg;
+}
+
+// Icona mazziere + numero di mani rimaste (vedi handsRemainingBeforeReshuffle)
+// in un unico contenitore "pillola", invece di due badge separati affiancati
+// (richiesto dall'utente dopo aver visto i due badge distinti in v5.24).
+function dealerBadge(handsLeft) {
+  return el(
+    "span",
+    { class: "dealer-badge", title: `Mazziere · mani rimaste prima del rimescolamento: ${handsLeft}` },
+    dealerIcon(false),
+    el("span", { class: "dealer-badge-count" }, String(handsLeft))
+  );
 }
 
 // Four small dots per player, one per pawn: hollow = still in base (not in
