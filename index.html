@@ -1268,6 +1268,21 @@ button.danger:active {
 .picker-overlay:not(.picker-opaque) .choice-box {
   text-shadow: 0 1px 2px rgba(255,252,244,0.9), 0 0 9px rgba(255,252,244,0.75);
 }
+/* L'alone (text-shadow) sopra bastava per le righe/chip già opache
+   (v5.27), ma per titolo e sottotitolo — che restano soli, direttamente
+   sullo sfondo quasi trasparente del foglio — non è abbastanza sopra il
+   tabellone: chiesto esplicitamente uno sfondo pieno anche lì, non solo
+   un alone. Ogni schermata inizia sempre con titolo (primo figlio diretto
+   di .choice-box, "p" o "div" — es. l'intestazione del 7 con il
+   contatore) ed eventuale sottotitolo subito dopo (p.muted): li
+   racchiude in un fondo quasi pieno, coerente con le righe sotto. */
+.picker-overlay:not(.picker-opaque) .choice-box > p:first-child,
+.picker-overlay:not(.picker-opaque) .choice-box > div:first-child,
+.picker-overlay:not(.picker-opaque) .choice-box > p:first-child + p.muted {
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
 
 /* Bottom sheet: sale dal fondo dello schermo sopra un backdrop scurito,
    invece del vecchio riquadro incorniciato in linea nella pagina — stesso
@@ -1304,19 +1319,12 @@ button.danger:active {
   z-index: 400;
   border: none;
   border-radius: 24px 24px 0 0;
-  /* Trasparenza piena, niente sfocatura: dopo vari passaggi (0.88 -> 0.6
-     -> 0.42 -> 0.2 di opacità) l'utente ha scelto esplicitamente la
-     versione più trasparente tra i mockup (variante "F" — vedi
-     combo.png), che lascia vedere chiaramente cosa c'è sotto (turno,
-     carte) invece di un semplice sfumato. Il testo resta comunque
-     leggibile (verificato nel mockup).
-     IMPORTANTE: backdrop-filter e overflow-y:auto sullo STESSO elemento
-     non si sposano su iOS Safari — su iPhone reale il risultato era una
-     lastra completamente OPACA (segnalato dall'utente, non riproducibile
-     su desktop). Per questo overflow/max-height/padding dello scroll
-     interno sono ora su .picker-scroll (vedi sotto): qui, che resta
-     senza overflow, la trasparenza funziona anche su iOS. */
-  background: rgba(251,245,233,0.12);
+  /* Dopo vari passaggi di trasparenza (0.88 -> 0.6 -> 0.42 -> 0.2 -> 0.12
+     di opacità, più righe/titoli rattoppati a parte per restare
+     leggibili) l'utente ha chiesto di tornare allo sfondo pieno di
+     prima, senza trasparenze: più semplice e sempre leggibile qualunque
+     cosa ci sia sotto. */
+  background: var(--panel);
   box-shadow: 0 -14px 32px rgba(36,28,21,0.28);
   animation: pickerSlideUp 0.22s ease-out;
   /* Trascinando la maniglia (vedi setupPickerDragToClose) il pannello
@@ -1327,11 +1335,11 @@ button.danger:active {
      quando il trascinamento non basta a chiudere. */
   transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
-/* Estrazione del mazziere: sfondo pieno invece che trasparente (vedi
-   openPicker/opts.opaque) — qui sopra la griglia ci sono carte vere e
-   nomi dei giocatori, e col tabellone a fare da sfondo diventavano
-   illeggibili. Gli altri picker (7, Jack, regole...) restano trasparenti
-   come scelto dall'utente. */
+/* .picker-overlay è tornato a sfondo pieno per tutti i picker (vedi
+   sopra), quindi opts.opaque/.picker-opaque (introdotta per la sola
+   estrazione del mazziere, quando gli altri picker erano ancora
+   trasparenti) non cambia più nulla visivamente — lasciata qui per non
+   toccare le chiamate a openPicker che la passano ancora. */
 .picker-overlay.picker-opaque {
   background: var(--panel);
   box-shadow: 0 -14px 32px rgba(36,28,21,0.4);
@@ -5716,7 +5724,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.28";
+const APP_VERSION = "v5.30";
 
 let myColor = null;
 let myRoomId = null;
