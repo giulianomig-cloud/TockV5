@@ -792,10 +792,10 @@ button.danger:active {
   filter: brightness(0.9);
 }
 
-/* Riga in cima: riferimento di build a sinistra (corto e a larghezza
-   fissa, non trocca mai — a differenza del codice stanza, spostato nella
-   riga sotto .room-team-row insieme alla squadra, vedi il commento lì)
-   e i pulsanti menu a destra. */
+/* Riga in cima: solo i pulsanti menu, allineati a destra. Il riferimento
+   di build non è più una scritta fissa qui né sotto la pillola
+   Stanza/Squadra (chiesto: "togli la build da lì") — resta consultabile
+   solo a richiesta tramite il tastino "i" (vedi showVersionInfo). */
 .top-actions-row {
   display: flex;
   align-items: center;
@@ -804,17 +804,6 @@ button.danger:active {
   margin-bottom: 10px;
 }
 .top-actions-icons { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
-/* Riferimento di build: non più nella riga delle icone (sembrava "fuori
-   allineamento/margine" lì) — ora una scritta piccola e centrata appena
-   sotto la pillola stanza+squadra, prima del campo turno. */
-.build-tag {
-  text-align: center;
-  margin: 6px 0 16px;
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.03em;
-}
 /* Stanza + squadra unite in un'unica pillola arrotondata, divisa in due
    metà affiancate da una riga verticale (overflow:hidden sul contenitore
    esterno fa sì che i bordi arrotondati restino condivisi). Entrambe le
@@ -1070,35 +1059,41 @@ button.danger:active {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  gap: 7px;
   z-index: 2;
   pointer-events: none;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
 }
+/* Non più affiancato alla carta (chiesto: "sullo spigolo sinistro della
+   carta") — ora agganciato per davvero all'angolo in BASSO a sinistra
+   della mini-carta (chiesto poi di spostarlo lì, era in alto), sovrapposto
+   a metà come un badge di notifica invece di stare di fianco su una riga.
+   Il fuoco (sotto, .mini-card-burn-badge) è salito nell'angolo opposto
+   (in alto a sinistra) per lasciargli il posto. */
 .initial-badge {
-  /* Ingrandita un po' insieme alla mini-carta (chiesto: "un po' più
-     grande"), era 24px. */
-  width: 30px;
-  height: 30px;
+  position: absolute;
+  bottom: -9px;
+  left: -9px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-weight: 800;
-  font-size: 0.86rem;
+  font-size: 0.76rem;
   flex-shrink: 0;
+  border: 2px solid var(--cream);
   box-shadow: inset 0 -2px 3px rgba(0,0,0,0.18);
+  z-index: 1;
 }
 .mini-card {
   position: relative;
-  /* Ingrandita un po' (era 27x36, chiesto "un po' più grande") ora che non
-     deve più stare dentro un riquadro condiviso con testo del turno — resta
-     comunque una mini-carta, non la carta a grandezza piena della mano. */
-  width: 34px; height: 45px; flex-shrink: 0;
-  border-radius: 6px;
+  /* Ingrandita ancora un po' (era 34x45, chiesto di nuovo "un po' più
+     grande") ora che il pallino iniziali è agganciato all'angolo invece di
+     stare di fianco e occupare spazio in orizzontale. */
+  width: 40px; height: 53px; flex-shrink: 0;
+  border-radius: 7px;
   border: 1px solid #A79A82;
   background: linear-gradient(180deg, #fffefb, #f4ecd8);
   box-shadow: 0 2px 5px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.8) inset;
@@ -1107,16 +1102,19 @@ button.danger:active {
 .mini-card.suit-red { color: #B03040; }
 .mini-card.suit-black { color: #241C15; }
 .mini-card-rank {
-  position: absolute; top: 3px; left: 3px;
-  font-size: 0.72rem; font-weight: 800; line-height: 1;
+  position: absolute; top: 4px; right: 4px;
+  font-size: 0.8rem; font-weight: 800; line-height: 1;
 }
 .mini-card.mini-card-burned {
   filter: grayscale(0.7);
   opacity: 0.75;
 }
+/* Fuoco sull'angolo in basso a destra (chiesto), pallino iniziali su
+   quello in basso a sinistra: i due badge stanno affiancati sullo stesso
+   bordo inferiore della carta invece che sui due angoli opposti. */
 .mini-card-burn-badge {
-  position: absolute; bottom: -4px; right: -4px;
-  font-size: 0.6rem;
+  position: absolute; bottom: -5px; right: -5px;
+  font-size: 0.68rem;
 }
 
 /* Nomi giocatori + pedine "fuori" agli angoli sopra/sotto il tabellone
@@ -1367,10 +1365,16 @@ button.danger:active {
    il colore della fascia squadra proprio dietro l'orologio/segnale —
    segnalato dall'utente come "colori della squadra nello spazio sotto il
    menu" che spuntavano sopra la barra STANZA. z-index più alto di tutto
-   (picker compresi) così resta sempre neutra, qualunque cosa sia aperta. */
+   (picker compresi) così resta sempre neutra, qualunque cosa sia aperta.
+   Un po' più alta del solo safe-area-inset-top (+18px): la status bar
+   traslucida di iOS sfoca/campiona anche un filo di contenuto SOTTO la
+   notch, non solo l'area esatta della notch — così un banner colorato
+   proprio in cima alla pagina (es. .conn-lost quando cade la connessione)
+   ci finiva comunque dentro, sfocato ("si vede uno sfocato rosso in
+   cima" — segnalato). Il buffer extra tiene quel margine al riparo. */
 .status-bar-shield {
   position: fixed; top: 0; left: 0; right: 0;
-  height: env(safe-area-inset-top, 0px);
+  height: calc(env(safe-area-inset-top, 0px) + 18px);
   background: var(--cream);
   z-index: 600;
   pointer-events: none;
@@ -1672,6 +1676,14 @@ button.secondary.selected {
 .log-dot-pawn { background: none; }
 .log-text { padding-top: 2px; line-height: 1.4; }
 .log-text b { color: var(--ink); }
+/* Pedina inline al posto del crudo "#N" nel testo (chiesto: "il 7 non è
+   comprensibile, al posto del numero il simbolo della pedina corretta") —
+   stesso pipIcon del pallino a sinistra ma piccolo e in linea col testo. */
+.log-pawn-inline {
+  display: inline-flex;
+  vertical-align: -3px;
+  margin: 0 1px;
+}
 .log-controls {
   display: flex;
   align-items: center;
@@ -5830,7 +5842,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.40";
+const APP_VERSION = "v5.44";
 
 let myColor = null;
 let myRoomId = null;
@@ -8282,6 +8294,19 @@ function renderGameShell() {
               ["path", { d: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }],
               ["polyline", { points: "9 22 9 12 15 12 15 22" }],
             ])
+          ),
+          // Tastino "i": la build non è più una scritta fissa sotto la
+          // pillola Stanza/Squadra (chiesto: "togli la build da lì") — resta
+          // comunque consultabile, ma solo a richiesta, con un toast
+          // (vedi showVersionInfo).
+          el(
+            "button",
+            { class: "icon-btn", "aria-label": "Info versione", onclick: showVersionInfo },
+            svgIcon(14, 14, "0 0 24 24", "#5A5145", 2.2, [
+              ["circle", { cx: 12, cy: 12, r: 9 }],
+              ["line", { x1: 12, y1: 11, x2: 12, y2: 16 }],
+              ["line", { x1: 12, y1: 8, x2: 12.01, y2: 8 }],
+            ])
           )
         )
       ),
@@ -8315,10 +8340,6 @@ function renderGameShell() {
           )
         )
       ),
-      // Riferimento di build (chiesto: visibile durante la partita, non
-      // solo in fondo alla lobby) come piccola scritta centrata appena
-      // sotto la pillola, non più nella riga delle icone in alto.
-      el("div", { class: "build-tag" }, APP_VERSION),
       // Nomi giocatori + pedine "fuori" agli angoli sopra/sotto il
       // tabellone (vedi renderPlayerStatus) invece che in riquadri a parte
       // più sotto — ciascuno vicino all'angolo dov'è davvero la sua base.
@@ -10253,12 +10274,17 @@ function renderCenterDiscard(state) {
   const { color, card, burned } = state.lastCardPlayed;
   const hex = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" }[color];
   const initial = (playerName(state, color) || "?").trim().charAt(0).toUpperCase();
+  // Il pallino iniziali non è più di fianco alla carta ma agganciato al suo
+  // angolo in alto a sinistra (chiesto: "sullo spigolo sinistro della
+  // carta") — quindi va dentro .mini-card (che è position:relative), non
+  // più come elemento fratello in .center-discard.
+  const cardEl = miniCardVisual(card, burned);
+  cardEl.appendChild(el("span", { class: "initial-badge", style: `background:${hex};` }, initial));
   boardWrap.appendChild(
     el(
       "div",
       { class: "center-discard", title: `${playerName(state, color)} ha ${burned ? "bruciato" : "giocato"}: ${card}` },
-      el("span", { class: "initial-badge", style: `background:${hex};` }, initial),
-      miniCardVisual(card, burned)
+      cardEl
     )
   );
 }
@@ -10656,6 +10682,14 @@ function setupPickerDragToClose(wrap, handleZone) {
 // ravvicinati non si sovrappongono mai sullo schermo.
 let toastQueue = [];
 let toastShowing = false;
+
+// Il tastino "i" nella riga menu in alto (chiesto, al posto della scritta
+// fissa sotto Stanza/Squadra): mostra la versione a richiesta con lo
+// stesso toast usato per gli altri messaggi, invece di occupare
+// spazio in pagina in permanenza.
+function showVersionInfo() {
+  showToast(`Tock ${APP_VERSION}`);
+}
 
 function showToast(message) {
   toastQueue.push(message);
@@ -11559,24 +11593,53 @@ function logEventBadge(line, fallbackColor) {
   const bg = type.byActorColor ? (fallbackColor ? `var(--${fallbackColor})` : "#3E8FCB") : type.bg;
   return el("span", { class: "log-dot", style: `background:${bg};` }, svgIcon(11, 11, "0 0 24 24", "#FFFFFF", type.sw, type.shapes));
 }
-// Spezza il testo sui nomi-colore e li mette in grassetto (scuro), come
-// "<b>Rosso</b> mangia <b>Verde</b> in casella 34" nel mockup — invece di
-// una riga di testo tutta uniforme.
-function boldColorNames(line) {
+const LOG_COLORS = ["red", "green", "yellow", "blue"];
+
+// Piccola pedina inline (stesso disegno pallino+dadini di pipIcon, usato
+// anche nel badge a sinistra) da mettere DENTRO il testo al posto del
+// crudo "#N" — chiesto: "il 7 per esempio non è comprensibile, al posto
+// del numero mettere il simbolo della pedina corretta". Un "#3" da solo
+// non dice nulla; il disegno della pedina (già usato nei picker Jack/7)
+// invece è lo stesso linguaggio visivo con cui il giocatore la riconosce
+// sul tabellone.
+function pawnInlineIcon(color, pawnIndex) {
+  const wrap = el("span", { class: "log-pawn-inline" });
+  wrap.appendChild(pipIcon(color, pawnIndex, 16));
+  return wrap;
+}
+
+// Spezza il testo sui nomi-colore (grassetto, scuro) e sui riferimenti a
+// una pedina specifica ("#N", non "casaN" — vedi il lookbehind) sostituiti
+// con l'iconcina della pedina vera e propria, invece di lasciare "#N" nudo
+// nel testo. Il colore della pedina è quello dell'ultimo nome-colore
+// incontrato leggendo da sinistra (di norma il soggetto della frase), non
+// necessariamente ripetuto ogni volta — come nella riga del 7, dove dopo
+// "Rosso gioca il 7" seguono "#1", "#3", "#2" senza ripetere "Rosso" per
+// ognuno: sono comunque le SUE pedine.
+function richLogText(line, actorColor) {
   const names = LOG_COLORS.map(colorLabel);
-  const re = new RegExp(`\\b(${names.join("|")})\\b`, "g");
+  const re = new RegExp(`\\b(${names.join("|")})\\b|(?<!casa)#(\\d)\\b`, "g");
   const parts = [];
   let last = 0, m;
+  let activeColor = actorColor || null;
   while ((m = re.exec(line))) {
     if (m.index > last) parts.push(line.slice(last, m.index));
-    parts.push(el("b", {}, m[0]));
+    if (m[1]) {
+      activeColor = LOG_COLORS.find((c) => colorLabel(c) === m[1]) || activeColor;
+      parts.push(el("b", {}, m[1]));
+    } else {
+      const n = parseInt(m[2], 10);
+      if (activeColor && n >= 1 && n <= 4) {
+        parts.push(pawnInlineIcon(activeColor, n - 1));
+      } else {
+        parts.push(m[0]);
+      }
+    }
     last = m.index + m[0].length;
   }
   if (last < line.length) parts.push(line.slice(last));
   return parts;
 }
-
-const LOG_COLORS = ["red", "green", "yellow", "blue"];
 function detectLogColor(line) {
   // pick whichever color name appears EARLIEST in the sentence — that's
   // always the subject/actor of the log line — not just the first color
@@ -11730,7 +11793,7 @@ function fillLogList(list, state) {
         "div",
         { class: "log-line" },
         logEventBadge(line, color),
-        el("span", { class: "log-text" }, boldColorNames(line))
+        el("span", { class: "log-text" }, richLogText(line, color))
       )
     );
   });
