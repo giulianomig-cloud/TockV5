@@ -965,6 +965,7 @@ button.danger:active {
 .sound-test-btn:hover { background: #F3EBD8; border-color: var(--gold); }
 
 #board-wrap {
+  position: relative;
   margin-bottom: 10px;
   padding: 9px;
   border-radius: 26px;
@@ -977,8 +978,10 @@ button.danger:active {
   display: flex;
   align-items: center;
   gap: 8px;
-  /* Stesso padding di .room-team-row/.last-card-line (chiesto di
-     "equilibrare" le tre card: stanza+squadra, carta giocata, turno). */
+  /* Stesso padding di .room-team-row (chiesto di "equilibrare" le card in
+     cima). La carta scartata non è più qui accanto: sta al centro del
+     tabellone (vedi .center-discard), quindi questo campo torna a
+     larghezza piena con tutto lo spazio per il testo del turno. */
   padding: 9px 14px;
   background: var(--panel);
   border: 1.5px solid var(--panel-border);
@@ -1022,49 +1025,40 @@ button.danger:active {
   white-space: nowrap;
 }
 
-.last-card-line {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+/* Carta scartata (ultima giocata) mostrata al centro del tabellone invece
+   che in un riquadro di testo separato (chiesto): un badge ovale
+   sovrapposto al tabellone, con il pallino/iniziale di chi l'ha giocata +
+   la mini-carta. #board-wrap ha position:relative apposta per questo
+   overlay. */
+.center-discard {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
   align-items: center;
-  gap: 9px;
-  /* Stesso padding/raggio/margine di .turn-line, così il riquadro è
-     davvero omogeneo al resto della pila (prima aveva padding e
-     border-radius più piccoli: appariva più basso e "diverso"). La
-     mini-carta sta nella colonna centrale a larghezza fissa, mentre le
-     due colonne laterali (.last-card-info e .last-card-spacer) sono
-     elastiche e uguali: questo centra davvero la carta nel riquadro,
-     non solo il gruppo swatch+testo+carta preso nel suo insieme. Stesso
-     padding verticale di .turn-line/.room-team-row (chiesto di
-     "equilibrare" le tre card). */
-  padding: 9px 14px;
-  margin: 14px 0 10px;
-  font-size: 0.78rem; color: var(--ink);
-  background: var(--panel);
-  border: 1.5px solid var(--panel-border);
-  border-radius: 16px;
+  gap: 6px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 6px 10px 6px 6px;
+  box-shadow: 0 8px 20px -8px rgba(0,0,0,0.4);
+  z-index: 2;
+  pointer-events: none;
 }
-.last-card-info {
-  display: flex; align-items: center; justify-content: flex-end;
-  gap: 9px; min-width: 0;
+.initial-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  box-shadow: inset 0 -2px 3px rgba(0,0,0,0.18);
 }
-.last-card-spacer { min-width: 0; }
-/* Con un nome giocatore lungo, prima "flex-shrink: 0" lo teneva a
-   larghezza piena e il testo finiva per uscire dal riquadro (a sinistra,
-   dato che .last-card-info è ancorato a destra) invece di restare dentro.
-   Va bene anche un nome "normale" + "ha bruciato/giocato:" (es. "Beatrice
-   ha bruciato:") appena più largo della metà del riquadro: qui va su due
-   righe invece di troncare con i puntini, per non perdere l'informazione. */
-.last-card-text {
-  flex-shrink: 1; min-width: 0;
-  overflow-wrap: break-word;
-  text-align: right;
-}
-/* flex-shrink:0 sul pallino colorato: dentro .last-card-info, quando il
-   nome è lungo e lo spazio scarseggia, senza questo il pallino si
-   restringeva SOLO in larghezza (l'altezza fissa 14px no) diventando
-   un ovale schiacciato invece di un cerchio (segnalato: "il punto risulta
-   deformato"). */
-.last-card-info .swatch { flex-shrink: 0; }
 .mini-card {
   position: relative;
   /* Rimpicciolita (era 32x43): con il riquadro reso omogeneo al resto
@@ -5750,7 +5744,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.33";
+const APP_VERSION = "v5.34";
 
 let myColor = null;
 let myRoomId = null;
@@ -9548,6 +9542,7 @@ function onStateChange(state) {
   renderExchangeControls(state);
   const pawnAnimMs = renderPawns(boardSvg, BOARD, state.pawns, state.lastSwap, state.lastCapture, state.lastHomeEntry);
   renderTurnIndicator(state);
+  renderCenterDiscard(state);
   renderPlayerStatus(state);
   renderHand(state);
   renderChat(state);
@@ -9905,10 +9900,14 @@ function renderPlayerStatus(state) {
         : ""
     );
     const dots = miniPawnsRow(state.pawns[c], c);
+    // Nome verso il bordo esterno (schermo), pedine verso il centro/
+    // tabellone (chiesto: "i nomi dei giocatori esterni rispetto le
+    // pedine") — prima era il contrario (pallini all'esterno, nome verso
+    // il centro).
     return el(
       "div",
       { class: `board-player bp-${c}` + (isTurn ? " bp-active" : "") + (isRightSide ? " bp-right" : "") },
-      ...(isRightSide ? [head, dots] : [dots, head])
+      ...(isRightSide ? [dots, head] : [head, dots])
     );
   };
 
@@ -10106,29 +10105,31 @@ function renderTurnIndicator(state) {
       : "",
     el("span", { id: "turn-timer", class: "turn-timer" }, formatElapsed(elapsedNow))
   );
-  // L'ultima carta giocata (da chiunque, non solo dagli avversari) — utile
-  // per non dover aprire il registro (ora chiuso di default) solo per
-  // vedere cos'ha appena giocato un altro giocatore. Mostrata SOPRA
-  // l'indicatore di turno (richiesto esplicitamente) invece che sotto.
-  if (state.lastCardPlayed) {
-    const { color, card, burned } = state.lastCardPlayed;
-    wrap.appendChild(
-      el(
-        "div",
-        { class: "last-card-line" },
-        el(
-          "span",
-          { class: "last-card-info" },
-          el("span", { class: "swatch swatch-" + color }),
-          el("span", { class: "last-card-text" },
-            `${playerName(state, color)} ha ${burned ? "bruciato" : "giocato"}:`)
-        ),
-        miniCardVisual(card, burned),
-        el("span", { class: "last-card-spacer" })
-      )
-    );
-  }
   wrap.appendChild(turnLineEl);
+}
+
+// L'ultima carta giocata (da chiunque, non solo dagli avversari) è mostrata
+// al centro del tabellone invece che in un riquadro di testo a parte
+// (chiesto): un badge con l'iniziale di chi l'ha giocata (colorata) +
+// mini-carta, utile per non dover aprire il registro (ora chiuso di
+// default) solo per vedere cos'ha appena giocato un altro giocatore.
+function renderCenterDiscard(state) {
+  const boardWrap = $("#board-wrap");
+  if (!boardWrap) return;
+  const existing = boardWrap.querySelector(".center-discard");
+  if (existing) existing.remove();
+  if (!state.lastCardPlayed) return;
+  const { color, card, burned } = state.lastCardPlayed;
+  const hex = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" }[color];
+  const initial = (playerName(state, color) || "?").trim().charAt(0).toUpperCase();
+  boardWrap.appendChild(
+    el(
+      "div",
+      { class: "center-discard", title: `${playerName(state, color)} ha ${burned ? "bruciato" : "giocato"}: ${card}` },
+      el("span", { class: "initial-badge", style: `background:${hex};` }, initial),
+      miniCardVisual(card, burned)
+    )
+  );
 }
 
 function miniCardVisual(card, burned) {
