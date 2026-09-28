@@ -1065,10 +1065,15 @@ button.danger:active {
 }
 /* Non più affiancato alla carta (chiesto: "sullo spigolo sinistro della
    carta") — ora agganciato per davvero all'angolo in BASSO a sinistra
-   della mini-carta (chiesto poi di spostarlo lì, era in alto), sovrapposto
-   a metà come un badge di notifica invece di stare di fianco su una riga.
-   Il fuoco (sotto, .mini-card-burn-badge) è salito nell'angolo opposto
-   (in alto a sinistra) per lasciargli il posto. */
+   della mini-carta, sovrapposto a metà come un badge di notifica invece
+   di stare di fianco su una riga. FRATELLO di .mini-card dentro
+   .center-discard (non più suo figlio): dentro .mini-card veniva
+   desaturato insieme alla carta dal filtro grayscale di
+   .mini-card-burned quando bruciata (segnalato: "non si vede bene il
+   colore con la iniziale") — da fratello resta a piena saturazione
+   qualunque sia lo stato della carta. .center-discard non ha
+   padding/margine, quindi le coordinate d'angolo restano identiche a
+   prima. */
 .initial-badge {
   position: absolute;
   bottom: -9px;
@@ -1101,8 +1106,12 @@ button.danger:active {
 }
 .mini-card.suit-red { color: #B03040; }
 .mini-card.suit-black { color: #241C15; }
+/* Angolo in alto a sinistra, come su tutte le carte vere (chiesto) — era
+   stato spostato a destra quando il pallino iniziali stava ancora lassù,
+   ma ora il pallino è sceso in basso a sinistra, quindi l'angolo in alto
+   a sinistra è di nuovo libero. */
 .mini-card-rank {
-  position: absolute; top: 4px; right: 4px;
+  position: absolute; top: 4px; left: 4px;
   font-size: 0.8rem; font-weight: 800; line-height: 1;
 }
 .mini-card.mini-card-burned {
@@ -1111,10 +1120,25 @@ button.danger:active {
 }
 /* Fuoco sull'angolo in basso a destra (chiesto), pallino iniziali su
    quello in basso a sinistra: i due badge stanno affiancati sullo stesso
-   bordo inferiore della carta invece che sui due angoli opposti. */
+   bordo inferiore della carta invece che sui due angoli opposti. Era
+   dentro .mini-card e appena un'emoji nuda senza sfondo (segnalato: "il
+   fuoco è troppo piccolino") — ora un badge tondo vero e proprio, stessa
+   taglia/stile del pallino iniziali, non più solo testo piccolo. */
 .mini-card-burn-badge {
-  position: absolute; bottom: -5px; right: -5px;
-  font-size: 0.68rem;
+  position: absolute;
+  bottom: -7px;
+  right: -7px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.35);
 }
 
 /* Nomi giocatori + pedine "fuori" agli angoli sopra/sotto il tabellone
@@ -1144,7 +1168,14 @@ button.danger:active {
   align-items: center;
   gap: 7px;
   min-width: 0;
-  max-width: 48%;
+  /* Era 48%, un tetto rigido uguale per i due lati indipendentemente da
+     quanto serva davvero all'altro — quando un lato porta anche il
+     distintivo mazziere (più largo) il nome finiva troncato via presto
+     ("Guglie...", segnalato) anche se l'altro lato (senza distintivo)
+     lasciava spazio libero inutilizzato. Alzato per lasciare che un nome
+     lungo prenda più posto quando l'altro giocatore ne occupa meno —
+     space-between sul contenitore non fa comunque toccare i due lati. */
+  max-width: 66%;
 }
 .board-player.bp-right { justify-content: flex-end; }
 /* Senza un min-width esplicito, in flexbox un elemento con overflow:hidden
@@ -5842,7 +5873,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.44";
+const APP_VERSION = "v5.48";
 
 let myColor = null;
 let myRoomId = null;
@@ -10015,6 +10046,12 @@ function renderPlayerStatus(state) {
   if (state.phase !== "playing" && state.phase !== "exchanging") return;
 
   const buildPlayer = (c, isRightSide) => {
+    // Solo il giocatore di TURNO va sottolineato (chiesto esplicitamente:
+    // "la sottolineatura deve stare solamente sotto al giocatore di
+    // turno") — durante "exchanging" (scambio alla cieca) non c'è un
+    // turno singolo, quindi in quella fase nessuno è sottolineato: era
+    // stato provato a estenderla a "chi è ancora in attesa" nello scambio,
+    // ma non è quello che serve qui, tornato indietro.
     const isTurn = state.phase === "playing" && state.turnColor === c;
     // Mentre state.dealerDraw è presente, l'estrazione del mazziere (Asso di
     // Cuori) sta ancora animandosi in sovraimpressione (vedi
@@ -10274,17 +10311,21 @@ function renderCenterDiscard(state) {
   const { color, card, burned } = state.lastCardPlayed;
   const hex = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" }[color];
   const initial = (playerName(state, color) || "?").trim().charAt(0).toUpperCase();
-  // Il pallino iniziali non è più di fianco alla carta ma agganciato al suo
-  // angolo in alto a sinistra (chiesto: "sullo spigolo sinistro della
-  // carta") — quindi va dentro .mini-card (che è position:relative), non
-  // più come elemento fratello in .center-discard.
-  const cardEl = miniCardVisual(card, burned);
-  cardEl.appendChild(el("span", { class: "initial-badge", style: `background:${hex};` }, initial));
+  // Pallino iniziali e fuoco sono FRATELLI della carta dentro
+  // .center-discard, non più figli di .mini-card: dentro .mini-card il
+  // filtro grayscale di .mini-card-burned li desaturava insieme alla
+  // carta quando bruciata (segnalato: "non si vede bene il colore con la
+  // iniziale") — da fratelli restano a piena saturazione. .center-discard
+  // non ha padding/margine, quindi gli angoli combaciano comunque con
+  // quelli della mini-carta (vedi i commenti su .initial-badge/
+  // .mini-card-burn-badge in CSS).
   boardWrap.appendChild(
     el(
       "div",
       { class: "center-discard", title: `${playerName(state, color)} ha ${burned ? "bruciato" : "giocato"}: ${card}` },
-      cardEl
+      miniCardVisual(card, burned),
+      el("span", { class: "initial-badge", style: `background:${hex};` }, initial),
+      burned ? el("span", { class: "mini-card-burn-badge" }, "🔥") : ""
     )
   );
 }
@@ -10301,8 +10342,7 @@ function miniCardVisual(card, burned) {
     "span",
     { class: "mini-card " + (isRed ? "suit-red" : "suit-black") + (burned ? " mini-card-burned" : "") },
     el("span", { class: "mini-card-rank" }, r),
-    icon,
-    burned ? el("span", { class: "mini-card-burn-badge" }, "🔥") : ""
+    icon
   );
 }
 
