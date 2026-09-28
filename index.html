@@ -4116,9 +4116,17 @@ async function tryClaimTournamentTableCredit(state) {
     const updates = {};
     for (const c of winners) {
       const p = state.players && state.players[c];
-      if (!p || p.isBot || !p.playerId) continue;
+      // Un bot FISSO (aggiunto dall'organizzatore in fase di iscrizione) ha
+      // un playerId stabile e va in classifica come chiunque altro
+      // (richiesto: "i bot rimangono fissi... devono essere messi in
+      // classifica") — solo i bot "usa e getta" che riempiono un posto
+      // scoperto restano esclusi, ma quelli non hanno mai un playerId, quindi
+      // basta il controllo su p.playerId, niente più bisogno di escludere
+      // isBot a parte.
+      if (!p || !p.playerId) continue;
       updates["tournaments/" + state.torneo.code + "/classifica/" + p.playerId + "/vittorie"] = firebase.database.ServerValue.increment(1);
       updates["tournaments/" + state.torneo.code + "/classifica/" + p.playerId + "/nome"] = p.name;
+      updates["tournaments/" + state.torneo.code + "/classifica/" + p.playerId + "/isBot"] = !!p.isBot;
     }
     if (Object.keys(updates).length > 0) await db.ref().update(updates);
   } catch (e) {
@@ -4250,6 +4258,112 @@ async function joinTournament(code, playerId, nome, coppiaConId) {
   return { ok: true, tournament: result.snapshot.val() };
 }
 
+// Aggiunge un bot FISSO agli iscritti (solo l'organizzatore) — diverso dai
+// bot che riempiono automaticamente i posti scoperti ad ogni round (nome
+// casuale diverso ogni volta, nessun playerId, esclusi dalla classifica: vedi
+// buildTableGameState/tryClaimTournamentTableCredit): questo bot entra in
+// `iscritti`/`ordine` con un playerId stabile e un nome fisso, quindi resta
+// lo stesso "giocatore" round dopo round e accumula vittorie in classifica
+// come una persona vera (richiesto: "i bot rimangono fissi come fossero
+// giocatori e devono essere messi in classifica").
+async function addBotToTournament(code, botLevel) {
+  const level = botLevel === "easy" ? "easy" : "hard";
+  let blockedReason = null;
+  const result = await tournamentsRef()
+    .child(code)
+    .transaction((cur) => {
+      blockedReason = null;
+      if (!cur) {
+        blockedReason = "notFound";
+        return cur;
+      }
+      if (!cur.iscritti) cur.iscritti = {};
+      if (!Array.isArray(cur.ordine)) cur.ordine = [];
+      if (cur.formato === "rotante_8" && Object.keys(cur.iscritti).length >= 8) {
+        blockedReason = "full";
+        return cur;
+      }
+      const usedNames = Object.values(cur.iscritti).map((p) => p.nome);
+      const botId = "bot-" + Math.random().toString(36).slice(2, 10);
+      cur.iscritti[botId] = {
+        nome: pickBotName(usedNames),
+        isBot: true,
+        botLevel: level,
+        presente_stasera: false,
+        coppiaConId: null,
+      };
+      cur.ordine.push(botId);
+      return cur;
+    });
+  if (blockedReason) return { ok: false, reason: blockedReason };
+  if (!result.committed) return { ok: false, reason: "error" };
+  return { ok: true };
+}
+
+// Toglie un bot fisso dagli iscritti (solo l'organizzatore) — non tocca i
+// tavoli/round già generati in passato (restano con lo storico nomi/esiti che
+// avevano), solo le iscrizioni per i round futuri: stesso comportamento di
+// quando un iscritto umano lascia il torneo. Se il bot era il compagno di
+// qualcuno (formato "coppie fisse", vedi assignBotAsPartner), scioglie anche
+// il lato umano della coppia — altrimenti resterebbe agganciato a un
+// compagno sparito, invece di tornare "senza coppia" e riassegnabile.
+async function removeBotFromTournament(code, botId) {
+  await tournamentsRef()
+    .child(code)
+    .transaction((cur) => {
+      if (!cur || !cur.iscritti || !cur.iscritti[botId] || !cur.iscritti[botId].isBot) return cur;
+      const partnerId = cur.iscritti[botId].coppiaConId;
+      delete cur.iscritti[botId];
+      if (partnerId && cur.iscritti[partnerId] && cur.iscritti[partnerId].coppiaConId === botId) {
+        cur.iscritti[partnerId].coppiaConId = null;
+      }
+      if (Array.isArray(cur.ordine)) cur.ordine = cur.ordine.filter((id) => id !== botId);
+      return cur;
+    });
+}
+
+// Assegna un bot FISSO come compagno di un iscritto senza coppia — pensato
+// per il formato "coppie fisse", dove a differenza di "tutti con tutti" un
+// bot da solo non serve a nulla: i tavoli si formano solo abbinando coppie
+// dichiarate (coppiaConId, vedi buildCoppieFisseTables), quindi il bot deve
+// avere qualcuno come compagno per finire davvero a un tavolo. Il
+// collegamento è bidirezionale, come tra due iscritti umani (vedi
+// joinTournament) — richiesto: "facciamo che assegna l'organizzatore per
+// ora" (invece di farli accoppiare in automatico tra loro).
+async function assignBotAsPartner(code, humanId, botLevel) {
+  const level = botLevel === "easy" ? "easy" : "hard";
+  let blockedReason = null;
+  const result = await tournamentsRef()
+    .child(code)
+    .transaction((cur) => {
+      blockedReason = null;
+      if (!cur || !cur.iscritti || !cur.iscritti[humanId]) {
+        blockedReason = "notFound";
+        return cur;
+      }
+      if (cur.iscritti[humanId].coppiaConId) {
+        blockedReason = "giaInCoppia";
+        return cur;
+      }
+      if (!Array.isArray(cur.ordine)) cur.ordine = [];
+      const usedNames = Object.values(cur.iscritti).map((p) => p.nome);
+      const botId = "bot-" + Math.random().toString(36).slice(2, 10);
+      cur.iscritti[botId] = {
+        nome: pickBotName(usedNames),
+        isBot: true,
+        botLevel: level,
+        presente_stasera: false,
+        coppiaConId: humanId,
+      };
+      cur.iscritti[humanId].coppiaConId = botId;
+      cur.ordine.push(botId);
+      return cur;
+    });
+  if (blockedReason) return { ok: false, reason: blockedReason };
+  if (!result.committed) return { ok: false, reason: "error" };
+  return { ok: true };
+}
+
 async function loadTournament(code) {
   const snap = await tournamentsRef().child(code).get();
   return snap.val();
@@ -4323,8 +4437,10 @@ function buildTableGameState(posti, tournCode, roundNum, tableIdx) {
   colorOrder.forEach((color, i) => {
     const posto = posti[i];
     if (posto) {
-      players[color] = { name: posto.nome, token: "torneo-" + posto.playerId, playerId: posto.playerId };
-      giocatori.push({ playerId: posto.playerId, nome: posto.nome, colore: color });
+      players[color] = posto.isBot
+        ? { name: posto.nome, token: "torneo-bot-" + posto.playerId, playerId: posto.playerId, isBot: true, botLevel: posto.botLevel || "hard" }
+        : { name: posto.nome, token: "torneo-" + posto.playerId, playerId: posto.playerId };
+      giocatori.push({ playerId: posto.playerId, nome: posto.nome, colore: color, bot: !!posto.isBot });
     } else {
       const botName = pickBotName(usedNames.concat(Object.values(players).map((p) => p.name)));
       players[color] = { name: botName, token: "BOT-" + color, isBot: true, botLevel: "hard" };
@@ -4347,7 +4463,10 @@ function buildRotante8Tables(tournament, roundIndex1Based) {
     const playerId = ordine[n - 1];
     if (!playerId) return null;
     const p = tournament.iscritti && tournament.iscritti[playerId];
-    return p ? { playerId, nome: p.nome } : null;
+    // isBot/botLevel passati fino a buildTableGameState: un bot fisso
+    // (aggiunto dall'organizzatore) va distinto dai posti scoperti che
+    // buildTableGameState riempie da sé con un bot "usa e getta".
+    return p ? { playerId, nome: p.nome, isBot: !!p.isBot, botLevel: p.botLevel } : null;
   };
   return schedule.map(([a1, a2, b1, b2]) => [postoOf(a1), postoOf(a2), postoOf(b1), postoOf(b2)]);
 }
@@ -4374,7 +4493,18 @@ function buildCoppieFisseTables(tournament) {
     // per primo, così l'etichetta "idA|idB" nello storico è sempre la
     // stessa indipendentemente da chi si è iscritto per primo.
     const [p1, p2] = id < partnerId ? [id, partnerId] : [partnerId, id];
-    couples.push({ id: p1 + "+" + p2, players: [{ playerId: p1, nome: iscritti[p1].nome }, { playerId: p2, nome: iscritti[p2].nome }] });
+    // isBot/botLevel passati fino a buildTableGameState, stesso schema di
+    // buildRotante8Tables — altrimenti un bot fisso assegnato come compagno
+    // (assignBotAsPartner) arriverebbe al tavolo segnato come umano, e
+    // sfuggirebbe sia al pilota automatico (scheduleBotAction controlla
+    // state.players[c].isBot) sia al marcatore 🤖 in classifica.
+    couples.push({
+      id: p1 + "+" + p2,
+      players: [
+        { playerId: p1, nome: iscritti[p1].nome, isBot: !!iscritti[p1].isBot, botLevel: iscritti[p1].botLevel },
+        { playerId: p2, nome: iscritti[p2].nome, isBot: !!iscritti[p2].isBot, botLevel: iscritti[p2].botLevel },
+      ],
+    });
   }
   const storico = tournament.storicoAccoppiamenti || {};
   const timesPlayed = (a, b) => {
@@ -5887,7 +6017,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.53";
+const APP_VERSION = "v5.55";
 
 let myColor = null;
 let myRoomId = null;
@@ -6401,7 +6531,7 @@ function renderTournamentLobby(code) {
     }
 
     const classifica = Object.entries(t.classifica || {})
-      .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0 }))
+      .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, isBot: !!(p && p.isBot) }))
       .sort((a, b) => b.vittorie - a.vittorie || a.nome.localeCompare(b.nome, "it"));
     if (classifica.length > 0) {
       body.appendChild(el("p", { class: "step-label" }, "Classifica del torneo"));
@@ -6414,7 +6544,7 @@ function renderTournamentLobby(code) {
               "div",
               { class: "leaderboard-row" },
               el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
-              el("span", { class: "leaderboard-name" }, p.nome),
+              el("span", { class: "leaderboard-name" }, (p.isBot ? "🤖 " : "") + p.nome),
               el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie"))
             )
           )
@@ -6429,16 +6559,52 @@ function renderTournamentLobby(code) {
         { class: "leaderboard-list" },
         iscritti.length === 0
           ? el("p", { class: "muted" }, "Ancora nessun iscritto.")
-          : iscritti.map((p) =>
-              el(
+          : iscritti.map((p) => {
+              const isCoppieFisse = t.formato === "coppie_fisse";
+              const senzaCoppia = isCoppieFisse && !p.isBot && !p.coppiaConId;
+              return el(
                 "div",
-                { class: "leaderboard-row" },
-                el("span", { class: "leaderboard-name" }, p.nome + (p.id === myPlayerId ? " (tu)" : "")),
-                p.coppiaConId && t.iscritti[p.coppiaConId] ? el("span", { class: "leaderboard-wins" }, "con " + t.iscritti[p.coppiaConId].nome) : ""
-              )
-            )
+                { class: "leaderboard-row", style: senzaCoppia && isOrganizer ? "flex-wrap:wrap;" : "" },
+                el("span", { class: "leaderboard-name" }, (p.isBot ? "🤖 " : "") + p.nome + (p.id === myPlayerId ? " (tu)" : "")),
+                p.coppiaConId && t.iscritti[p.coppiaConId] ? el("span", { class: "leaderboard-wins" }, "con " + t.iscritti[p.coppiaConId].nome) : "",
+                isOrganizer && p.isBot
+                  ? el(
+                      "button",
+                      { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleRemoveBotFromTournament(code, p.id) },
+                      "✕"
+                    )
+                  : "",
+                // Un iscritto umano senza compagno, in un torneo a coppie
+                // fisse, non entra mai a un tavolo (buildCoppieFisseTables
+                // abbina solo coppie dichiarate) — l'organizzatore può
+                // dargli un bot come compagno (richiesto: "assegna
+                // l'organizzatore", invece di un abbinamento automatico).
+                senzaCoppia && isOrganizer
+                  ? el(
+                      "div",
+                      { class: "bot-btn-row", style: "width:100%; margin-top:6px;" },
+                      el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "easy") }, "🤖 Compagno normale"),
+                      el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "hard") }, "🤖 Compagno difficile")
+                    )
+                  : ""
+              );
+            })
       )
     );
+    if (isOrganizer && t.formato === "rotante_8") {
+      body.appendChild(
+        el(
+          "div",
+          { class: "bot-btn-row", style: "margin-top:8px;" },
+          el("button", { class: "bot-btn", onclick: () => handleAddBotToTournament(code, "easy") }, "🤖 Aggiungi bot normale"),
+          el("button", { class: "bot-btn", onclick: () => handleAddBotToTournament(code, "hard") }, "🤖 Aggiungi bot difficile")
+        )
+      );
+      body.appendChild(
+        el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" },
+          "A differenza dei bot che riempiono automaticamente i posti scoperti, questi restano fissi round dopo round ed entrano in classifica.")
+      );
+    }
     if (!isOrganizer) {
       body.appendChild(
         el(
@@ -6482,6 +6648,34 @@ async function handleAvviaRound(code, hasCurrentRound) {
     return showToast("Non riesco ad avviare il round, riprova.");
   }
   showToast(`Round ${result.round} avviato!`);
+}
+
+// L'organizzatore aggiunge/toglie un bot fisso dagli iscritti (vedi
+// addBotToTournament/removeBotFromTournament) — il torneo è realtime
+// (tournamentsRef().on("value", ...) in renderTournamentLobby), quindi non
+// serve ri-renderizzare esplicitamente qui: l'aggiornamento arriva da solo.
+async function handleAddBotToTournament(code, level) {
+  const result = await addBotToTournament(code, level);
+  if (!result.ok) {
+    if (result.reason === "full") return showToast("Il torneo ha già raggiunto il massimo di 8 iscritti.");
+    return showToast("Non riesco ad aggiungere il bot, riprova.");
+  }
+}
+
+async function handleRemoveBotFromTournament(code, botId) {
+  try {
+    await removeBotFromTournament(code, botId);
+  } catch (e) {
+    showToast("Non riesco a togliere il bot, riprova.");
+  }
+}
+
+async function handleAssignBotAsPartner(code, humanId, level) {
+  const result = await assignBotAsPartner(code, humanId, level);
+  if (!result.ok) {
+    if (result.reason === "giaInCoppia") return showToast("Questo iscritto ha già un compagno.");
+    return showToast("Non riesco ad assegnare il bot come compagno, riprova.");
+  }
 }
 
 // L'organizzatore rigenera i tavoli del round corrente (es. ha sbagliato
