@@ -792,30 +792,38 @@ button.danger:active {
   filter: brightness(0.9);
 }
 
-/* Riga in cima: solo i pulsanti menu, centrati — il codice stanza è
-   stato spostato nella riga sotto (.room-team-row), unito alla squadra
-   (chiesto: prima, convivendo con 8 icone sulla stessa riga, il codice
-   stanza veniva troncato con "..." su schermi stretti). */
+/* Riga in cima: riferimento di build a sinistra (corto e a larghezza
+   fissa, non trocca mai — a differenza del codice stanza, spostato nella
+   riga sotto .room-team-row insieme alla squadra, vedi il commento lì)
+   e i pulsanti menu a destra. */
 .top-actions-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 10px;
 }
-.top-actions-icons { display: flex; gap: 4px; flex-shrink: 0; }
+.build-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+.top-actions-icons { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
 /* Stanza + squadra unite in un'unica pillola arrotondata, divisa in due
-   metà affiancate (overflow:hidden sul contenitore esterno fa sì che i
-   bordi arrotondati restino condivisi anche se le due metà hanno sfondi
-   diversi): "Stanza" a sfondo pieno neutro — ora su una riga tutta sua,
-   niente più troncamento — e "Squadra" con la sfumatura dei due colori
-   (vedi teamBgClass/--team-a-gradient/--team-b-gradient), voluta più
-   marcata apposta per risaltare accanto alla metà neutra. */
+   metà affiancate da una riga verticale (overflow:hidden sul contenitore
+   esterno fa sì che i bordi arrotondati restino condivisi). Entrambe le
+   metà a sfondo pieno neutro — tolta la sfumatura colorata dalla metà
+   "Squadra" (chiesto): bastano i due pallini a dire la squadra, senza
+   colorare tutto il riquadro. Stessa altezza/padding di .turn-line e
+   .last-card-line sotto (chiesto di "equilibrare" le tre card). */
 .room-team-row {
   display: flex;
   align-items: stretch;
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid var(--panel-border);
+  border: 1.5px solid var(--panel-border);
   margin-bottom: 10px;
 }
 .room-team-room {
@@ -826,7 +834,7 @@ button.danger:active {
   min-width: 0;
   flex-shrink: 0;
   background: var(--panel);
-  padding: 8px 14px;
+  padding: 9px 14px;
 }
 .room-team-room-label {
   font-size: 0.6rem;
@@ -853,9 +861,13 @@ button.danger:active {
   font-size: 0.82rem;
   font-weight: 700;
   padding: 9px 14px;
+  background: var(--panel);
+  border-left: 1px solid var(--panel-border);
 }
-.room-team-team.team-a-bg { background: var(--team-a-gradient); }
-.room-team-team.team-b-bg { background: var(--team-b-gradient); }
+/* Le classi team-a-bg/team-b-bg restano applicate dal JS (teamBgClass) ma
+   non colorano più nulla: la sfumatura è stata tolta (chiesto), bastano i
+   due pallini a indicare la squadra. Tenute per non toccare il JS. */
+.room-team-team.team-a-bg, .room-team-team.team-b-bg { background: var(--panel); }
 .identity-team {
   font-size: 0.86rem;
   font-weight: 800;
@@ -965,7 +977,9 @@ button.danger:active {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 14px;
+  /* Stesso padding di .room-team-row/.last-card-line (chiesto di
+     "equilibrare" le tre card: stanza+squadra, carta giocata, turno). */
+  padding: 9px 14px;
   background: var(--panel);
   border: 1.5px solid var(--panel-border);
   border-radius: 16px;
@@ -1019,8 +1033,10 @@ button.danger:active {
      mini-carta sta nella colonna centrale a larghezza fissa, mentre le
      due colonne laterali (.last-card-info e .last-card-spacer) sono
      elastiche e uguali: questo centra davvero la carta nel riquadro,
-     non solo il gruppo swatch+testo+carta preso nel suo insieme. */
-  padding: 8px 14px;
+     non solo il gruppo swatch+testo+carta preso nel suo insieme. Stesso
+     padding verticale di .turn-line/.room-team-row (chiesto di
+     "equilibrare" le tre card). */
+  padding: 9px 14px;
   margin: 14px 0 10px;
   font-size: 0.78rem; color: var(--ink);
   background: var(--panel);
@@ -5734,7 +5750,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.31";
+const APP_VERSION = "v5.33";
 
 let myColor = null;
 let myRoomId = null;
@@ -8088,6 +8104,11 @@ function renderGameShell() {
       el(
         "div",
         { class: "top-actions-row" },
+        // Riferimento di build ben visibile (chiesto) invece che solo in
+        // fondo alla lobby (.app-meta) — utile durante una partita per
+        // capire al volo se un client è rimasto su una versione vecchia,
+        // senza dover aprire il menu/scorrere fino in fondo.
+        el("span", { class: "build-tag" }, APP_VERSION),
         el(
           "div",
           { class: "top-actions-icons" },
@@ -9963,18 +9984,47 @@ function dealerBadge(handsLeft) {
   );
 }
 
-// Four small dots per player, one per pawn: hollow = still in base (not in
-// play), filled = out on the board (loop or home) — shows the exact pawn
-// count at a glance instead of a text tally.
+// Four small dots per player, uno per pedina, con 3 stati distinti (chiesto:
+// "indica però solo le pedine che sono fuori" — cioè la pedina in gioco sul
+// tabellone deve risaltare più delle altre due condizioni):
+//  - base  (pos === -1): ancora in casa, non ancora entrata — solo contorno,
+//    quasi trasparente, non deve attirare l'occhio.
+//  - fuori (0 <= pos < 1000): in gioco sul tabellone — piena, con un piccolo
+//    effetto lucido (gradiente radiale) per risaltare, è lo stato da mettere
+//    in evidenza.
+//  - casa  (pos >= 1000): arrivata — piena ma smorzata (opacità ridotta) e
+//    con un puntino bianco al centro, così resta distinguibile da "fuori"
+//    pur non confondendosi con "base".
 function miniPawnsRow(pawnPositions, color) {
   const hex = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" }[color];
+  const darkHex = { red: "#B8434B", green: "#29765A", yellow: "#B3801E", blue: "#2A6B98" }[color];
   const ns = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(ns, "svg");
   svg.setAttribute("viewBox", "0 0 100 22");
   svg.setAttribute("class", "mini-pawns");
-  // Ordinate per stato (in gioco/in casa prima, in base — vuote — sempre
-  // in fondo) invece che per indice pedina: senza questo le pedine piene e
-  // vuote saltavano fuori mischiate in ordine diverso riga per riga
+  const defs = document.createElementNS(ns, "defs");
+  const gradId = "pawn-grad-" + color + "-" + Math.random().toString(36).slice(2, 8);
+  const grad = document.createElementNS(ns, "radialGradient");
+  grad.setAttribute("id", gradId);
+  grad.setAttribute("cx", "33%");
+  grad.setAttribute("cy", "28%");
+  grad.setAttribute("r", "75%");
+  const stops = [
+    ["0%", "#ffffff"],
+    ["52%", hex],
+    ["100%", darkHex],
+  ];
+  stops.forEach(([offset, stopColor]) => {
+    const stop = document.createElementNS(ns, "stop");
+    stop.setAttribute("offset", offset);
+    stop.setAttribute("stop-color", stopColor);
+    grad.appendChild(stop);
+  });
+  defs.appendChild(grad);
+  svg.appendChild(defs);
+  // Ordinate per stato (fuori/in casa prima, in base — le più spente —
+  // sempre in fondo) invece che per indice pedina: senza questo le pedine
+  // piene e vuote saltavano fuori mischiate in ordine diverso riga per riga
   // (segnalato: "non così sparso"), rendendo scomodo confrontare a colpo
   // d'occhio quante ne ha in gioco ciascun giocatore. Sort stabile: a
   // parità di stato, l'ordine tra loro resta quello originale.
@@ -9983,15 +10033,25 @@ function miniPawnsRow(pawnPositions, color) {
     .sort((a, b) => (a.pos === -1 ? 1 : 0) - (b.pos === -1 ? 1 : 0));
   ordered.forEach(({ pos }, i) => {
     const cx = 12 + i * 25;
-    const inPlay = pos !== -1;
+    const inBase = pos === -1;
     const home = pos >= 1000;
+    const out = !inBase && !home;
     const c = document.createElementNS(ns, "circle");
     c.setAttribute("cx", cx);
     c.setAttribute("cy", 11);
     c.setAttribute("r", 8);
-    c.setAttribute("fill", inPlay ? hex : "#ffffff");
+    if (out) {
+      c.setAttribute("fill", `url(#${gradId})`);
+    } else if (home) {
+      c.setAttribute("fill", hex);
+      c.setAttribute("fill-opacity", "0.55");
+    } else {
+      c.setAttribute("fill", "none");
+      c.setAttribute("fill-opacity", "0.32");
+    }
     c.setAttribute("stroke", hex);
     c.setAttribute("stroke-width", 2.2);
+    c.setAttribute("stroke-opacity", inBase ? "0.32" : "1");
     svg.appendChild(c);
     if (home) {
       const dot = document.createElementNS(ns, "circle");
