@@ -6147,7 +6147,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.65";
+const APP_VERSION = "v5.67";
 
 let myColor = null;
 let myRoomId = null;
@@ -9062,6 +9062,18 @@ function unlockAudio() {
   }
 }
 
+// Sblocca l'audio al PRIMO tocco qualsiasi nell'app, non solo quando si entra
+// in una stanza: entrando in un tavolo di torneo (o rientrando in una
+// partita) non passava da nessuna delle funzioni che chiamano unlockAudio(),
+// quindi audioCtx restava null e ogni suono veniva scartato in silenzio —
+// e nemmeno il tasto altoparlante lo risolveva. Per riavere l'audio bisognava
+// tornare alla home ed entrare da una stanza normale. "click" e "touchend"
+// (non "touchstart"/"pointerdown") perché sono i gesti che iOS accetta per
+// sbloccare l'audio. Resta attivo: a ogni tocco riattiva un contesto sospeso.
+["click", "touchend"].forEach((evt) =>
+  document.addEventListener(evt, () => unlockAudio(), { capture: true, passive: true })
+);
+
 function beep(freq, startDelay, durationMs, type, gainPeak) {
   if (!audioCtx) return;
   const t0 = audioCtx.currentTime + startDelay;
@@ -9130,7 +9142,7 @@ function testSound() {
 
 // Tracks the last event of each kind this client has already reacted to,
 // so a sound plays exactly once per event, never replayed after a reload.
-const soundTracker = { turnColor: null, captureId: null, swapId: null, chatCount: null, finished: false };
+const soundTracker = { roomId: null, turnColor: null, captureId: null, swapId: null, chatCount: null, finished: false };
 
 // Feedback aptico (vibrazione) per gli eventi chiave — un tocco fisico in
 // più oltre al suono, utile soprattutto su mobile quando non si sta
@@ -9172,6 +9184,20 @@ document.addEventListener("visibilitychange", () => {
 });
 
 function maybePlaySounds(state) {
+  // soundTracker è globale: cambiando stanza/tavolo (es. il round successivo
+  // di un torneo) manteneva i contatori dell'altra — la chat restava "muta"
+  // finché non superava il numero di messaggi del tavolo precedente, e
+  // turno/mangiate/scambi venivano confrontati con quelli della stanza
+  // vecchia. Ad ogni cambio di stanza si riparte da zero (nuova linea di
+  // base, senza suoni per lo stato già presente).
+  if (soundTracker.roomId !== myRoomId) {
+    soundTracker.roomId = myRoomId;
+    soundTracker.turnColor = null;
+    soundTracker.captureId = null;
+    soundTracker.swapId = null;
+    soundTracker.chatCount = null;
+    soundTracker.finished = false;
+  }
   if (state.phase === "playing") {
     if (soundTracker.turnColor === null) {
       soundTracker.turnColor = state.turnColor; // baseline on first sight, no sound
