@@ -1765,6 +1765,19 @@ button.secondary.selected {
    anche l'anteprima dell'ultimo messaggio (vedi .chat-preview) — leggibile
    subito, senza dover aprire il foglio, che resta comunque un tocco via
    per "ingrandirla" (chiesto). */
+.reaction-bar { display: flex; gap: 6px; justify-content: space-between; margin: -2px 0 10px; }
+.nudge-row { display: flex; gap: 6px; margin: -4px 0 10px; }
+.nudge-row .nudge-btn { margin: 0; }
+.nudge-call { flex: 0 0 34%; }
+.nudge-btn { width: 100%; margin: -4px 0 10px; padding: 7px; border-radius: 12px; border: 1px dashed var(--line, rgba(0,0,0,0.25)); background: transparent; color: var(--muted); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+.nudge-btn:active { transform: scale(0.97); }
+.reaction-btn { flex: 1; font-size: 1.25rem; line-height: 1; padding: 7px 0; border-radius: 12px; border: 1px solid var(--line, rgba(0,0,0,0.12)); background: rgba(255,255,255,0.6); cursor: pointer; }
+.reaction-btn:active { transform: scale(0.88); }
+.reaction-float { position: fixed; bottom: 22%; z-index: 9999; pointer-events: none; text-align: center; animation: reactionUp 2.2s ease-out forwards; }
+.reaction-emoji { font-size: 3.2rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
+.reaction-who { font-size: 0.7rem; font-weight: 800; padding: 1px 8px; border-radius: 10px; background: rgba(0,0,0,0.65); color: #fff; display: inline-block; }
+@keyframes reactionUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 15% { transform: translateY(-20px) scale(1.15); opacity: 1; } 100% { transform: translateY(-190px) scale(1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .reaction-float { animation-duration: 1.5s; } }
 .chat-fab-row { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-bottom: 10px; }
 .chat-preview {
   flex: 1;
@@ -1890,6 +1903,10 @@ button.secondary.selected {
 }
 .win-team-dots { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
 .win-team-dots span { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+.win-awards { margin: 0 0 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.win-award { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; background: rgba(0,0,0,0.05); font-size: 0.85rem; }
+.win-award-ico { font-size: 1.3rem; }
+.win-award em { font-style: normal; color: var(--muted); }
 .win-banner h2 { margin: 0 0 4px; font-size: 1.3rem; }
 .win-names { margin: 0 0 20px; font-size: 0.82rem; font-weight: 600; color: var(--muted-3); }
 @keyframes winPop {
@@ -3259,6 +3276,7 @@ function applyJackSwap(state, a, b, active) {
   // compatibilità con le simulazioni interne del bot, che scartano il log.
   const actorPrefix = active ? `${cn(active)} gioca un Jack: ` : `scambio (Jack) tra `;
   state.log.push(`${actorPrefix}${cn(a.color)}#${a.pawnIndex + 1} (${posLabel(a.color, posA)}→${posLabel(a.color, posB)}) e ${cn(b.color)}#${b.pawnIndex + 1} (${posLabel(b.color, posB)}→${posLabel(b.color, posA)}).`);
+  bumpStat(state, "swaps", active);
   // recorded so every client can flash/highlight the swap on the board
   state.lastSwap = {
     id: (state.lastSwap && state.lastSwap.id ? state.lastSwap.id : 0) + 1,
@@ -3638,7 +3656,18 @@ function applySevenDistribution(state, color, distribution) {
 
 // Records the last capture so every client can flash it on the board —
 // same mechanism as lastSwap for the Jack.
+function bumpStat(state, kind, color) {
+  if (!color) return;
+  if (!state.stats) state.stats = {};
+  if (!state.stats[kind]) state.stats[kind] = {};
+  state.stats[kind][color] = (state.stats[kind][color] || 0) + 1;
+}
+
 function recordCapture(state, occ, atPos, byColor) {
+  if (byColor && byColor !== occ.color) {
+    bumpStat(state, "capt", byColor);
+    bumpStat(state, "lost", occ.color);
+  }
   state.lastCapture = {
     id: (state.lastCapture && state.lastCapture.id ? state.lastCapture.id : 0) + 1,
     ts: Date.now(),
@@ -3872,6 +3901,7 @@ function resetForNewGame(state) {
   state.pendingExchange = {};
   state.log = ["Nuova partita nella stessa stanza."];
   state.winnerTeam = null;
+  state.stats = null;
   state.lastSwap = null;
   state.lastCapture = null;
   state.lastHomeEntry = null;
@@ -4236,6 +4266,57 @@ async function createTournament(code, formato) {
 // (permette di correggere/ripetere senza creare doppioni). Per il formato
 // "rotante_8" rifiuta il decimo iscritto in più (limite fisso a 8, vedi
 // roadmap) — per "coppie_fisse" nessun limite.
+// Bot "automatici": i posti ancora vuoti di un torneo "tutti con tutti" al
+// momento dell'avvio vengono riempiti con bot FISSI (stesso nome e stesso
+// playerId round dopo round, in classifica come giocatori veri) invece di bot
+// usa e getta con un nome nuovo ogni volta (richiesto: "i bot non dovevano
+// essere sempre gli stessi quando si faceva un torneo?"). Sono marcati
+// id "bot-auto-…" perché cedono il posto: se poi si iscrive una persona (o
+// l'organizzatore aggiunge un bot a sua scelta) e il torneo è "pieno", prende
+// il posto di un bot automatico (stessa posizione in `ordine`).
+function replaceAutoBotSeat(cur, newId) {
+  const autoId = Object.keys(cur.iscritti).find((id) => id.indexOf("bot-auto-") === 0 && cur.iscritti[id]);
+  if (!autoId) return false;
+  const idx = cur.ordine.indexOf(autoId);
+  delete cur.iscritti[autoId];
+  if (idx >= 0) cur.ordine[idx] = newId;
+  else cur.ordine.push(newId);
+  return true;
+}
+
+async function fillRotante8WithBots(code) {
+  try {
+    await fillRotante8WithBotsInner(code);
+  } catch (e) {
+    // Non bloccare il round: in caso di errore restano i bot usa e getta.
+    console.warn("fillRotante8WithBots fallito", e);
+  }
+}
+async function fillRotante8WithBotsInner(code) {
+  await tournamentsRef()
+    .child(code)
+    .transaction((cur) => {
+      if (!cur || cur.formato !== "rotante_8") return cur;
+      if (!cur.iscritti) cur.iscritti = {};
+      if (!Array.isArray(cur.ordine)) cur.ordine = [];
+      while (Object.keys(cur.iscritti).length < 8) {
+        const usedNames = Object.values(cur.iscritti).map((p) => p.nome);
+        // Bot automatico riconoscibile dal prefisso dell'id (NON da un campo
+        // nuovo: le regole Firebase rifiutano campi extra -> permission_denied).
+        const botId = "bot-auto-" + Math.random().toString(36).slice(2, 10);
+        cur.iscritti[botId] = {
+          nome: pickBotName(usedNames),
+          isBot: true,
+          botLevel: "hard",
+          presente_stasera: false,
+          coppiaConId: null,
+        };
+        cur.ordine.push(botId);
+      }
+      return cur;
+    });
+}
+
 async function joinTournament(code, playerId, nome, coppiaConId) {
   let blockedReason = null;
   const result = await tournamentsRef()
@@ -4249,16 +4330,21 @@ async function joinTournament(code, playerId, nome, coppiaConId) {
       if (!cur.iscritti) cur.iscritti = {};
       if (!Array.isArray(cur.ordine)) cur.ordine = [];
       const already = cur.iscritti[playerId];
+      let seatTaken = false;
       if (!already && cur.formato === "rotante_8" && Object.keys(cur.iscritti).length >= 8) {
-        blockedReason = "full";
-        return cur;
+        // Pieno: si può entrare solo al posto di un bot automatico.
+        if (!replaceAutoBotSeat(cur, playerId)) {
+          blockedReason = "full";
+          return cur;
+        }
+        seatTaken = true;
       }
       cur.iscritti[playerId] = {
         nome,
         presente_stasera: (already && already.presente_stasera) || false,
         coppiaConId: coppiaConId || (already && already.coppiaConId) || null,
       };
-      if (!cur.ordine.includes(playerId)) cur.ordine.push(playerId);
+      if (!seatTaken && !cur.ordine.includes(playerId)) cur.ordine.push(playerId);
       // Collegamento bidirezionale: se il compagno dichiarato è già
       // iscritto, punta anche lui a noi, così la coppia è coerente da
       // entrambi i lati anche se le due iscrizioni sono arrivate in
@@ -4294,12 +4380,18 @@ async function addBotToTournament(code, botLevel) {
       }
       if (!cur.iscritti) cur.iscritti = {};
       if (!Array.isArray(cur.ordine)) cur.ordine = [];
+      let seatTaken = false;
+      const botId = "bot-" + Math.random().toString(36).slice(2, 10);
       if (cur.formato === "rotante_8" && Object.keys(cur.iscritti).length >= 8) {
-        blockedReason = "full";
-        return cur;
+        // Pieno: l'organizzatore può sostituire un bot automatico con uno
+        // scelto da lui (es. "normale" invece di "difficile").
+        if (!replaceAutoBotSeat(cur, botId)) {
+          blockedReason = "full";
+          return cur;
+        }
+        seatTaken = true;
       }
       const usedNames = Object.values(cur.iscritti).map((p) => p.nome);
-      const botId = "bot-" + Math.random().toString(36).slice(2, 10);
       cur.iscritti[botId] = {
         nome: pickBotName(usedNames),
         isBot: true,
@@ -4307,7 +4399,7 @@ async function addBotToTournament(code, botLevel) {
         presente_stasera: false,
         coppiaConId: null,
       };
-      cur.ordine.push(botId);
+      if (!seatTaken) cur.ordine.push(botId);
       return cur;
     });
   if (blockedReason) return { ok: false, reason: blockedReason };
@@ -4663,10 +4755,14 @@ async function concludeTournament(code, tournament) {
 // leggero già usato per il resto dell'app — non è una vera autenticazione)
 // può farlo.
 async function avviaRound(code) {
-  const tournament = await loadTournament(code);
+  let tournament = await loadTournament(code);
   if (!tournament) return { ok: false, reason: "notFound" };
   if (tournament.organizerToken !== getOrCreateOrganizerToken(code)) {
     return { ok: false, reason: "notOrganizer" };
+  }
+  if (tournament.formato === "rotante_8") {
+    await fillRotante8WithBots(code); // posti vuoti -> bot fissi (vedi replaceAutoBotSeat)
+    tournament = await loadTournament(code);
   }
   const nextRound = (tournament.roundCorrente || 0) + 1;
   const postiTables = tournament.formato === "rotante_8"
@@ -4757,10 +4853,14 @@ function storicoKeyForTable(giocatori) {
 // (roundHasAnyFinishedTable) — altrimenti si rischia di disallineare la
 // classifica già accreditata (vedi commento sopra).
 async function rigeneraRoundCorrente(code) {
-  const tournament = await loadTournament(code);
+  let tournament = await loadTournament(code);
   if (!tournament) return { ok: false, reason: "notFound" };
   if (tournament.organizerToken !== getOrCreateOrganizerToken(code)) {
     return { ok: false, reason: "notOrganizer" };
+  }
+  if (tournament.formato === "rotante_8") {
+    await fillRotante8WithBots(code);
+    tournament = await loadTournament(code);
   }
   const round = tournament.roundCorrente || 0;
   if (round < 1) return { ok: false, reason: "nessunRound" };
@@ -6147,7 +6247,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.67";
+const APP_VERSION = "v5.72";
 
 let myColor = null;
 let myRoomId = null;
@@ -11943,6 +12043,7 @@ function renderChat(state) {
 // (.chat-preview-text), e un tocco apre lo stesso foglio di sempre dove si
 // legge per intero — "visibile e ingrandibile se richiesto" (chiesto).
 function renderChatFab(messages) {
+  showReactionsFrom(currentState);
   const wrap = $("#chat-wrap");
   const unread = chatPickerOpen ? 0 : Math.max(0, messages.length - chatSeenCount);
   const key = messages.length + ":" + chatPickerOpen;
@@ -11984,6 +12085,102 @@ function renderChatFab(messages) {
       )
     )
   );
+  wrap.appendChild(
+    el(
+      "div",
+      { class: "reaction-bar" },
+      REACTIONS.map((r) => el("button", { class: "reaction-btn", "aria-label": "Reazione " + r, onclick: () => sendReaction(r) }, r))
+    )
+  );
+  wrap.appendChild(
+    el(
+      "div",
+      { class: "nudge-row" },
+      el("button", { class: "nudge-btn", onclick: sendNudge }, "👋 Sveglia chi deve giocare"),
+      el("button", { class: "nudge-btn nudge-call", onclick: openCallRoom }, "📞 Chiamata")
+    )
+  );
+}
+
+// Reazioni rapide: sono normali messaggi di chat che contengono UNA sola
+// emoji (nessun campo nuovo nello stato -> nessun rischio con le regole
+// Firebase). Chi le riceve vede l'emoji "volare" sullo schermo.
+const REACTIONS = ["😂", "😱", "👏", "😈", "🙏", "🔥"];
+const reactionTracker = { roomId: null, lastId: null };
+const NUDGE_TEXT = "👋 Sveglia, tocca a te!";
+let lastNudgeAt = 0;
+
+// "Sveglia": chi aspetta dà un colpetto a chi deve giocare. È un messaggio di
+// chat speciale (nessun campo nuovo nello stato): chi è di turno lo riceve
+// con vibrazione, suono e avviso; gli altri vedono solo il 👋 volare.
+// Chiamata vocale di gruppo su Jitsi Meet (gratis, senza account): la stanza
+// prende il nome dal codice della partita, quindi tutti quelli nella stessa
+// partita entrano nella stessa chiamata. Si apre in una scheda a parte.
+function openCallRoom() {
+  const name = "Tock-" + String(myRoomId || "").replace(/[^A-Za-z0-9-]/g, "");
+  const url = "https://meet.jit.si/" + name + "#config.startWithVideoMuted=true&config.prejoinPageEnabled=false";
+  showToast("📞 Apro la chiamata: tutti nella tua partita entrano nella stessa stanza");
+  window.open(url, "_blank", "noopener");
+}
+
+async function sendNudge() {
+  keepAudioAlive();
+  const st = currentState;
+  if (!st) return;
+  const t = st.turnColor;
+  if (!t || st.winnerTeam) return showToast("Ora non c'è nessuno da svegliare.");
+  if (t === myColor) return showToast("Tocca a te! 😄");
+  if (st.players && st.players[t] && st.players[t].isBot) return showToast("Gioca il computer, è già veloce.");
+  if (Date.now() - lastNudgeAt < 30000) return showToast("Hai appena svegliato: aspetta un po'.");
+  lastNudgeAt = Date.now();
+  try {
+    await updateState(myRoomId, (state) => {
+      postChatMessage(state, myColor, NUDGE_TEXT);
+    });
+    showToast("👋 Sveglia inviata a " + playerName(st, t));
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function sendReaction(emoji) {
+  keepAudioAlive();
+  try {
+    await updateState(myRoomId, (state) => {
+      postChatMessage(state, myColor, emoji);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function showReactionsFrom(state) {
+  const msgs = state.chat || [];
+  const lastId = msgs.length ? msgs[msgs.length - 1].id || 0 : 0;
+  if (reactionTracker.roomId !== myRoomId || reactionTracker.lastId === null) {
+    reactionTracker.roomId = myRoomId;
+    reactionTracker.lastId = lastId; // primo giro: niente animazioni per i vecchi messaggi
+    return;
+  }
+  const fresh = msgs.filter((m) => (m.id || 0) > reactionTracker.lastId && (REACTIONS.includes(m.text) || m.text === NUDGE_TEXT));
+  reactionTracker.lastId = lastId;
+  fresh.slice(-3).forEach((m, i) => {
+    if (m.text === NUDGE_TEXT && m.color !== myColor && state.turnColor === myColor && !state.winnerTeam) {
+      try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+      showToast("👋 " + playerName(state, m.color) + " ti sveglia: tocca a te!");
+    }
+    setTimeout(() => {
+      const who = m.color === myColor ? "Tu" : playerName(state, m.color);
+      const node = el(
+        "div",
+        { class: "reaction-float", style: `left:${20 + Math.random() * 60}%;` },
+        el("div", { class: "reaction-emoji" }, m.text === NUDGE_TEXT ? "👋" : m.text),
+        el("div", { class: "reaction-who reaction-who-" + m.color }, who)
+      );
+      document.body.appendChild(node);
+      setTimeout(() => node.remove(), 2300);
+    }, i * 250);
+  });
 }
 
 function chatBubbleIconSvg() {
@@ -12406,6 +12603,41 @@ function toggleLog() {
   if (list && currentState) fillLogList(list, currentState);
 }
 
+// Premi "divertenti" di fine partita, calcolati dai contatori in state.stats
+// (mangiate fatte/subite e scambi Jack per colore). Mostra solo i premi con
+// almeno 1 evento; se la partita è stata pacifica lo dice.
+function buildAwards(state) {
+  const st = state.stats || {};
+  const top = (kind) => {
+    let best = null;
+    for (const c of COLORS) {
+      const n = (st[kind] && st[kind][c]) || 0;
+      if (n > 0 && (!best || n > best.n)) best = { c, n };
+    }
+    return best;
+  };
+  const rows = [];
+  const a = top("capt");
+  const b = top("lost");
+  const j = top("swaps");
+  if (a) rows.push(["🦈", "Squalo", playerName(state, a.c), a.n === 1 ? "1 pedina mangiata" : a.n + " pedine mangiate"]);
+  if (b) rows.push(["🎯", "Vittima della serata", playerName(state, b.c), b.n === 1 ? "mangiata 1 volta" : "mangiata " + b.n + " volte"]);
+  if (j) rows.push(["🃏", "Re dei Jack", playerName(state, j.c), j.n === 1 ? "1 scambio" : j.n + " scambi"]);
+  if (!rows.length) rows.push(["🕊️", "Partita pacifica", "", "nessuna pedina mangiata"]);
+  return el(
+    "div",
+    { class: "win-awards" },
+    rows.map((r) =>
+      el(
+        "div",
+        { class: "win-award" },
+        el("span", { class: "win-award-ico" }, r[0]),
+        el("span", { class: "win-award-txt" }, el("strong", {}, r[1]), r[2] ? " · " + r[2] : "", el("em", {}, " — " + r[3]))
+      )
+    )
+  );
+}
+
 function renderWinBanner(state) {
   const root = $("#app");
   if (root.querySelector(".win-banner-backdrop")) return;
@@ -12435,6 +12667,7 @@ function renderWinBanner(state) {
     // subito chi sta vincendo di più nella serie, non solo nell'ultima.
     el("p", { class: "muted", style: "margin:-10px 0 16px;font-size:0.85rem;" },
       `In questa stanza: ${TEAM_LABEL.A} ${wins.A} — ${wins.B} ${TEAM_LABEL.B}`),
+    buildAwards(state),
     // Un tavolo di torneo (state.torneo presente) non deve offrire "Nuova
     // partita": quel pulsante riavvia la STESSA stanza con GLI STESSI 4
     // giocatori, il che qui è fuorviante (sembra abbia rifatto gli
@@ -12446,7 +12679,7 @@ function renderWinBanner(state) {
     // torneo, da cui l'organizzatore avvia il round successivo.
     state.torneo
       ? el("button", { class: "primary", onclick: () => { detachFromGameRoom(); openTournamentByCode(state.torneo.code); } }, "🏆 Torna al torneo")
-      : el("button", { class: "primary", onclick: startNewGame }, "🔁 Nuova partita"),
+      : el("button", { class: "primary", onclick: startNewGame }, "🔁 Rivincita"),
     el(
       "button",
       { class: "text-link-btn", style: "display:flex;width:100%;justify-content:center;margin-top:10px;", onclick: () => { location.href = location.pathname; } },
