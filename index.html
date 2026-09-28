@@ -4143,6 +4143,21 @@ async function loadLeaderboard() {
     .sort((a, b) => b.vittorie - a.vittorie || a.nome.localeCompare(b.nome, "it"));
 }
 
+// Albo d'oro dei TORNEI vinti (quanti tornei ha vinto ciascuno, non quante
+// partite) — gemella di leaderboardRef/loadLeaderboard, scritta da
+// concludeTournament quando un torneo finisce (vedi allTournamentMatchesPlayed).
+function tournamentWinsRef() {
+  return db.ref("tournamentWins");
+}
+async function loadTournamentWinsLeaderboard() {
+  const snap = await tournamentWinsRef().get();
+  const all = snap.val() || {};
+  return Object.entries(all)
+    .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", tornei: (p && p.tornei) || 0 }))
+    .filter((p) => p.tornei > 0)
+    .sort((a, b) => b.tornei - a.tornei || a.nome.localeCompare(b.nome, "it"));
+}
+
 // ---------------- Torneo (v5) — pt.1: creazione + iscrizione --------------
 //
 // Vedi docs/v5-roadmap.md. Questo primo pezzo copre solo: indice unico dei
@@ -4364,6 +4379,55 @@ async function assignBotAsPartner(code, humanId, botLevel) {
   return { ok: true };
 }
 
+// Abbina due iscritti UMANI, entrambi ancora senza compagno — il modo
+// principale per formare le coppie ora che ci si iscrive tutti da soli
+// (richiesto: "io farei iscrivere tutti e quando la lista è completa
+// l'organizzatore accoppia i vari giocatori"). Collegamento bidirezionale,
+// stesso schema di joinTournament/assignBotAsPartner.
+async function pairTwoHumans(code, idA, idB) {
+  if (idA === idB) return { ok: false, reason: "stessaPersona" };
+  let blockedReason = null;
+  const result = await tournamentsRef()
+    .child(code)
+    .transaction((cur) => {
+      blockedReason = null;
+      if (!cur || !cur.iscritti || !cur.iscritti[idA] || !cur.iscritti[idB]) {
+        blockedReason = "notFound";
+        return cur;
+      }
+      if (cur.iscritti[idA].coppiaConId || cur.iscritti[idB].coppiaConId) {
+        blockedReason = "giaInCoppia";
+        return cur;
+      }
+      cur.iscritti[idA].coppiaConId = idB;
+      cur.iscritti[idB].coppiaConId = idA;
+      return cur;
+    });
+  if (blockedReason) return { ok: false, reason: blockedReason };
+  if (!result.committed) return { ok: false, reason: "error" };
+  return { ok: true };
+}
+
+// Scioglie una coppia di UMANI (l'organizzatore si è sbagliato ad
+// abbinarli) — non tocca un compagno bot, quello si toglie del tutto con
+// removeBotFromTournament: qui entrambi restano iscritti, solo senza più
+// coppia, riassegnabili.
+async function unpairHumans(code, idA) {
+  await tournamentsRef()
+    .child(code)
+    .transaction((cur) => {
+      if (!cur || !cur.iscritti || !cur.iscritti[idA]) return cur;
+      const idB = cur.iscritti[idA].coppiaConId;
+      if (!idB || !cur.iscritti[idB] || cur.iscritti[idB].isBot) {
+        cur.iscritti[idA].coppiaConId = null;
+        return cur;
+      }
+      cur.iscritti[idA].coppiaConId = null;
+      cur.iscritti[idB].coppiaConId = null;
+      return cur;
+    });
+}
+
 async function loadTournament(code) {
   const snap = await tournamentsRef().child(code).get();
   return snap.val();
@@ -4525,6 +4589,72 @@ function buildCoppieFisseTables(tournament) {
     tables.push([a.players[0], a.players[1], b.players[0], b.players[1]]);
   }
   return tables; // l'eventuale coppia dispari rimasta in `remaining` salta il round
+}
+
+// Vero se il torneo ha esaurito tutti gli incontri previsti dal suo formato
+// (richiesto: "il torneo si conclude quando sono finiti tutti gli
+// incontri") — per "rotante_8" lo schema fisso copre già tutte le coppie
+// di avversari in un ciclo di 7 round (ROTATING_8_SCHEDULE), quindi basta
+// controllare il numero di round; per "coppie_fisse" non c'è un calendario
+// fisso (le coppie possono cambiare serata per serata), quindi si guarda lo
+// storico accoppiamenti: finito quando ogni coppia ATTUALMENTE iscritta ha
+// già affrontato tutte le altre almeno una volta (stesso schema di
+// deduplica coppie di buildCoppieFisseTables).
+function allTournamentMatchesPlayed(tournament) {
+  if (tournament.formato === "rotante_8") {
+    return (tournament.roundCorrente || 0) >= ROTATING_8_SCHEDULE.length;
+  }
+  const iscritti = tournament.iscritti || {};
+  const seen = new Set();
+  const coupleIds = [];
+  for (const [id, p] of Object.entries(iscritti)) {
+    if (seen.has(id) || !p.coppiaConId || !iscritti[p.coppiaConId]) continue;
+    const partnerId = p.coppiaConId;
+    if (seen.has(partnerId)) continue;
+    seen.add(id);
+    seen.add(partnerId);
+    const [p1, p2] = id < partnerId ? [id, partnerId] : [partnerId, id];
+    coupleIds.push(p1 + "+" + p2);
+  }
+  if (coupleIds.length < 2) return false; // meno di due coppie: nessun incontro possibile ancora
+  const storico = tournament.storicoAccoppiamenti || {};
+  for (let i = 0; i < coupleIds.length; i++) {
+    for (let j = i + 1; j < coupleIds.length; j++) {
+      if (!storico[[coupleIds[i], coupleIds[j]].sort().join("|")]) return false;
+    }
+  }
+  return true;
+}
+
+// Chiude il torneo (tutti gli incontri fatti — vedi allTournamentMatchesPlayed
+// sopra, controllato dal chiamante prima di invocare questa): segna
+// stato:"concluso" e il #1 della classifica come vincitore. Se il vincitore
+// è una persona vera (non un bot fisso) accredita anche l'"albo d'oro" dei
+// tornei vinti (tournamentWins/{playerId}) — una classifica NUOVA e
+// separata da quella generale delle vittorie-partita (leaderboard/*),
+// pensata apposta per "i vincitori dei vari tornei" (richiesto).
+async function concludeTournament(code, tournament) {
+  const classifica = Object.entries(tournament.classifica || {})
+    .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, isBot: !!(p && p.isBot) }))
+    .sort((a, b) => b.vittorie - a.vittorie || a.nome.localeCompare(b.nome, "it"));
+  const vincitore = classifica[0] || null;
+  await tournamentsRef().child(code).update({
+    stato: "concluso",
+    vincitore: vincitore ? { playerId: vincitore.id, nome: vincitore.nome, vittorie: vincitore.vittorie, isBot: vincitore.isBot } : null,
+  });
+  // I bot (fissi o no) restano fuori dall'albo dei tornei vinti, come già
+  // succede per la classifica generale delle vittorie-partita — quella
+  // classifica è pensata per le persone, non per assegnare un trofeo a un
+  // computer.
+  if (vincitore && !vincitore.isBot) {
+    await tournamentWinsRef()
+      .child(vincitore.id)
+      .transaction((cur) => ({
+        nome: vincitore.nome,
+        tornei: ((cur && cur.tornei) || 0) + 1,
+      }));
+  }
+  return { vincitore };
 }
 
 // Avvia il round successivo: genera i tavoli (in base al formato), crea le
@@ -6017,7 +6147,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.55";
+const APP_VERSION = "v5.59";
 
 let myColor = null;
 let myRoomId = null;
@@ -6232,6 +6362,12 @@ async function renderLeaderboardScreen() {
   const root = $("#app");
   root.innerHTML = "";
   const listWrap = el("div", { class: "leaderboard-list" }, el("p", { class: "muted" }, "Carico la classifica…"));
+  // Classifica NUOVA e separata, sotto a quella delle vittorie-partita:
+  // quanti TORNEI (non singole partite) ha vinto ciascuno — richiesto:
+  // "aggiungi anche alla classifica generale in più classifica i vincitori
+  // dei vari tornei". Scritta da concludeTournament quando un torneo
+  // finisce tutti i suoi incontri (vedi allTournamentMatchesPlayed).
+  const tourneyListWrap = el("div", { class: "leaderboard-list" }, el("p", { class: "muted" }, "Carico…"));
   root.appendChild(
     el(
       "div",
@@ -6240,7 +6376,10 @@ async function renderLeaderboardScreen() {
       el("h2", { style: "margin:0 0 2px;" }, "🏆 Classifica generale"),
       el("p", { class: "muted" }, "Vittorie totali per giocatore, in tutte le stanze."),
       listWrap,
-      el("button", { class: "primary", onclick: renderLobby }, "Torna alla home")
+      el("h2", { style: "margin:20px 0 2px;" }, "🥇 Tornei vinti"),
+      el("p", { class: "muted" }, "Quanti tornei ha vinto ciascun giocatore (non le singole partite)."),
+      tourneyListWrap,
+      el("button", { class: "primary", style: "margin-top:12px;", onclick: renderLobby }, "Torna alla home")
     )
   );
   let list = null;
@@ -6252,23 +6391,46 @@ async function renderLeaderboardScreen() {
   listWrap.innerHTML = "";
   if (!list) {
     listWrap.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica, riprova."));
-    return;
-  }
-  if (list.length === 0) {
+  } else if (list.length === 0) {
     listWrap.appendChild(el("p", { class: "muted" }, "Ancora nessuna vittoria registrata."));
-    return;
+  } else {
+    list.forEach((p, i) => {
+      listWrap.appendChild(
+        el(
+          "div",
+          { class: "leaderboard-row" },
+          el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
+          el("span", { class: "leaderboard-name" }, p.nome),
+          el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie"))
+        )
+      );
+    });
   }
-  list.forEach((p, i) => {
-    listWrap.appendChild(
-      el(
-        "div",
-        { class: "leaderboard-row" },
-        el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
-        el("span", { class: "leaderboard-name" }, p.nome),
-        el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie"))
-      )
-    );
-  });
+
+  let tourneyList = null;
+  try {
+    tourneyList = await loadTournamentWinsLeaderboard();
+  } catch (e) {
+    console.error(e);
+  }
+  tourneyListWrap.innerHTML = "";
+  if (!tourneyList) {
+    tourneyListWrap.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica, riprova."));
+  } else if (tourneyList.length === 0) {
+    tourneyListWrap.appendChild(el("p", { class: "muted" }, "Nessun torneo concluso ancora."));
+  } else {
+    tourneyList.forEach((p, i) => {
+      tourneyListWrap.appendChild(
+        el(
+          "div",
+          { class: "leaderboard-row" },
+          el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
+          el("span", { class: "leaderboard-name" }, p.nome),
+          el("span", { class: "leaderboard-wins" }, p.tornei + (p.tornei === 1 ? " torneo" : " tornei"))
+        )
+      );
+    });
+  }
 }
 
 // ---------------- Torneo (v5) — schermate --------------------------------
@@ -6367,13 +6529,17 @@ async function openTournamentByCode(code) {
   renderTournamentJoinScreen(code, tournament);
 }
 
+// Iscrizione sempre individuale, in entrambi i formati (richiesto: "io
+// farei iscrivere tutti e quando la lista è completa l'organizzatore
+// accoppia i vari giocatori" — prima, in "coppie fisse", si chiedeva già il
+// nome del compagno qui in fase di iscrizione; ora quel passo si fa dopo,
+// dall'organizzatore nella pagina del torneo, vedi pairTwoHumans/
+// assignBotAsPartner più sotto e i relativi controlli in renderTournamentLobby).
 function renderTournamentJoinScreen(code, tournament) {
   const root = $("#app");
   root.innerHTML = "";
   const savedPlayer = getSavedPlayerShortcut();
-  const isCoppieFisse = tournament.formato === "coppie_fisse";
   const nameField = buildRubricaNameInput("torneo-join-name", myName || (savedPlayer && savedPlayer.nome) || "");
-  const partnerField = isCoppieFisse ? buildRubricaNameInput("torneo-join-partner", "") : null;
   const n = Object.keys(tournament.iscritti || {}).length;
   const formatoLabel = tournament.formato === "rotante_8" ? "Tutti con tutti (max 8)" : "Coppie fisse";
   root.appendChild(
@@ -6384,15 +6550,9 @@ function renderTournamentJoinScreen(code, tournament) {
       el("p", { class: "muted" }, `Torneo ${code} · ${formatoLabel} · ${n}${tournament.formato === "rotante_8" ? "/8" : ""} iscritti finora.`),
       el("p", { class: "step-label" }, "Il tuo nome"),
       nameField.wrap,
-      isCoppieFisse
-        ? el(
-            "div",
-            {},
-            el("p", { class: "step-label" }, "Nome del tuo compagno di coppia"),
-            partnerField.wrap,
-            el("p", { class: "muted", style: "font-size:0.76rem; margin-top:-4px;" },
-              "In questo formato ci si iscrive già in coppia — se il tuo compagno non si è ancora iscritto, scrivi comunque il suo nome: lo iscrivo insieme a te.")
-          )
+      tournament.formato === "coppie_fisse"
+        ? el("p", { class: "muted", style: "font-size:0.76rem; margin-top:-4px;" },
+            "In questo formato le coppie si decidono dopo: iscriviti pure da solo, sarà l'organizzatore ad abbinarti a qualcuno (o a un bot) quando la lista è pronta.")
         : "",
       el("button", { class: "primary", onclick: () => submitJoinTournament(code, tournament) }, "Iscriviti"),
       el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: renderLobby }, backChevronIcon(), "Torna alla home")
@@ -6403,32 +6563,17 @@ function renderTournamentJoinScreen(code, tournament) {
 async function submitJoinTournament(code, tournament) {
   const typed = $("#torneo-join-name").value.trim();
   if (!typed) return showToast("Inserisci il tuo nome.");
-  const isCoppieFisse = tournament.formato === "coppie_fisse";
-  const partnerInput = document.getElementById("torneo-join-partner");
-  const partnerTyped = partnerInput ? partnerInput.value.trim() : "";
-  if (isCoppieFisse && !partnerTyped) return showToast("Inserisci anche il nome del tuo compagno di coppia.");
 
   const player = await resolvePlayerName(typed);
   myName = player.nome;
   myPlayerId = player.id;
   savePlayerShortcut(player.id, player.nome);
 
-  let partner = null;
-  if (isCoppieFisse) {
-    if (normalizeNameForMatch(partnerTyped) === normalizeNameForMatch(typed)) {
-      return showToast("Il compagno deve essere una persona diversa da te.");
-    }
-    partner = await resolvePlayerName(partnerTyped);
-  }
-
-  const result = await joinTournament(code, player.id, player.nome, partner ? partner.id : null);
+  const result = await joinTournament(code, player.id, player.nome, null);
   if (!result.ok) {
     if (result.reason === "full") return showToast("Questo torneo ha già raggiunto il limite di 8 iscritti.");
     if (result.reason === "notFound") return showToast("Questo torneo non esiste più.");
     return showToast("Non riesco a iscriverti, riprova.");
-  }
-  if (partner) {
-    await joinTournament(code, partner.id, partner.nome, player.id);
   }
   renderTournamentLobby(code);
 }
@@ -6470,9 +6615,58 @@ function renderTournamentLobby(code) {
     body.appendChild(
       el("p", { class: "muted" },
         (t.formato === "rotante_8" ? "Tutti con tutti (max 8)" : "Coppie fisse") +
-        " · " + (t.stato === "in_corso" ? `In corso · round ${currentRound}` : "Iscrizioni aperte") +
+        " · " + (t.stato === "concluso" ? "Concluso" : t.stato === "in_corso" ? `In corso · round ${currentRound}` : "Iscrizioni aperte") +
         (isOrganizer ? " · sei l'organizzatore" : ""))
     );
+    // Prima di avviarlo, in "Tutti con tutti" è utile vedere subito quanti
+    // posti mancano sugli 8 dello schema fisso — è lì sotto, nella lista
+    // "Iscritti", che l'organizzatore può riempirli con bot fissi (richiesto:
+    // "si vedano tutti gli iscritti con possibilità di aggiungere bot nei
+    // posti ancora mancanti").
+    if (t.formato === "rotante_8" && t.stato !== "concluso") {
+      const postiLiberi = Math.max(0, 8 - iscritti.length);
+      body.appendChild(
+        el("p", { class: "muted", style: "margin-top:-8px;" },
+          `${iscritti.length}/8 iscritti` + (postiLiberi > 0 ? ` · ${postiLiberi} post${postiLiberi === 1 ? "o libero" : "i liberi"}` : " · al completo"))
+      );
+    }
+    // Stessa cosa ma per "Coppie fisse" (richiesto: "uguale anche per le
+    // coppie"): qui non c'è un massimo fisso come rotante_8, quindi invece
+    // di "posti liberi su 8" si contano le coppie già complete e chi è
+    // rimasto senza compagno — è a QUEGLI iscritti, uno per uno più sotto
+    // nella lista "Iscritti", che l'organizzatore assegna un bot come
+    // compagno (i pulsanti "🤖 Compagno normale/difficile" per riga, non
+    // un pulsante unico: la scelta di CHI abbinare al bot è per forza
+    // individuale, a differenza dei posti anonimi di rotante_8).
+    if (t.formato === "coppie_fisse" && t.stato !== "concluso") {
+      const seenPair = new Set();
+      let coppieComplete = 0;
+      for (const [id, p] of Object.entries(t.iscritti || {})) {
+        if (seenPair.has(id) || !p.coppiaConId || !t.iscritti[p.coppiaConId]) continue;
+        const partnerId = p.coppiaConId;
+        if (seenPair.has(partnerId)) continue;
+        seenPair.add(id);
+        seenPair.add(partnerId);
+        coppieComplete++;
+      }
+      const senzaCompagno = iscritti.filter((p) => !seenPair.has(p.id)).length;
+      body.appendChild(
+        el("p", { class: "muted", style: "margin-top:-8px;" },
+          `${iscritti.length} iscritti · ${coppieComplete} copp${coppieComplete === 1 ? "ia" : "ie"} complet${coppieComplete === 1 ? "a" : "e"}` +
+          (senzaCompagno > 0 ? ` · ${senzaCompagno} senza compagno` : ""))
+      );
+    }
+    if (t.stato === "concluso") {
+      body.appendChild(
+        el(
+          "div",
+          { class: "win-team-banner", style: "background:#F3EBD8; border:1.5px solid var(--gold); border-radius:14px; padding:12px 14px; margin-bottom:14px;" },
+          el("p", { style: "margin:0; font-weight:800;" },
+            t.vincitore ? `🏆 Vince ${t.vincitore.isBot ? "🤖 " : ""}${t.vincitore.nome}!` : "🏆 Torneo concluso"),
+          el("p", { class: "muted", style: "margin:4px 0 0; font-size:0.85rem;" }, "Tutti gli incontri sono stati giocati.")
+        )
+      );
+    }
 
     if (currentRound > 0) {
       body.appendChild(el("p", { class: "step-label" }, `Tavoli del round ${currentRound}`));
@@ -6496,7 +6690,7 @@ function renderTournamentLobby(code) {
       );
     }
 
-    if (isOrganizer) {
+    if (isOrganizer && t.stato !== "concluso") {
       body.appendChild(
         el(
           "div",
@@ -6521,6 +6715,8 @@ function renderTournamentLobby(code) {
             "Utile se hai sbagliato ad avviarlo o è arrivato un iscritto in ritardo — funziona solo finché nessun tavolo del round ha già finito.")
         );
       }
+    }
+    if (isOrganizer) {
       body.appendChild(
         el(
           "div",
@@ -6559,39 +6755,69 @@ function renderTournamentLobby(code) {
         { class: "leaderboard-list" },
         iscritti.length === 0
           ? el("p", { class: "muted" }, "Ancora nessun iscritto.")
-          : iscritti.map((p) => {
-              const isCoppieFisse = t.formato === "coppie_fisse";
-              const senzaCoppia = isCoppieFisse && !p.isBot && !p.coppiaConId;
-              return el(
-                "div",
-                { class: "leaderboard-row", style: senzaCoppia && isOrganizer ? "flex-wrap:wrap;" : "" },
-                el("span", { class: "leaderboard-name" }, (p.isBot ? "🤖 " : "") + p.nome + (p.id === myPlayerId ? " (tu)" : "")),
-                p.coppiaConId && t.iscritti[p.coppiaConId] ? el("span", { class: "leaderboard-wins" }, "con " + t.iscritti[p.coppiaConId].nome) : "",
-                isOrganizer && p.isBot
-                  ? el(
-                      "button",
-                      { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleRemoveBotFromTournament(code, p.id) },
-                      "✕"
-                    )
-                  : "",
-                // Un iscritto umano senza compagno, in un torneo a coppie
-                // fisse, non entra mai a un tavolo (buildCoppieFisseTables
-                // abbina solo coppie dichiarate) — l'organizzatore può
-                // dargli un bot come compagno (richiesto: "assegna
-                // l'organizzatore", invece di un abbinamento automatico).
-                senzaCoppia && isOrganizer
-                  ? el(
-                      "div",
-                      { class: "bot-btn-row", style: "width:100%; margin-top:6px;" },
-                      el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "easy") }, "🤖 Compagno normale"),
-                      el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "hard") }, "🤖 Compagno difficile")
-                    )
-                  : ""
-              );
-            })
+          : (() => {
+              // Tutti si iscrivono singolarmente; è l'organizzatore ad
+              // abbinare le coppie dopo, da questa lista (richiesto: "io
+              // farei iscrivere tutti e quando la lista è completa
+              // l'organizzatore accoppia i vari giocatori").
+              const unpairedHumans = iscritti.filter((p) => !p.isBot && !p.coppiaConId);
+              return iscritti.map((p) => {
+                const isCoppieFisse = t.formato === "coppie_fisse";
+                const senzaCoppia = isCoppieFisse && !p.isBot && !p.coppiaConId;
+                const partnerRec = p.coppiaConId && t.iscritti[p.coppiaConId];
+                const partnerIsHuman = partnerRec && !partnerRec.isBot;
+                const altriSenzaCoppia = senzaCoppia ? unpairedHumans.filter((u) => u.id !== p.id) : [];
+                const selectId = "pair-select-" + p.id;
+                return el(
+                  "div",
+                  { class: "leaderboard-row", style: senzaCoppia && isOrganizer ? "flex-wrap:wrap;" : "" },
+                  el("span", { class: "leaderboard-name" }, (p.isBot ? "🤖 " : "") + p.nome + (p.id === myPlayerId ? " (tu)" : "")),
+                  partnerRec ? el("span", { class: "leaderboard-wins" }, "con " + partnerRec.nome) : "",
+                  isOrganizer && p.isBot && t.stato !== "concluso"
+                    ? el(
+                        "button",
+                        { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleRemoveBotFromTournament(code, p.id) },
+                        "✕"
+                      )
+                    : "",
+                  isOrganizer && partnerIsHuman && t.stato !== "concluso"
+                    ? el(
+                        "button",
+                        { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleUnpairHumans(code, p.id) },
+                        "✕ Sciogli"
+                      )
+                    : "",
+                  // Un iscritto umano senza compagno, in un torneo a coppie
+                  // fisse, non entra mai a un tavolo (buildCoppieFisseTables
+                  // abbina solo coppie dichiarate) — l'organizzatore lo
+                  // abbina a un altro iscritto senza compagno, oppure gli dà
+                  // un bot come compagno.
+                  senzaCoppia && isOrganizer && t.stato !== "concluso"
+                    ? el(
+                        "div",
+                        { class: "bot-btn-row", style: "width:100%; margin-top:6px; flex-wrap:wrap;" },
+                        altriSenzaCoppia.length > 0
+                          ? el(
+                              "div",
+                              { style: "display:flex; gap:6px; width:100%; align-items:center;" },
+                              el(
+                                "select",
+                                { id: selectId, style: "flex:1; padding:6px 8px; border-radius:10px; border:1.5px solid var(--panel-border); background:var(--panel); color:var(--ink);" },
+                                altriSenzaCoppia.map((u) => el("option", { value: u.id }, u.nome))
+                              ),
+                              el("button", { class: "bot-btn", onclick: () => handlePairHumans(code, p.id, document.getElementById(selectId).value) }, "🤝 Abbina")
+                            )
+                          : "",
+                        el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "easy") }, "🤖 Compagno normale"),
+                        el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "hard") }, "🤖 Compagno difficile")
+                      )
+                    : ""
+                );
+              });
+            })()
       )
     );
-    if (isOrganizer && t.formato === "rotante_8") {
+    if (isOrganizer && t.formato === "rotante_8" && t.stato !== "concluso") {
       body.appendChild(
         el(
           "div",
@@ -6640,6 +6866,15 @@ async function handleAvviaRound(code, hasCurrentRound) {
     const tables = (t.rounds && t.rounds[t.roundCorrente] && t.rounds[t.roundCorrente].tables) || {};
     const complete = await isRoundComplete(tables);
     if (!complete) return showToast("Alcuni tavoli di questo round non sono ancora finiti.");
+    // Il round corrente è finito: prima di aprirne uno nuovo, controlla se il
+    // torneo ha già esaurito tutti gli incontri (richiesto: "si conclude
+    // quando sono finiti tutti gli incontri") — in quel caso non se ne apre
+    // un altro, si chiude il torneo e si accredita il vincitore.
+    if (allTournamentMatchesPlayed(t)) {
+      const { vincitore } = await concludeTournament(code, t);
+      showToast(vincitore ? `🏆 Torneo concluso! Vince ${vincitore.nome}.` : "Torneo concluso!");
+      return;
+    }
   }
   const result = await avviaRound(code);
   if (!result.ok) {
@@ -6675,6 +6910,24 @@ async function handleAssignBotAsPartner(code, humanId, level) {
   if (!result.ok) {
     if (result.reason === "giaInCoppia") return showToast("Questo iscritto ha già un compagno.");
     return showToast("Non riesco ad assegnare il bot come compagno, riprova.");
+  }
+}
+
+async function handlePairHumans(code, idA, idB) {
+  if (!idB) return showToast("Scegli con chi abbinarlo.");
+  const result = await pairTwoHumans(code, idA, idB);
+  if (!result.ok) {
+    if (result.reason === "giaInCoppia") return showToast("Uno dei due ha già un compagno.");
+    if (result.reason === "stessaPersona") return showToast("Scegli un compagno diverso.");
+    return showToast("Non riesco ad abbinarli, riprova.");
+  }
+}
+
+async function handleUnpairHumans(code, idA) {
+  try {
+    await unpairHumans(code, idA);
+  } catch (e) {
+    showToast("Non riesco a sciogliere la coppia, riprova.");
   }
 }
 
@@ -12246,8 +12499,16 @@ function applyInviteLinkIfPresent() {
 function installDebugPanel() {
   const panel = document.createElement("div");
   panel.id = "debug-panel";
+  // top parte SOTTO la fascia protetta da .status-bar-shield (stessa altezza
+  // di riserva, notch/status-bar + 18px), non da 0: a differenza di
+  // .conn-lost (un banner "in flusso" che lo scudo copre da dietro), questo
+  // pannello ha z-index 9999 — più alto dello scudo (600) — quindi se
+  // partiva da top:0 il suo sfondo rosso finiva proprio nella fascia sotto
+  // la notch, sfocato dalla traslucenza della status bar iOS ("un alone
+  // rosso in cima", segnalato) anche senza un vero errore visibile, perché
+  // il testo restava comunque nascosto sotto la notch stessa.
   panel.style.cssText =
-    "position:fixed;top:0;left:0;right:0;z-index:9999;background:#c0392b;color:#fff;" +
+    "position:fixed;top:calc(env(safe-area-inset-top, 0px) + 18px);left:0;right:0;z-index:9999;background:#c0392b;color:#fff;" +
     "font-size:12px;padding:6px 10px;display:none;max-height:40vh;overflow-y:auto;white-space:pre-wrap;";
   document.body.appendChild(panel);
   function showError(msg) {
