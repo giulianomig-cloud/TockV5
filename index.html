@@ -5887,7 +5887,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.52";
+const APP_VERSION = "v5.53";
 
 let myColor = null;
 let myRoomId = null;
@@ -11938,7 +11938,18 @@ function renderWinBanner(state) {
     // subito chi sta vincendo di più nella serie, non solo nell'ultima.
     el("p", { class: "muted", style: "margin:-10px 0 16px;font-size:0.85rem;" },
       `In questa stanza: ${TEAM_LABEL.A} ${wins.A} — ${wins.B} ${TEAM_LABEL.B}`),
-    el("button", { class: "primary", onclick: startNewGame }, "🔁 Nuova partita"),
+    // Un tavolo di torneo (state.torneo presente) non deve offrire "Nuova
+    // partita": quel pulsante riavvia la STESSA stanza con GLI STESSI 4
+    // giocatori, il che qui è fuorviante (sembra abbia rifatto gli
+    // accoppiamenti del round, mentre è solo la stessa partita rigiocata)
+    // e rompe anche isRoundComplete lato torneo, che aspetta che questa
+    // stanza resti a phase:"finished" per poter avviare il round
+    // successivo (segnalato: "perché la nuova la rifà con gli stessi
+    // accoppiamenti?"). Al suo posto si torna direttamente alla pagina del
+    // torneo, da cui l'organizzatore avvia il round successivo.
+    state.torneo
+      ? el("button", { class: "primary", onclick: () => openTournamentByCode(state.torneo.code) }, "🏆 Torna al torneo")
+      : el("button", { class: "primary", onclick: startNewGame }, "🔁 Nuova partita"),
     el(
       "button",
       { class: "text-link-btn", style: "display:flex;width:100%;justify-content:center;margin-top:10px;", onclick: () => { location.href = location.pathname; } },
