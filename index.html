@@ -96,8 +96,12 @@ try {
      usate per le card "preso" nella scelta colore (.cc-*.cc-taken), così
      il menu in alto e la riga "chi sei" restano nello stesso linguaggio
      visivo del resto dell'app invece di introdurre colori nuovi. */
-  --team-a-gradient: linear-gradient(120deg, #F7DCDE 0%, #FBF1D8 100%);
-  --team-b-gradient: linear-gradient(120deg, #DCEFE5 0%, #DCE9F3 100%);
+  /* Più marcate apposta (chiesto) di prima (#F7DCDE/#FBF1D8 e
+     #DCEFE5/#DCE9F3, quasi bianche): ora la metà "Squadra" della pillola
+     (vedi .room-team-team) risalta a dovere accanto alla metà "Stanza",
+     rimasta a sfondo pieno neutro. */
+  --team-a-gradient: linear-gradient(120deg, #F2AEB6 0%, #F5D989 100%);
+  --team-b-gradient: linear-gradient(120deg, #A9DDBF 0%, #A9C9E8 100%);
 }
 
 * { box-sizing: border-box; }
@@ -788,75 +792,77 @@ button.danger:active {
   filter: brightness(0.9);
 }
 
-/* Riga in cima: nome stanza a sinistra, pulsanti menu (solo icona) a
-   destra, sulla stessa riga — prima la stanza stava nella riga
-   identità (nome+squadra) più sotto, ora invece ci sta chi sei (vedi
-   .identity-row), qui resta solo il codice stanza. */
+/* Riga in cima: solo i pulsanti menu, centrati — il codice stanza è
+   stato spostato nella riga sotto (.room-team-row), unito alla squadra
+   (chiesto: prima, convivendo con 8 icone sulla stessa riga, il codice
+   stanza veniva troncato con "..." su schermi stretti). */
 .top-actions-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: center;
   margin-bottom: 10px;
 }
-/* "Stanza" e il codice ora su due righe impilate (prima erano affiancate
-   sulla stessa riga) — il blocco intero resta centrato in verticale
-   sull'altezza dei pulsanti menu grazie ad align-items:center su
-   .top-actions-row. */
-.top-actions-room {
+.top-actions-icons { display: flex; gap: 4px; flex-shrink: 0; }
+/* Stanza + squadra unite in un'unica pillola arrotondata, divisa in due
+   metà affiancate (overflow:hidden sul contenitore esterno fa sì che i
+   bordi arrotondati restino condivisi anche se le due metà hanno sfondi
+   diversi): "Stanza" a sfondo pieno neutro — ora su una riga tutta sua,
+   niente più troncamento — e "Squadra" con la sfumatura dei due colori
+   (vedi teamBgClass/--team-a-gradient/--team-b-gradient), voluta più
+   marcata apposta per risaltare accanto alla metà neutra. */
+.room-team-row {
+  display: flex;
+  align-items: stretch;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  margin-bottom: 10px;
+}
+.room-team-room {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 1px;
   min-width: 0;
+  flex-shrink: 0;
+  background: var(--panel);
+  padding: 8px 14px;
 }
-.top-actions-room-label {
+.room-team-room-label {
   font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--muted-3);
 }
-.top-actions-room-code {
+.room-team-room-code {
   font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: 0.03em;
   color: var(--ink);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-.top-actions-icons { display: flex; gap: 4px; flex-shrink: 0; }
-/* Chi sei + squadra, tra il menu e il tabellone (prima erano insieme al
-   nome stanza nella stessa riga). flex-wrap invece di ellipsis/
-   troncamento: con un nome lungo o uno schermo stretto va a capo, ma il
-   testo resta sempre leggibile per intero. */
-/* Non c'è più il nome qui dentro (solo la squadra, vedi renderGameShell)
-   — resta un contenitore centrato invece di una riga allineata a
-   sinistra, dato che ora ha un solo contenuto breve. */
-.identity-row {
+.room-team-team {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
   gap: 6px;
+  flex: 1;
+  min-width: 0;
   font-size: 0.82rem;
   font-weight: 700;
-  margin-bottom: 10px;
   padding: 9px 14px;
-  border-radius: 14px;
 }
-.identity-row.team-a-bg { background: var(--team-a-gradient); }
-.identity-row.team-b-bg { background: var(--team-b-gradient); }
-/* Ora è l'unico contenuto del riquadro (non più una sotto-etichetta
-   accanto al nome), quindi più leggibile/scuro invece del grigio
-   attenuato di prima. */
+.room-team-team.team-a-bg { background: var(--team-a-gradient); }
+.room-team-team.team-b-bg { background: var(--team-b-gradient); }
 .identity-team {
   font-size: 0.86rem;
   font-weight: 800;
   color: var(--ink);
 }
-.identity-row .swatch { flex-shrink: 0; }
-.identity-row .swatch + .swatch { margin-left: -4px; }
+.room-team-team .swatch { flex-shrink: 0; }
+.room-team-team .swatch + .swatch { margin-left: -4px; }
 .icon-btn {
   width: 31px;
   height: 31px;
@@ -1815,8 +1821,11 @@ button.secondary.selected {
   --muted: #8C8170;
   --muted-2: #AA9F87;
   --muted-3: #D7CBB1;
-  --team-a-gradient: linear-gradient(120deg, #3A2226 0%, #362C18 100%);
-  --team-b-gradient: linear-gradient(120deg, #22352A 0%, #22303F 100%);
+  /* Stesso ritocco "più marcato" del tema chiaro, qui restando comunque
+     scure abbastanza da tenere leggibile il testo chiaro (var(--ink)) in
+     questo tema. */
+  --team-a-gradient: linear-gradient(120deg, #4E262D 0%, #47350F 100%);
+  --team-b-gradient: linear-gradient(120deg, #1A4735 0%, #1A324E 100%);
 }
 /* .icon-btn/.icon-btn-half/.sound-test-btn avevano un solo :hover con
    sfondo crema chiaro fisso (#F3EBD8), pensato solo per il tema chiaro.
@@ -2544,10 +2553,11 @@ const TEAM_LABEL = { A: "Rosso + Giallo", B: "Verde + Blu" };
 // I due colori di ciascuna squadra, nello stesso ordine di TEAM_LABEL — usati
 // per i due pallini nel riquadro "Squadra" (vedi renderGameShell).
 const TEAM_COLORS = { A: ["red", "yellow"], B: ["green", "blue"] };
-// Classe CSS per sfumare menu in alto e riga "chi sei" con i colori della
-// TUA squadra (vedi .top-actions-row/.identity-row e --team-a-gradient/
-// --team-b-gradient nel :root) — un fallback neutro se per qualche motivo
-// myColor non è (ancora) valorizzato, invece di rompere il layout.
+// Classe CSS per sfumare la metà "Squadra" della pillola stanza+squadra
+// con i colori della TUA squadra (vedi .room-team-team e
+// --team-a-gradient/--team-b-gradient nel :root) — un fallback neutro se
+// per qualche motivo myColor non è (ancora) valorizzato, invece di
+// rompere il layout.
 function teamBgClass(color) {
   const team = TEAM_OF[color];
   return team ? "team-" + team.toLowerCase() + "-bg" : "";
@@ -5724,7 +5734,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.30";
+const APP_VERSION = "v5.31";
 
 let myColor = null;
 let myRoomId = null;
@@ -8080,12 +8090,6 @@ function renderGameShell() {
         { class: "top-actions-row" },
         el(
           "div",
-          { class: "top-actions-room" },
-          el("span", { class: "top-actions-room-label" }, "Stanza"),
-          el("span", { class: "top-actions-room-code" }, myRoomId)
-        ),
-        el(
-          "div",
           { class: "top-actions-icons" },
           themeToggleButton(),
           el(
@@ -8160,14 +8164,30 @@ function renderGameShell() {
       ),
       el("div", { id: "conn-banner" }),
       el("div", { id: "dealer-draw-wrap" }),
-      // Solo la squadra qui (non più il nome, tolto su richiesta — resta
-      // solo nel tabellone, vedi renderPlayerStatus), sfumata con i colori
-      // della TUA squadra tra il menu e il tabellone.
+      // Stanza + squadra unite nella stessa pillola (prima erano due righe
+      // separate: il codice stanza affiancato alle icone del menu, spesso
+      // troncato con "..." su schermi stretti — segnalato — e la squadra
+      // in una riga a sé sotto). Ora un unico contenitore diviso in due
+      // metà: "Stanza" a sfondo pieno neutro (mai più troncata: qui ha
+      // tutta la riga per sé, non deve più convivere con le icone), e
+      // "Squadra" con la sfumatura dei due colori — voluta più marcata
+      // (non le tinte pastello quasi bianche di prima) per il contrasto
+      // con la metà "Stanza" a fianco.
       el(
         "div",
-        { class: "identity-row " + teamBgClass(myColor) },
-        ...TEAM_COLORS[TEAM_OF[myColor]].map(swatchDot),
-        el("span", { class: "identity-team" }, `Squadra ${TEAM_LABEL[TEAM_OF[myColor]]}`)
+        { class: "room-team-row" },
+        el(
+          "div",
+          { class: "room-team-room" },
+          el("span", { class: "room-team-room-label" }, "Stanza"),
+          el("span", { class: "room-team-room-code" }, myRoomId)
+        ),
+        el(
+          "div",
+          { class: "room-team-team " + teamBgClass(myColor) },
+          ...TEAM_COLORS[TEAM_OF[myColor]].map(swatchDot),
+          el("span", { class: "identity-team" }, `Squadra ${TEAM_LABEL[TEAM_OF[myColor]]}`)
+        )
       ),
       // Nomi giocatori + pedine "fuori" agli angoli sopra/sotto il
       // tabellone (vedi renderPlayerStatus) invece che in riquadri a parte
