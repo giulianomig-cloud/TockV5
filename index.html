@@ -6147,7 +6147,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.63";
+const APP_VERSION = "v5.64";
 
 let myColor = null;
 let myRoomId = null;
@@ -6997,8 +6997,11 @@ async function joinTournamentTable(roomCode) {
   // comunque il normale rientro automatico di continueFromRoomCode se si
   // ricarica la pagina mentre si gioca un tavolo di torneo.
   try { localStorage.setItem("tock-claim-" + roomCode + "-" + myColorFound, state.players[myColorFound].token); } catch (e) {}
-  watchRoom(roomCode, onStateChange);
+  // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
+  // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
+  // ("Cannot set properties of null", visto su un tavolo di torneo).
   renderGameShell();
+  watchRoom(roomCode, onStateChange);
 }
 
 async function shareTournamentInviteLink(code) {
@@ -7099,8 +7102,11 @@ async function continueFromRoomCode() {
     if (savedToken && claimed.token === savedToken) {
       myColor = c;
       myName = claimed.name;
-      watchRoom(roomId, onStateChange);
+      // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
+      // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
+      // ("Cannot set properties of null", visto su un tavolo di torneo).
       renderGameShell();
+      watchRoom(roomId, onStateChange);
       return;
     }
   }
@@ -7230,8 +7236,11 @@ async function recoverByName(roomId) {
     myColor = match;
     myRoomId = roomId;
     myName = claim.name;
-    watchRoom(roomId, onStateChange);
+    // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
+    // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
+    // ("Cannot set properties of null", visto su un tavolo di torneo).
     renderGameShell();
+    watchRoom(roomId, onStateChange);
   } catch (e) {
     showToast("Non sono riuscito a farti rientrare: " + describeError(e));
     console.error(e);
@@ -7821,8 +7830,11 @@ async function joinManualRoom(roomId) {
   codesRef().child(roomId).transaction((cur) => (cur ? cur : "room")).catch(() => {});
 
   // (l'ascolto della lobby è già stato staccato in cima alla funzione)
-  watchRoom(roomId, onStateChange);
+  // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
+  // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
+  // ("Cannot set properties of null", visto su un tavolo di torneo).
   renderGameShell();
+  watchRoom(roomId, onStateChange);
 }
 
 // Nomi assegnati ai bot invece di un generico "Bot Verde"/"Computer" — più
