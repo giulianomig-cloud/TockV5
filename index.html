@@ -804,6 +804,14 @@ button.danger:active {
   margin-bottom: 10px;
 }
 .build-tag {
+  /* display:flex + stessa altezza dei pulsanti tondi (.icon-btn, 31px) e
+     testo centrato al loro interno: prima era un semplice span di testo,
+     più basso del bottone rotondo accanto, e finiva per sembrare "in
+     alto"/scentrato rispetto alla riga di icone (segnalato: "la build
+     sembra fuori allineamento"). */
+  display: flex;
+  align-items: center;
+  height: 31px;
   font-size: 0.66rem;
   font-weight: 700;
   color: var(--muted);
@@ -1098,9 +1106,13 @@ button.danger:active {
   align-items: center;
   gap: 8px;
   padding: 0 2px;
+  line-height: 1;
   min-height: 1px; /* evita un salto di layout quando è vuota (fasi senza stato "playing") */
 }
 #board-players-top { margin-bottom: 6px; }
+/* Nessun margin-bottom qui apposta: il campo turno sotto (.turn-line) va
+   "attaccato" a questa riga (chiesto) — vedi anche .status-offline-warning
+   per il motivo per cui il distacco poteva sembrare più largo del voluto. */
 #board-players-bottom { margin-top: 10px; }
 /* Nome e pallini sulla stessa riga (l'ordine dei due — pallini poi nome, o
    nome poi pallini — lo decide già il chiamante in renderPlayerStatus a
@@ -1114,15 +1126,6 @@ button.danger:active {
   max-width: 48%;
 }
 .board-player.bp-right { justify-content: flex-end; }
-.board-player-head {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--ink);
-  min-width: 0;
-}
 /* Senza un min-width esplicito, in flexbox un elemento con overflow:hidden
    può restringersi fino a (quasi) zero quando lo spazio scarseggia — è
    esattamente quello che succede quando compare anche l'icona del
@@ -1130,7 +1133,25 @@ button.danger:active {
    nemmeno i puntini di troncamento (segnalato: "al mazziere scompare il
    nome?"). Un min-width garantisce che restino sempre leggibili almeno
    4-5 caratteri prima di troncare con "...". */
-.board-player-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 32px; }
+.board-player-name {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 32px;
+}
+/* Mazziere/disconnesso: ora il gruppo PIÙ interno (verso il centro/
+   tabellone) della riga, dopo le pedine — prima stava subito accanto al
+   nome, quindi più esterno delle pedine (chiesto: "dall'esterno verso
+   l'interno metti nome pedine e altre info come disconnesso o mazziere"). */
+.board-player-extras {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
 /* Il giocatore di turno si riconosce dal nome sottolineato nel SUO
    colore (prima era il bordo di un riquadro che non c'è più — vedi
    In-partita.dc.html per l'idea originale). */
@@ -1140,6 +1161,18 @@ button.danger:active {
 .board-player.bp-active.bp-yellow .board-player-name { color: var(--yellow); text-decoration-color: var(--yellow); }
 .board-player.bp-active.bp-blue .board-player-name { color: var(--blue); text-decoration-color: var(--blue); }
 .status-offline-warning {
+  /* display:inline-flex + line-height:1 + altezza fissa: l'emoji "⚠️" (a
+     differenza del semplice ⚠ di riserva) su alcune piattaforme (es. iOS)
+     viene disegnata più alta del testo intorno, gonfiando l'altezza di
+     tutta la riga giocatore e allargando il distacco visivo dal campo
+     turno sotto (segnalato: "il campo turno sembra staccato dai nomi").
+     Bloccando qui l'altezza la riga resta sempre della stessa dimensione,
+     qualunque sia il glifo dell'emoji sulla piattaforma. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  line-height: 1;
   font-size: 0.62rem;
   font-weight: 700;
   color: #A5424A;
@@ -1148,6 +1181,7 @@ button.danger:active {
   padding: 1px 5px;
   white-space: nowrap;
   flex-shrink: 0;
+  overflow: hidden;
 }
 .mini-pawns { width: 68px; height: 16px; flex-shrink: 0; }
 .dealer-icon { width: 20px; height: 20px; flex-shrink: 0; }
@@ -5744,7 +5778,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.34";
+const APP_VERSION = "v5.35";
 
 let myColor = null;
 let myRoomId = null;
@@ -9887,10 +9921,13 @@ function renderPlayerStatus(state) {
     // ogni connessione viva di quel colore (vedi setupOwnPresence), non un
     // singolo booleano: online finché ne resta almeno una.
     const isOnline = !!presenceState[c] && Object.keys(presenceState[c]).length > 0;
-    const head = el(
-      "div",
-      { class: "board-player-head" },
-      el("span", { class: "board-player-name" }, playerName(state, c)),
+    const nameEl = el("span", { class: "board-player-name" }, playerName(state, c));
+    const dots = miniPawnsRow(state.pawns[c], c);
+    // Mazziere/offline in un contenitore a parte (non più dentro
+    // board-player-head insieme al nome): vedi ordine sotto.
+    const extras = el(
+      "span",
+      { class: "board-player-extras" },
       // Icona mazziere + mani rimaste in un unico contenitore (dealerBadge).
       isDealer ? dealerBadge(handsRemainingBeforeReshuffle(state)) : "",
       // Solo l'icona (senza la scritta "offline"): il motivo resta
@@ -9899,15 +9936,14 @@ function renderPlayerStatus(state) {
         ? el("span", { class: "status-offline-warning", title: `${colorLabel(c)} non è connesso in questo momento` }, "⚠️")
         : ""
     );
-    const dots = miniPawnsRow(state.pawns[c], c);
-    // Nome verso il bordo esterno (schermo), pedine verso il centro/
-    // tabellone (chiesto: "i nomi dei giocatori esterni rispetto le
-    // pedine") — prima era il contrario (pallini all'esterno, nome verso
-    // il centro).
+    // Dall'esterno (bordo schermo) verso l'interno (centro/tabellone):
+    // nome, pedine, poi le altre info (mazziere/disconnesso) — chiesto.
+    // Prima erano nome+mazziere/disconnesso insieme più esterni delle
+    // pedine; ora le pedine stanno in mezzo.
     return el(
       "div",
       { class: `board-player bp-${c}` + (isTurn ? " bp-active" : "") + (isRightSide ? " bp-right" : "") },
-      ...(isRightSide ? [dots, head] : [head, dots])
+      ...(isRightSide ? [extras, dots, nameEl] : [nameEl, dots, extras])
     );
   };
 
