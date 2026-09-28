@@ -803,29 +803,18 @@ button.danger:active {
   gap: 10px;
   margin-bottom: 10px;
 }
+.top-actions-icons { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
+/* Riferimento di build: non più nella riga delle icone (sembrava "fuori
+   allineamento/margine" lì) — ora una scritta piccola e centrata appena
+   sotto la pillola stanza+squadra, prima del campo turno. */
 .build-tag {
-  /* display:flex + stessa altezza dei pulsanti tondi (.icon-btn, 31px) e
-     testo centrato al loro interno: prima era un semplice span di testo,
-     più basso del bottone rotondo accanto, e finiva per sembrare "in
-     alto"/scentrato rispetto alla riga di icone (segnalato: "la build
-     sembra fuori allineamento"). Un piccolo margin-left: a differenza
-     della pillola "Stanza" sotto (bordo + sfondo, quindi con un margine
-     visivo tutto suo) o dei pulsanti tondi (forma rotonda, inset rispetto
-     al loro riquadro), il testo nudo del tag stava esattamente sul bordo
-     del padding di #app — sembrava "fuori margine" rispetto a tutto il
-     resto, che invece ha sempre un piccolo respiro prima del contenuto
-     vero e proprio. */
-  display: flex;
-  align-items: center;
-  height: 31px;
-  margin-left: 3px;
-  font-size: 0.66rem;
+  text-align: center;
+  margin: 6px 0 16px;
+  font-size: 0.62rem;
   font-weight: 700;
   color: var(--muted);
   letter-spacing: 0.03em;
-  flex-shrink: 0;
 }
-.top-actions-icons { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
 /* Stanza + squadra unite in un'unica pillola arrotondata, divisa in due
    metà affiancate da una riga verticale (overflow:hidden sul contenitore
    esterno fa sì che i bordi arrotondati restino condivisi). Entrambe le
@@ -841,15 +830,19 @@ button.danger:active {
   border: 1.5px solid var(--panel-border);
   margin-bottom: 10px;
 }
+/* "Stanza" impilata su due righe (etichetta sopra, codice sotto) come
+   "Squadra" accanto (chiesto: "se squadra è due righe anche stanza deve
+   essere su due righe") — stessa struttura di .room-team-team-copy, non
+   più in linea. */
 .room-team-room {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 1px;
   min-width: 0;
   flex-shrink: 0;
   background: var(--panel);
   padding: 9px 14px;
+  justify-content: center;
 }
 .room-team-room-label {
   font-size: 0.6rem;
@@ -869,27 +862,47 @@ button.danger:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 6px;
+  gap: 9px;
   flex: 1;
   min-width: 0;
-  font-size: 0.82rem;
-  font-weight: 700;
-  padding: 9px 14px;
+  padding: 7px 14px;
   background: var(--panel);
   border-left: 1px solid var(--panel-border);
 }
 /* Le classi team-a-bg/team-b-bg restano applicate dal JS (teamBgClass) ma
-   non colorano più nulla: la sfumatura è stata tolta (chiesto), bastano i
-   due pallini a indicare la squadra. Tenute per non toccare il JS. */
+   non colorano più nulla: la sfumatura è stata tolta in precedenza
+   (chiesto), e ora il colore lo dice lo stemma (vedi .team-crest). Tenute
+   per non toccare il JS. */
 .room-team-team.team-a-bg, .room-team-team.team-b-bg { background: var(--panel); }
+/* Stemma tondo diviso nei due colori della squadra (vedi teamCrest in JS)
+   al posto dei due pallini separati (chiesto: "fallo più elegante"). */
+.team-crest {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.22));
+}
+.room-team-team-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.room-team-team-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted-3);
+}
 .identity-team {
   font-size: 0.86rem;
   font-weight: 800;
   color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.room-team-team .swatch { flex-shrink: 0; }
-.room-team-team .swatch + .swatch { margin-left: -4px; }
 .icon-btn {
   width: 31px;
   height: 31px;
@@ -1045,10 +1058,13 @@ button.danger:active {
 }
 
 /* Carta scartata (ultima giocata) mostrata al centro del tabellone invece
-   che in un riquadro di testo separato (chiesto): un badge ovale
-   sovrapposto al tabellone, con il pallino/iniziale di chi l'ha giocata +
-   la mini-carta. #board-wrap ha position:relative apposta per questo
-   overlay. */
+   che in un riquadro di testo separato (chiesto): il pallino/iniziale di
+   chi l'ha giocata + la mini-carta, direttamente sovrapposti al legno del
+   tabellone. Niente più contenitore bianco/pillola intorno (chiesto:
+   "senza lo spazio contenitore bianco, lo sfondo come tabellone") — la
+   leggibilità sul legno (chiaro o scuro) la dà un'ombra portata sui due
+   elementi (drop-shadow), non più uno sfondo. #board-wrap ha
+   position:relative apposta per questo overlay. */
 .center-discard {
   position: absolute;
   top: 50%;
@@ -1056,37 +1072,33 @@ button.danger:active {
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: color-mix(in srgb, var(--panel) 92%, transparent);
-  border: 1px solid var(--panel-border);
-  border-radius: 14px;
-  padding: 6px 10px 6px 6px;
-  box-shadow: 0 8px 20px -8px rgba(0,0,0,0.4);
+  gap: 7px;
   z-index: 2;
   pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
 }
 .initial-badge {
-  width: 24px;
-  height: 24px;
+  /* Ingrandita un po' insieme alla mini-carta (chiesto: "un po' più
+     grande"), era 24px. */
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-weight: 800;
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   flex-shrink: 0;
   box-shadow: inset 0 -2px 3px rgba(0,0,0,0.18);
 }
 .mini-card {
   position: relative;
-  /* Rimpicciolita (era 32x43): con il riquadro reso omogeneo al resto
-     della pila (stesso padding/raggio di .turn-line) una carta così
-     grande lo faceva risultare molto più alto degli altri elementi
-     impilati (segnalato: "è più grande degli altri"). Resta comunque
-     un po' più leggibile dell'originale 24x32. */
-  width: 27px; height: 36px; flex-shrink: 0;
-  border-radius: 5px;
+  /* Ingrandita un po' (era 27x36, chiesto "un po' più grande") ora che non
+     deve più stare dentro un riquadro condiviso con testo del turno — resta
+     comunque una mini-carta, non la carta a grandezza piena della mano. */
+  width: 34px; height: 45px; flex-shrink: 0;
+  border-radius: 6px;
   border: 1px solid #A79A82;
   background: linear-gradient(180deg, #fffefb, #f4ecd8);
   box-shadow: 0 2px 5px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.8) inset;
@@ -1095,8 +1107,8 @@ button.danger:active {
 .mini-card.suit-red { color: #B03040; }
 .mini-card.suit-black { color: #241C15; }
 .mini-card-rank {
-  position: absolute; top: 2px; left: 2px;
-  font-size: 0.58rem; font-weight: 800; line-height: 1;
+  position: absolute; top: 3px; left: 3px;
+  font-size: 0.72rem; font-weight: 800; line-height: 1;
 }
 .mini-card.mini-card-burned {
   filter: grayscale(0.7);
@@ -1691,8 +1703,37 @@ button.secondary.selected {
 
 /* Bottone rotondo che apre la chat — vedi #chat-wrap in renderGameShell
    per il perché sta qui (subito sotto le pedine) invece che in fondo alla
-   pagina o incollato allo schermo. */
-.chat-fab-row { display: flex; justify-content: center; flex-shrink: 0; margin-bottom: 10px; }
+   pagina o incollato allo schermo. Da quando la riga Stanza/Squadra è più
+   compatta c'è più spazio libero qui, quindi accanto al bottone ora sta
+   anche l'anteprima dell'ultimo messaggio (vedi .chat-preview) — leggibile
+   subito, senza dover aprire il foglio, che resta comunque un tocco via
+   per "ingrandirla" (chiesto). */
+.chat-fab-row { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-bottom: 10px; }
+.chat-preview {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 13px;
+  background: var(--panel);
+  border: 1.5px solid var(--panel-border);
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+}
+.chat-preview-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chat-preview-text strong { font-weight: 800; }
+.chat-preview-empty { color: var(--muted); font-style: italic; font-weight: 500; }
 .chat-fab {
   position: relative;
   width: 44px; height: 44px; border-radius: 50%;
@@ -5789,7 +5830,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.36";
+const APP_VERSION = "v5.40";
 
 let myColor = null;
 let myRoomId = null;
@@ -7095,6 +7136,33 @@ function swatchDot(color) {
   return el("span", { class: "swatch swatch-" + color, style: "margin: 0 4px -2px 2px;" });
 }
 
+// Piccolo stemma tondo diviso a metà nei due colori della squadra (SVG:
+// niente background-image, resta nitido su qualunque schermo/zoom) — usato
+// nella pillola "Squadra" al posto dei due pallini separati (chiesto: "più
+// elegante"), un solo simbolo invece di due elementi ripetuti.
+function teamCrest(colors) {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 26 26");
+  svg.setAttribute("class", "team-crest");
+  const hex = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" };
+  const left = document.createElementNS(ns, "path");
+  left.setAttribute("d", "M13 1a12 12 0 0 0 0 24z");
+  left.setAttribute("fill", hex[colors[0]]);
+  const right = document.createElementNS(ns, "path");
+  right.setAttribute("d", "M13 1a12 12 0 0 1 0 24z");
+  right.setAttribute("fill", hex[colors[1]]);
+  const ring = document.createElementNS(ns, "circle");
+  ring.setAttribute("cx", 13);
+  ring.setAttribute("cy", 13);
+  ring.setAttribute("r", 11.5);
+  ring.setAttribute("fill", "none");
+  ring.setAttribute("stroke", "rgba(255,255,255,0.75)");
+  ring.setAttribute("stroke-width", 1.5);
+  svg.append(left, right, ring);
+  return svg;
+}
+
 // Prefer the name the player chose when joining; fall back to the plain
 // color label if none was set (e.g. an older game, or left blank).
 function playerName(state, c) {
@@ -8143,11 +8211,6 @@ function renderGameShell() {
       el(
         "div",
         { class: "top-actions-row" },
-        // Riferimento di build ben visibile (chiesto) invece che solo in
-        // fondo alla lobby (.app-meta) — utile durante una partita per
-        // capire al volo se un client è rimasto su una versione vecchia,
-        // senza dover aprire il menu/scorrere fino in fondo.
-        el("span", { class: "build-tag" }, APP_VERSION),
         el(
           "div",
           { class: "top-actions-icons" },
@@ -8224,15 +8287,13 @@ function renderGameShell() {
       ),
       el("div", { id: "conn-banner" }),
       el("div", { id: "dealer-draw-wrap" }),
-      // Stanza + squadra unite nella stessa pillola (prima erano due righe
-      // separate: il codice stanza affiancato alle icone del menu, spesso
-      // troncato con "..." su schermi stretti — segnalato — e la squadra
-      // in una riga a sé sotto). Ora un unico contenitore diviso in due
-      // metà: "Stanza" a sfondo pieno neutro (mai più troncata: qui ha
-      // tutta la riga per sé, non deve più convivere con le icone), e
-      // "Squadra" con la sfumatura dei due colori — voluta più marcata
-      // (non le tinte pastello quasi bianche di prima) per il contrasto
-      // con la metà "Stanza" a fianco.
+      // Stanza + squadra unite nella stessa pillola, entrambe su una riga
+      // sola (etichetta piccola + valore in grassetto) per essere della
+      // stessa altezza del campo turno sotto (chiesto di "proporzionare").
+      // La metà "Squadra" ha lo stesso stemma tondo diviso nei due colori
+      // (vedi teamCrest) invece dei due pallini separati (chiesto: "fallo
+      // più elegante"), con l'etichetta "SQUADRA" sopra come nella metà
+      // "Stanza" — stessa gerarchia visiva sui due lati.
       el(
         "div",
         { class: "room-team-row" },
@@ -8245,10 +8306,19 @@ function renderGameShell() {
         el(
           "div",
           { class: "room-team-team " + teamBgClass(myColor) },
-          ...TEAM_COLORS[TEAM_OF[myColor]].map(swatchDot),
-          el("span", { class: "identity-team" }, `Squadra ${TEAM_LABEL[TEAM_OF[myColor]]}`)
+          teamCrest(TEAM_COLORS[TEAM_OF[myColor]]),
+          el(
+            "span",
+            { class: "room-team-team-copy" },
+            el("span", { class: "room-team-team-label" }, "Squadra"),
+            el("span", { class: "identity-team" }, TEAM_LABEL[TEAM_OF[myColor]])
+          )
         )
       ),
+      // Riferimento di build (chiesto: visibile durante la partita, non
+      // solo in fondo alla lobby) come piccola scritta centrata appena
+      // sotto la pillola, non più nella riga delle icone in alto.
+      el("div", { class: "build-tag" }, APP_VERSION),
       // Nomi giocatori + pedine "fuori" agli angoli sopra/sotto il
       // tabellone (vedi renderPlayerStatus) invece che in riquadri a parte
       // più sotto — ciascuno vicino all'angolo dov'è davvero la sua base.
@@ -8324,6 +8394,13 @@ function rebuildBoardForTheme() {
   if (!wrap || !boardSvg || !currentState) return;
   boardSvg = buildBoardSVG(wrap, BOARD);
   renderPawns(boardSvg, BOARD, currentState.pawns, currentState.lastSwap, currentState.lastCapture, currentState.lastHomeEntry);
+  // buildBoardSVG svuota #board-wrap (containerEl.innerHTML = "") per
+  // ridisegnare l'SVG da capo con la palette del tema: questo cancella
+  // anche la carta scartata al centro del tabellone (.center-discard), che
+  // vive come overlay dentro lo stesso contenitore. Senza questa chiamata
+  // la carta spariva cambiando tema finché non arrivava un nuovo stato da
+  // Firebase (segnalato: "quando metto dark la carta al centro sparisce").
+  renderCenterDiscard(currentState);
 }
 function applyTheme(theme) {
   currentTheme = theme;
@@ -9934,6 +10011,13 @@ function renderPlayerStatus(state) {
     const isOnline = !!presenceState[c] && Object.keys(presenceState[c]).length > 0;
     const nameEl = el("span", { class: "board-player-name" }, playerName(state, c));
     const dots = miniPawnsRow(state.pawns[c], c);
+    // Le pedine sempre nello stesso ordine (dal bordo schermo verso il
+    // centro) per TUTTI i giocatori, non solo per chi sta a sinistra
+    // (chiesto). L'SVG di miniPawnsRow disegna sempre da sinistra a destra
+    // al suo interno; per chi sta a destra lo specchiamo (scaleX(-1)) così
+    // il pallino "più esterno" resta lo stesso, sul lato del nome, invece
+    // di finire capovolto verso il centro.
+    if (isRightSide) dots.style.transform = "scaleX(-1)";
     // Mazziere/offline in un contenitore a parte (non più dentro
     // board-player-head insieme al nome): vedi ordine sotto.
     const extras = el(
@@ -11266,6 +11350,10 @@ function renderChat(state) {
   renderChatFab(messages);
 }
 
+// L'anteprima mostra l'ULTIMO messaggio così com'è (senza tagliarlo a
+// mano): il testo lungo si ferma da solo con l'ellissi CSS
+// (.chat-preview-text), e un tocco apre lo stesso foglio di sempre dove si
+// legge per intero — "visibile e ingrandibile se richiesto" (chiesto).
 function renderChatFab(messages) {
   const wrap = $("#chat-wrap");
   const unread = chatPickerOpen ? 0 : Math.max(0, messages.length - chatSeenCount);
@@ -11273,10 +11361,33 @@ function renderChatFab(messages) {
   if (_chatFabRenderKey === key) return;
   _chatFabRenderKey = key;
   wrap.innerHTML = "";
+  const last = messages[messages.length - 1];
+  const preview = last
+    ? el(
+        "div",
+        { class: "chat-preview", onclick: openChatPicker, title: "Apri la chat" },
+        el(
+          "span",
+          { class: "chat-avatar chat-avatar-" + last.color },
+          (playerName(currentState, last.color) || "?").trim().charAt(0).toUpperCase()
+        ),
+        el(
+          "span",
+          { class: "chat-preview-text" },
+          el("strong", {}, (last.color === myColor ? "Tu" : playerName(currentState, last.color)) + ": "),
+          last.text
+        )
+      )
+    : el(
+        "div",
+        { class: "chat-preview chat-preview-empty", onclick: openChatPicker, title: "Apri la chat" },
+        "Nessun messaggio ancora — tocca per scrivere"
+      );
   wrap.appendChild(
     el(
       "div",
       { class: "chat-fab-row" },
+      preview,
       el(
         "button",
         { class: "chat-fab", "aria-label": "Apri la chat", onclick: openChatPicker },
