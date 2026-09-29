@@ -168,6 +168,24 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
 /* Scambio alla cieca: qui il mockup (Scambio.dc.html) vuole INVECE una
    card bianca a sé per l'intestazione/stato, diversa dalla sala d'attesa
    — non riusa .start-card (ormai trasparente) ma una classe propria. */
+.exchange-line { justify-content: space-between; }
+.exchange-dots { display: inline-flex; gap: 7px; margin-left: auto; }
+.exchange-dot {
+  position: relative; width: 24px; height: 24px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.78rem; font-weight: 800; color: #fff;
+}
+.exchange-dot-red { background: #D9636B; }
+.exchange-dot-green { background: #3FA77E; }
+.exchange-dot-yellow { background: #E3AC33; color: #3B2A0E; }
+.exchange-dot-blue { background: #3E8FCB; }
+/* Chi non ha ancora scelto è sbiadito; chi ha scelto è pieno con la spunta. */
+.exchange-dot.waiting { opacity: 0.4; }
+.exchange-dot-check {
+  position: absolute; right: -4px; bottom: -4px; width: 13px; height: 13px; border-radius: 50%;
+  background: #4E9770; color: #fff; font-size: 0.55rem; line-height: 13px; text-align: center;
+  border: 1.5px solid var(--panel);
+}
 .exchange-card {
   background: var(--panel);
   border: 1px solid var(--panel-border);
@@ -6250,7 +6268,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.74";
+const APP_VERSION = "v5.77";
 
 let myColor = null;
 let myRoomId = null;
@@ -10330,12 +10348,12 @@ function onStateChange(state) {
   recordMoveHistoryIfFresh(state);
   renderDealerDrawScreen(state);
   renderStartControls(state);
-  renderExchangeControls(state);
   const pawnAnimMs = renderPawns(boardSvg, BOARD, state.pawns, state.lastSwap, state.lastCapture, state.lastHomeEntry);
   renderTurnIndicator(state);
   renderCenterDiscard(state);
   renderPlayerStatus(state);
   renderHand(state);
+  renderExchangeControls(state); // dopo turno+mano: ne riusa gli spazi durante lo scambio
   renderChat(state);
   renderLog(state);
   renderHandsDebugPanel(state);
@@ -10542,80 +10560,51 @@ async function startGame() {
 // ---------------- Blind card exchange ----------------
 
 function renderExchangeControls(state) {
-  const wrap = $("#exchange-wrap");
-  wrap.innerHTML = "";
+  // Lo scambio usa gli STESSI due spazi del gioco: una riga sottile al posto
+  // di "Turno di…" (#turn-indicator) e le carte in #hand-wrap, così le carte
+  // restano ESATTAMENTE dove sono durante la partita invece di scendere sotto
+  // un riquadro alto (segnalato). #exchange-wrap non serve più: si svuota.
+  $("#exchange-wrap").innerHTML = "";
   if (state.phase !== "exchanging") return;
+  const line = $("#turn-indicator");
+  const handWrap = $("#hand-wrap");
+  line.innerHTML = "";
+  handWrap.innerHTML = "";
   const already = !!state.pendingExchange[myColor];
   const partner = PARTNER_OF[myColor];
-  const doneColors = COLORS.filter((c) => !!state.pendingExchange[c]);
   const waitingColors = COLORS.filter((c) => !state.pendingExchange[c]);
-  const pill = (c, cls) =>
-    el("span", { class: "exchange-pill " + cls }, el("span", { class: "swatch swatch-" + c }), playerName(state, c));
-  wrap.appendChild(
-    el(
-      "div",
-      {},
+  const dots = el(
+    "span",
+    { class: "exchange-dots" },
+    COLORS.map((c) =>
       el(
-        "div",
-        { class: "exchange-card" },
-        el("p", { class: "exchange-card-title" }, "🤝 Scambio alla cieca"),
-        el(
-          "p",
-          { class: "muted", style: "font-size:0.82rem;" },
-          "Scegli una carta da dare al tuo compagno ",
-          el("b", { style: "color:var(--ink);" }, playerName(state, partner)),
-          ", senza dirgli quale."
-        ),
-        doneColors.length > 0
-          ? el(
-              "div",
-              { class: "exchange-pill-row" },
-              el("span", { class: "exchange-pill-lead done" }, "✓ Già scelto:"),
-              doneColors.map((c) => pill(c, "done"))
-            )
-          : "",
-        waitingColors.length > 0
-          ? el(
-              "div",
-              { class: "exchange-pill-row" },
-              el("span", { class: "exchange-pill-lead" }, "⏳ In attesa di:"),
-              waitingColors.map((c) => pill(c, "waiting"))
-            )
-          : el("p", { style: "font-weight:700;font-size:0.82rem;margin-top:10px;" }, "Tutti pronti, avvio in corso...")
-      ),
-      already
-        ? [
-            el(
-              "p",
-              { class: "muted exchange-done-line" },
-              el(
-                "span",
-                { class: "exchange-done-badge" },
-                svgIcon(11, 11, "0 0 24 24", "#FFFFFF", 3, [["polyline", { points: "4 12 9 17 20 6" }]])
-              ),
-              "Hai già scelto la tua carta. In attesa degli altri..."
-            ),
-            // La carta data è già stata tolta da state.hands (vedi
-            // submitExchangeCard), quindi qui restano solo le carte che
-            // tieni davvero — prima sparivano del tutto durante l'attesa,
-            // e non si vedeva più cosa si aveva in mano.
-            el("div", { class: "exchange-label" }, "Le tue carte rimaste"),
-            el(
-              "div",
-              { class: "hand-row" },
-              state.hands[myColor].map((card) => buildCardButton(card, false))
-            ),
-          ]
-        : [
-            el("div", { class: "exchange-label" }, "Tocca la carta da dare"),
-            el(
-              "div",
-              { class: "hand-row" },
-              state.hands[myColor].map((card) => buildCardButton(card, true, () => sendExchangeCard(card)))
-            ),
-          ]
+        "span",
+        {
+          class: "exchange-dot exchange-dot-" + c + " " + (state.pendingExchange[c] ? "done" : "waiting"),
+          title: playerName(state, c) + (state.pendingExchange[c] ? " ha scelto" : " sta scegliendo"),
+        },
+        (playerName(state, c) || "?").trim().charAt(0).toUpperCase(),
+        state.pendingExchange[c] ? el("span", { class: "exchange-dot-check" }, "✓") : ""
+      )
     )
   );
+  line.appendChild(
+    el(
+      "div",
+      { class: "turn-line exchange-line" + (already ? "" : " my-turn") },
+      already
+        ? el("strong", {}, waitingColors.length ? "✓ Scelta fatta · in attesa degli altri" : "Tutti pronti, avvio…")
+        : el("strong", {}, "🤝 Dai una carta a " + playerName(state, partner)),
+      dots
+    )
+  );
+  // La carta data è già stata tolta da state.hands (vedi submitExchangeCard):
+  // restano solo le carte che tieni davvero.
+  state.hands[myColor].forEach((card) => {
+    handWrap.appendChild(
+      already ? buildCardButton(card, false) : buildCardButton(card, true, () => sendExchangeCard(card))
+    );
+  });
 }
 
 async function sendExchangeCard(card) {
@@ -12108,7 +12097,7 @@ function renderChatFab(messages) {
 // Reazioni rapide: sono normali messaggi di chat che contengono UNA sola
 // emoji (nessun campo nuovo nello stato -> nessun rischio con le regole
 // Firebase). Chi le riceve vede l'emoji "volare" sullo schermo.
-const REACTIONS = ["😂", "😱", "👏", "😈", "🙏", "🔥"];
+const REACTIONS = ["😂", "😱", "👏", "🖕", "🙏", "🔥"];
 const reactionTracker = { roomId: null, lastId: null };
 const NUDGE_TEXT = "👋 Sveglia, tocca a te!";
 let lastNudgeAt = 0;
