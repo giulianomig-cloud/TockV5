@@ -2194,6 +2194,21 @@ html.fx3d .center-discard .mini-card svg { width: 22px; height: 22px; }
 html.fx3d .center-discard .initial-badge { width: 24px; height: 24px; bottom: -9px; left: -10px; box-shadow: inset 0 -2px 3px rgba(0,0,0,.2), 0 3px 3px rgba(0,0,0,.35); }
 html.fx3d[data-theme="dark"] .card-btn { box-shadow: 0 0 0 1px rgba(255,255,255,.5) inset, 0 3px 0 #8B7B5A, 0 10px 12px -3px rgba(0,0,0,.7); }
 
+/* --- effetto "premuto" per i tasti in rilievo --- */
+html.fx3d .icon-btn, html.fx3d .theme-toggle-btn, html.fx3d .chat-fab, html.fx3d .reaction-btn, html.fx3d .card-btn, html.fx3d .icon-btn-pair {
+  transition: transform .07s ease, box-shadow .07s ease;
+}
+html.fx3d .icon-btn:active, html.fx3d .theme-toggle-btn:active, html.fx3d .chat-fab:active, html.fx3d .reaction-btn:active,
+html.fx3d .card-btn:not(:disabled):active, html.fx3d .icon-btn-pair:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 5px rgba(90,65,20,.4) inset, 0 0 0 rgba(0,0,0,0), 0 1px 0 rgba(255,255,255,.7);
+  filter: brightness(.96);
+}
+html.fx3d[data-theme="dark"] .icon-btn:active, html.fx3d[data-theme="dark"] .theme-toggle-btn:active, html.fx3d[data-theme="dark"] .chat-fab:active,
+html.fx3d[data-theme="dark"] .reaction-btn:active, html.fx3d[data-theme="dark"] .card-btn:not(:disabled):active, html.fx3d[data-theme="dark"] .icon-btn-pair:active {
+  box-shadow: 0 3px 6px rgba(0,0,0,.6) inset, 0 1px 0 rgba(255,255,255,.08);
+}
+
 </style>
 </head>
 <body>
@@ -6438,7 +6453,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.101";
+const APP_VERSION = "v5.103";
 
 let myColor = null;
 let myRoomId = null;
@@ -9378,7 +9393,6 @@ function toggleFx3d() {
   document.documentElement.classList.toggle("fx3d", on);
   try { localStorage.setItem("tock-fx3d", on ? "1" : "0"); } catch (e) {}
   updateFx3dBtn();
-  showToast(on ? "🧊 Rilievo 3D acceso" : "Aspetto classico");
 }
 function updateFx3dBtn() {
   const btn = document.getElementById("fx3d-toggle-btn");
