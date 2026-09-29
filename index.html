@@ -5042,7 +5042,7 @@ function setupOwnPresence(roomId, color) {
     // liberiamo quella voce, altrimenti resterebbe segnata online per
     // sempre lì (nessuna disconnessione reale è avvenuta per quel path).
     if (myPresenceRef) {
-      myPresenceRef.onDisconnect().cancel();
+      myPresenceRef.onDisconnect().cancel().catch(() => {});
       myPresenceRef.remove().catch(() => {});
     }
     myPresenceRoomColor = roomColor;
@@ -5077,7 +5077,11 @@ function writeState(roomId, state) {
 // va benissimo per farsi un'idea, non per fatturare nulla.
 function incrementStat(name) {
   try {
-    db.ref("stats/" + name).transaction((cur) => (cur || 0) + 1);
+    // .catch è indispensabile: il try/catch da solo NON intercetta il rifiuto
+    // asincrono (permission_denied se le regole non permettono stats/): finiva
+    // come "promise non gestita" con la barra rossa ogni volta che si crea
+    // una stanza.
+    db.ref("stats/" + name).transaction((cur) => (cur || 0) + 1).catch(() => {});
   } catch (e) {
     // un contatore non deve mai far fallire il gioco
   }
@@ -6268,7 +6272,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.78";
+const APP_VERSION = "v5.79";
 
 let myColor = null;
 let myRoomId = null;
@@ -8829,7 +8833,7 @@ function detachFromGameRoom() {
   if (myRoomId) roomRef(myRoomId).off("value");
   if (presenceListenerRef) { presenceListenerRef.off(); presenceListenerRef = null; }
   if (myPresenceRef) {
-    myPresenceRef.onDisconnect().cancel();
+    myPresenceRef.onDisconnect().cancel().catch(() => {});
     myPresenceRef.remove().catch(() => {});
     myPresenceRef = null;
     myPresenceRoomColor = null;
