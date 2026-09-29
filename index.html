@@ -6273,7 +6273,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.84";
+const APP_VERSION = "v5.86";
 
 let myColor = null;
 let myRoomId = null;
@@ -6737,6 +6737,7 @@ function renderTournamentLobby(code) {
     const iscritti = Object.entries(t.iscritti || {}).map(([id, p]) => ({ id, ...p }));
     const currentRound = t.roundCorrente || 0;
     const currentTables = currentRound > 0 && t.rounds ? (t.rounds[currentRound] && t.rounds[currentRound].tables) || {} : {};
+    setTimeout(() => refreshTableStatuses(body), 0);
     // Tavoli di soli bot: nessuno li farebbe mai giocare, li gioca l'organizzatore.
     if (isOrganizer && t.stato === "in_corso") autoPlayBotOnlyTables(currentTables);
     body.innerHTML = "";
@@ -6809,6 +6810,7 @@ function renderTournamentLobby(code) {
               "div",
               { class: "leaderboard-row" },
               el("span", { class: "leaderboard-name" }, label),
+              el("span", { class: "table-status muted", "data-room": tb.roomCode, "data-allbots": tb.giocatori.every((g) => g.bot) ? "1" : "0", style: "font-size:0.78rem;white-space:nowrap;" }),
               mine
                 ? el("button", { class: "sound-test-btn", onclick: () => joinTournamentTable(tb.roomCode) }, "▶️ Il tuo tavolo")
                 : ""
@@ -6992,8 +6994,18 @@ async function handleAvviaRound(code, hasCurrentRound) {
   if (hasCurrentRound) {
     const t = await loadTournament(code);
     const tables = (t.rounds && t.rounds[t.roundCorrente] && t.rounds[t.roundCorrente].tables) || {};
-    const complete = await isRoundComplete(tables);
-    if (!complete) return showToast("Alcuni tavoli di questo round non sono ancora finiti.");
+    let complete = await isRoundComplete(tables);
+    if (!complete) {
+      // Forse manca solo il tavolo dei bot: lo si fa giocare (o si aspetta che
+      // finisca) prima di dire che il round non è concluso.
+      const hasBotTable = Object.values(tables).some((tb) => tb.giocatori && tb.giocatori.length && tb.giocatori.every((g) => g.bot));
+      if (hasBotTable) {
+        showToast("🤖 Faccio giocare il tavolo dei bot, un attimo…");
+        await autoPlayBotOnlyTables(tables);
+        complete = await isRoundComplete(tables);
+      }
+    }
+    if (!complete) return showToast("Manca ancora un tavolo con giocatori veri: va finito prima di avviare il round successivo.");
     // Il round corrente è finito: prima di aprirne uno nuovo, controlla se il
     // torneo ha già esaurito tutti gli incontri (richiesto: "si conclude
     // quando sono finiti tutti gli incontri") — in quel caso non se ne apre
@@ -9746,38 +9758,63 @@ async function simulateBotOnlyGame(state, yielder) {
   }
 }
 
-const _botOnlyBusy = new Set();
+// Accanto a ogni tavolo del round: "✅ Finito" / "⏳ In corso", così si vede
+// quale tavolo blocca l'avvio del round successivo ("alcuni tavoli non sono
+// ancora finiti" da solo non dice quale).
+async function refreshTableStatuses(container) {
+  const nodes = container ? Array.from(container.querySelectorAll(".table-status[data-room]")) : [];
+  for (const n of nodes) {
+    try {
+      const snap = await roomRef(n.getAttribute("data-room")).get();
+      const st = snap.val();
+      const allBots = n.getAttribute("data-allbots") === "1";
+      if (st && st.phase === "finished") n.textContent = "✅ Finito";
+      else if (allBots) n.textContent = _botOnlyBusy.size ? "🤖 Sta giocando…" : "🤖 In attesa";
+      else if (!st || st.phase === "lobby") n.textContent = "⏳ Da iniziare";
+      else n.textContent = "⏳ In corso";
+    } catch (e) { /* stato non leggibile: lascia vuoto */ }
+  }
+}
+
+const _botOnlyBusy = new Map(); // roomCode -> promise della simulazione in corso
 const _botOnlyDone = new Set();
+async function playBotOnlyTable(tb) {
+  const snap = await roomRef(tb.roomCode).get();
+  const cur = snap.val();
+  if (!cur || cur.phase === "finished") { _botOnlyDone.add(tb.roomCode); return; }
+  const sim = normalizeState(JSON.parse(JSON.stringify(cur)));
+  // Si gioca su una copia, a pezzetti (senza bloccare la schermata), e si
+  // scrive UNA volta sola alla fine.
+  await simulateBotOnlyGame(sim, () => new Promise((r) => setTimeout(r, 0)));
+  let finalState = null;
+  await updateState(tb.roomCode, (state) => {
+    if (state.phase === "finished") return; // nel frattempo l'ha finita qualcun altro
+    for (const k of Object.keys(state)) delete state[k];
+    Object.assign(state, sim);
+    finalState = state;
+  });
+  if (finalState && finalState.winnerTeam) await tryClaimTournamentTableCredit(finalState, tb.roomCode);
+  _botOnlyDone.add(tb.roomCode);
+}
+
+// Se un tavolo è già in corso di simulazione ne attende la fine (così
+// "Avvia round successivo" può aspettare invece di rispondere subito "non
+// ancora finiti").
 async function autoPlayBotOnlyTables(tables) {
+  const jobs = [];
   for (const tb of Object.values(tables || {})) {
     if (!tb || !tb.roomCode || !tb.giocatori || tb.giocatori.length === 0) continue;
     if (!tb.giocatori.every((g) => g.bot)) continue;
-    if (_botOnlyBusy.has(tb.roomCode) || _botOnlyDone.has(tb.roomCode)) continue;
-    _botOnlyBusy.add(tb.roomCode);
-    try {
-      const snap = await roomRef(tb.roomCode).get();
-      const cur = snap.val();
-      if (!cur) { _botOnlyDone.add(tb.roomCode); continue; }
-      if (cur.phase === "finished") { _botOnlyDone.add(tb.roomCode); continue; }
-      const sim = normalizeState(JSON.parse(JSON.stringify(cur)));
-      // Si gioca su una copia, a pezzetti (senza bloccare la schermata), e si
-      // scrive UNA volta sola alla fine.
-      await simulateBotOnlyGame(sim, () => new Promise((r) => setTimeout(r, 0)));
-      let finalState = null;
-      await updateState(tb.roomCode, (state) => {
-        if (state.phase === "finished") return; // nel frattempo l'ha finita qualcun altro
-        for (const k of Object.keys(state)) delete state[k];
-        Object.assign(state, sim);
-        finalState = state;
-      });
-      if (finalState && finalState.winnerTeam) await tryClaimTournamentTableCredit(finalState, tb.roomCode);
-      _botOnlyDone.add(tb.roomCode);
-    } catch (e) {
-      console.warn("tavolo solo bot:", e);
-    } finally {
-      _botOnlyBusy.delete(tb.roomCode);
+    if (_botOnlyDone.has(tb.roomCode)) continue;
+    if (!_botOnlyBusy.has(tb.roomCode)) {
+      const job = playBotOnlyTable(tb)
+        .catch((e) => console.warn("tavolo solo bot:", e))
+        .finally(() => _botOnlyBusy.delete(tb.roomCode));
+      _botOnlyBusy.set(tb.roomCode, job);
     }
+    jobs.push(_botOnlyBusy.get(tb.roomCode));
   }
+  await Promise.all(jobs);
 }
 
 // Tutti i "numeri a occhio" della valutazione del bot, raccolti in un unico
