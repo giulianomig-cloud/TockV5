@@ -4170,6 +4170,7 @@ async function tryClaimLeaderboardCredit(state) {
 async function tryClaimTournamentTableCredit(state, roomId) {
   const rid = roomId || myRoomId;
   if (!state || !state.winnerTeam || !state.torneo || !rid) return;
+  if (state.torneo.spareggio) return; // la partita di spareggio non tocca la classifica
   try {
     const claimResult = await roomRef(rid)
       .child("tournClaimed")
@@ -4190,6 +4191,18 @@ async function tryClaimTournamentTableCredit(state, roomId) {
       updates["tournaments/" + state.torneo.code + "/classifica/" + p.playerId + "/vittorie"] = firebase.database.ServerValue.increment(1);
       updates["tournaments/" + state.torneo.code + "/classifica/" + p.playerId + "/nome"] = p.name;
       updates["tournaments/" + state.torneo.code + "/classifica/" + p.playerId + "/isBot"] = !!p.isBot;
+    }
+    // Differenza catture (pedine mangiate - pedine perse) di TUTTI e 4 i
+    // giocatori, sommata su tutto il torneo: primo spareggio a parità di vittorie.
+    for (const c of COLORS) {
+      const p = state.players && state.players[c];
+      if (!p || !p.playerId) continue;
+      const st = (state.stats && state.stats[c]) || {};
+      const d = (st.capt || 0) - (st.lost || 0);
+      const base = "tournaments/" + state.torneo.code + "/classifica/" + p.playerId;
+      if (d !== 0) updates[base + "/diff"] = firebase.database.ServerValue.increment(d);
+      updates[base + "/nome"] = p.name;
+      updates[base + "/isBot"] = !!p.isBot;
     }
     if (Object.keys(updates).length > 0) await db.ref().update(updates);
   } catch (e) {
@@ -4763,19 +4776,36 @@ function allTournamentMatchesPlayed(tournament) {
 // tornei vinti (tournamentWins/{playerId}) — una classifica NUOVA e
 // separata da quella generale delle vittorie-partita (leaderboard/*),
 // pensata apposta per "i vincitori dei vari tornei" (richiesto).
-async function concludeTournament(code, tournament) {
+// Giocatori in cima alla classifica a pari vittorie (2+ = serve uno spareggio).
+function topTiedPlayers(tournament) {
   const classifica = Object.entries(tournament.classifica || {})
-    .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, isBot: !!(p && p.isBot) }))
-    .sort((a, b) => b.vittorie - a.vittorie || a.nome.localeCompare(b.nome, "it"));
-  const vincitore = classifica[0] || null;
-  await tournamentsRef().child(code).update({
+    .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, diff: (p && p.diff) || 0, isBot: !!(p && p.isBot) }))
+    .sort((a, b) => b.vittorie - a.vittorie || b.diff - a.diff || a.nome.localeCompare(b.nome, "it"));
+  if (classifica.length === 0) return { classifica, tied: [], winsTied: [] };
+  // pari a vittorie in testa; tra questi, spareggio 1 = differenza catture
+  const winsTied = classifica.filter((p) => p.vittorie === classifica[0].vittorie);
+  const tied = winsTied.filter((p) => p.diff === winsTied[0].diff);
+  return { classifica, tied, winsTied };
+}
+
+// winnerId: vincitore già deciso (spareggio giocato); altrimenti, se c'è
+// parità, sorteggio tra i pari (solo per 3+ pari, caso raro).
+async function concludeTournament(code, tournament, winnerId, decisoDa) {
+  const { classifica, tied, winsTied } = topTiedPlayers(tournament);
+  let vincitore = classifica[0] || null;
+  if (!winnerId && !decisoDa && winsTied.length > 1 && tied.length === 1) decisoDa = "catture";
+  if (winnerId) vincitore = classifica.find((p) => p.id === winnerId) || vincitore;
+  else if (tied.length > 1) {
+    vincitore = tied[Math.floor(Math.random() * tied.length)];
+    decisoDa = "sorteggio";
+  }
+  const upd = {
     stato: "concluso",
     vincitore: vincitore ? { playerId: vincitore.id, nome: vincitore.nome, vittorie: vincitore.vittorie, isBot: vincitore.isBot } : null,
-  });
-  // I bot (fissi o no) restano fuori dall'albo dei tornei vinti, come già
-  // succede per la classifica generale delle vittorie-partita — quella
-  // classifica è pensata per le persone, non per assegnare un trofeo a un
-  // computer.
+  };
+  if (decisoDa) upd.decisoDa = decisoDa;
+  await tournamentsRef().child(code).update(upd);
+  // I bot restano fuori dall'albo dei tornei vinti.
   if (vincitore && !vincitore.isBot) {
     await tournamentWinsRef()
       .child(vincitore.id)
@@ -4784,7 +4814,26 @@ async function concludeTournament(code, tournament) {
         tornei: ((cur && cur.tornei) || 0) + 1,
       }));
   }
-  return { vincitore };
+  return { vincitore, decisoDa };
+}
+
+// Spareggio giocato: i due pari (uno per squadra) con compagni presi dai
+// migliori in classifica dopo di loro. Stanza {CODE}-SP, non entra in classifica.
+async function creaSpareggio(code, tournament, tied, classifica) {
+  const seat = (p) => {
+    const i = (tournament.iscritti && tournament.iscritti[p.id]) || {};
+    return { playerId: p.id, nome: p.nome, isBot: !!p.isBot, botLevel: i.botLevel };
+  };
+  const rest = classifica.filter((p) => !tied.some((t) => t.id === p.id));
+  const posti = [seat(tied[0]), rest[0] ? seat(rest[0]) : null, seat(tied[1]), rest[1] ? seat(rest[1]) : null];
+  const roomCode = (code + "-SP").toUpperCase();
+  const { state, giocatori } = buildTableGameState(posti, code, "SP", 0);
+  state.torneo.spareggio = true;
+  await roomRef(roomCode).set(state);
+  await codesRef().child(roomCode).transaction((cur) => (cur ? cur : "room"));
+  await tournamentsRef().child(code).update({
+    spareggio: { roomCode, giocatori, tied: [tied[0].id, tied[1].id] },
+  });
 }
 
 // Avvia il round successivo: genera i tavoli (in base al formato), crea le
@@ -6292,7 +6341,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.91";
+const APP_VERSION = "v5.95";
 
 let myColor = null;
 let myRoomId = null;
@@ -6576,7 +6625,7 @@ async function renderLeaderboardScreen() {
           { class: "leaderboard-row" },
           el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
           el("span", { class: "leaderboard-name" }, p.nome),
-          el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie"))
+          el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie") + " · " + (p.diff > 0 ? "+" : "") + p.diff + " catt.")
         )
       );
     });
@@ -6840,7 +6889,7 @@ function renderTournamentLobby(code) {
           "div",
           { class: "win-team-banner", style: "background:#F3EBD8; border:1.5px solid var(--gold); border-radius:14px; padding:12px 14px; margin-bottom:14px;" },
           el("p", { style: "margin:0; font-weight:800;" },
-            t.vincitore ? `🏆 Vince ${t.vincitore.isBot ? "🤖 " : ""}${t.vincitore.nome}!` : "🏆 Torneo concluso"),
+            t.vincitore ? `🏆 Vince ${t.vincitore.isBot ? "🤖 " : ""}${t.vincitore.nome}!${t.decisoDa === "catture" ? " (differenza catture)" : t.decisoDa === "spareggio" ? " (dopo lo spareggio)" : t.decisoDa === "sorteggio" ? " (🎲 deciso a sorte)" : ""}` : "🏆 Torneo concluso"),
           el("p", { class: "muted", style: "margin:4px 0 0; font-size:0.85rem;" }, "Tutti gli incontri sono stati giocati.")
         )
       );
@@ -6869,12 +6918,28 @@ function renderTournamentLobby(code) {
       );
     }
 
+    if (t.spareggio && t.spareggio.giocatori) {
+      const sp = t.spareggio;
+      const mineSp = sp.giocatori.some((g) => g.playerId === myPlayerId);
+      body.appendChild(el("p", { class: "step-label" }, "⚔️ Spareggio (decide il vincitore)"));
+      body.appendChild(
+        el("div", { class: "leaderboard-list" },
+          el("div", { class: "leaderboard-row" },
+            el("span", { class: "leaderboard-name" }, sp.giocatori.map((g) => g.nome + (g.bot ? " 🤖" : "") + (sp.tied.indexOf(g.playerId) >= 0 ? " ⭐" : "")).join(" · ")),
+            el("span", { class: "table-status muted", "data-room": sp.roomCode, "data-allbots": sp.giocatori.every((g) => g.bot) ? "1" : "0", style: "font-size:0.78rem;white-space:nowrap;" }),
+            mineSp ? el("button", { class: "sound-test-btn", onclick: () => joinTournamentTable(sp.roomCode) }, "▶️ Il tuo tavolo") : ""
+          )
+        )
+      );
+      body.appendChild(el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" }, "⭐ = i giocatori a pari punti. Vince il torneo chi tra i due vince lo spareggio; i compagni non contano."));
+    }
+
     if (isOrganizer && t.stato !== "concluso") {
       body.appendChild(
         el(
           "div",
           { class: "sound-test-row", style: "margin-top:12px;" },
-          el("button", { class: "primary", style: "flex:1;", onclick: () => handleAvviaRound(code, currentRound > 0) }, currentRound > 0 ? "Avvia round successivo" : "Avvia il torneo (round 1)")
+          el("button", { class: "primary", style: "flex:1;", onclick: () => handleAvviaRound(code, currentRound > 0) }, t.spareggio ? "Concludi torneo (dopo lo spareggio)" : currentRound > 0 ? "Avvia round successivo" : "Avvia il torneo (round 1)")
         )
       );
       body.appendChild(
@@ -6906,10 +6971,11 @@ function renderTournamentLobby(code) {
     }
 
     const classifica = Object.entries(t.classifica || {})
-      .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, isBot: !!(p && p.isBot) }))
-      .sort((a, b) => b.vittorie - a.vittorie || a.nome.localeCompare(b.nome, "it"));
+      .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, diff: (p && p.diff) || 0, isBot: !!(p && p.isBot) }))
+      .sort((a, b) => b.vittorie - a.vittorie || b.diff - a.diff || a.nome.localeCompare(b.nome, "it"));
     if (classifica.length > 0) {
       body.appendChild(el("p", { class: "step-label" }, "Classifica del torneo"));
+      body.appendChild(el("p", { class: "muted", style: "font-size:0.78rem; margin:-4px 0 8px;" }, "Punteggio: 1 vittoria a ciascuno dei 2 giocatori della squadra che vince la partita, con qualsiasi compagno. A pari vittorie conta la differenza catture (pedine mangiate − pedine perse, su tutto il torneo). Se anche quella è pari in testa: spareggio giocato."));
       body.appendChild(
         el(
           "div",
@@ -6920,7 +6986,7 @@ function renderTournamentLobby(code) {
               { class: "leaderboard-row" },
               el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
               el("span", { class: "leaderboard-name" }, (p.isBot ? "🤖 " : "") + p.nome),
-              el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie"))
+              el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie") + " · " + (p.diff > 0 ? "+" : "") + p.diff + " catt.")
             )
           )
         )
@@ -7060,8 +7126,31 @@ async function handleAvviaRound(code, hasCurrentRound) {
     // quando sono finiti tutti gli incontri") — in quel caso non se ne apre
     // un altro, si chiude il torneo e si accredita il vincitore.
     if (allTournamentMatchesPlayed(t)) {
-      const { vincitore } = await concludeTournament(code, t);
-      showToast(vincitore ? `🏆 Torneo concluso! Vince ${vincitore.nome}.` : "Torneo concluso!");
+      const { classifica, tied } = topTiedPlayers(t);
+      let winnerId = null;
+      let decisoDa = null;
+      if (tied.length === 2) {
+        if (!t.spareggio) {
+          await creaSpareggio(code, t, tied, classifica);
+          showToast(`⚔️ Parità tra ${tied[0].nome} e ${tied[1].nome}: si gioca lo spareggio!`);
+          return;
+        }
+        const snap = await roomRef(t.spareggio.roomCode).get();
+        let sp = snap.val();
+        if (!sp || sp.phase !== "finished") {
+          const allBots = (t.spareggio.giocatori || []).every((g) => g.bot);
+          if (allBots) {
+            showToast("🤖 Faccio giocare lo spareggio dei bot, un attimo…");
+            await autoPlayBotOnlyTables({ sp: { roomCode: t.spareggio.roomCode, giocatori: t.spareggio.giocatori } });
+            sp = (await roomRef(t.spareggio.roomCode).get()).val();
+          }
+          if (!sp || sp.phase !== "finished") return showToast("Lo spareggio non è ancora finito.");
+        }
+        const win = (t.spareggio.giocatori || []).find((g) => TEAM_OF[g.colore] === sp.winnerTeam && t.spareggio.tied.indexOf(g.playerId) >= 0);
+        if (win) { winnerId = win.playerId; decisoDa = "spareggio"; }
+      }
+      const { vincitore, decisoDa: how } = await concludeTournament(code, t, winnerId, decisoDa);
+      showToast(vincitore ? `🏆 Torneo concluso! Vince ${vincitore.nome}${how === "catture" ? " (differenza catture)" : how === "spareggio" ? " (spareggio)" : how === "sorteggio" ? " (sorteggio)" : ""}.` : "Torneo concluso!");
       return;
     }
   }
