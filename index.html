@@ -6268,7 +6268,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.77";
+const APP_VERSION = "v5.78";
 
 let myColor = null;
 let myRoomId = null;
@@ -10498,6 +10498,7 @@ async function finishDealerDraw() {
 
 function renderStartControls(state) {
   const wrap = $("#start-wrap");
+  if (!wrap) return; // schermata di gioco non presente (es. timer/ritardo dopo essere usciti dal tavolo)
   wrap.innerHTML = "";
   if (state.phase !== "lobby") return;
   // COLORS (non Object.keys) apposta: Object.keys segue l'ordine di
@@ -10564,10 +10565,13 @@ function renderExchangeControls(state) {
   // di "Turno di…" (#turn-indicator) e le carte in #hand-wrap, così le carte
   // restano ESATTAMENTE dove sono durante la partita invece di scendere sotto
   // un riquadro alto (segnalato). #exchange-wrap non serve più: si svuota.
-  $("#exchange-wrap").innerHTML = "";
+  const exWrap = $("#exchange-wrap");
+  if (!exWrap) return;
+  exWrap.innerHTML = "";
   if (state.phase !== "exchanging") return;
   const line = $("#turn-indicator");
   const handWrap = $("#hand-wrap");
+  if (!line || !handWrap) return;
   line.innerHTML = "";
   handWrap.innerHTML = "";
   const already = !!state.pendingExchange[myColor];
@@ -10880,6 +10884,7 @@ function ensureTurnTimerRunning() {
 
 function renderTurnIndicator(state) {
   const wrap = $("#turn-indicator");
+  if (!wrap) return; // schermata di gioco non presente (es. timer/ritardo dopo essere usciti dal tavolo)
   wrap.innerHTML = "";
   if (state.phase !== "playing") return;
   ensureTurnTimerRunning();
@@ -10963,6 +10968,7 @@ const RECEIVED_HIGHLIGHT_MS = 10000;
 
 function renderHand(state) {
   const wrap = $("#hand-wrap");
+  if (!wrap) return; // schermata di gioco non presente (es. timer/ritardo dopo essere usciti dal tavolo)
   wrap.innerHTML = "";
   if (state.phase !== "playing") return;
   const isMyTurn = state.turnColor === myColor;
@@ -12037,6 +12043,7 @@ function renderChat(state) {
 function renderChatFab(messages) {
   showReactionsFrom(currentState);
   const wrap = $("#chat-wrap");
+  if (!wrap) return; // schermata di gioco non presente (es. timer/ritardo dopo essere usciti dal tavolo)
   const unread = chatPickerOpen ? 0 : Math.max(0, messages.length - chatSeenCount);
   const key = messages.length + ":" + chatPickerOpen;
   if (_chatFabRenderKey === key) return;
