@@ -4141,6 +4141,20 @@ async function tryClaimLeaderboardCredit(state) {
       updates["leaderboard/" + p.playerId + "/vittorie"] = firebase.database.ServerValue.increment(1);
       updates["leaderboard/" + p.playerId + "/nome"] = p.name; // tiene il nome visualizzato aggiornato
     }
+    // Media vittorie/partite: si contano le partite giocate da TUTTI i
+    // giocatori veri (anche chi ha perso). `partite` e `vinte` partono da zero
+    // da quando esistono — `vittorie` invece include anche le vittorie di prima,
+    // quando le partite giocate non venivano contate: per questo la media usa
+    // solo questi due campi, non `vittorie`.
+    for (const c of COLORS) {
+      const p = state.players && state.players[c];
+      if (!p || p.isBot || !p.playerId) continue;
+      updates["leaderboard/" + p.playerId + "/partite"] = firebase.database.ServerValue.increment(1);
+      updates["leaderboard/" + p.playerId + "/nome"] = p.name;
+      if (TEAM_OF[c] === state.winnerTeam) {
+        updates["leaderboard/" + p.playerId + "/vinte"] = firebase.database.ServerValue.increment(1);
+      }
+    }
     if (Object.keys(updates).length > 0) await db.ref().update(updates);
   } catch (e) {
     console.error(e);
@@ -4187,8 +4201,8 @@ async function loadLeaderboard() {
   const snap = await leaderboardRef().get();
   const all = snap.val() || {};
   return Object.entries(all)
-    .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0 }))
-    .filter((p) => p.vittorie > 0)
+    .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, partite: (p && p.partite) || 0, vinte: (p && p.vinte) || 0 }))
+    .filter((p) => p.vittorie > 0 || p.partite > 0)
     .sort((a, b) => b.vittorie - a.vittorie || a.nome.localeCompare(b.nome, "it"));
 }
 
@@ -6273,7 +6287,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.86";
+const APP_VERSION = "v5.89";
 
 let myColor = null;
 let myRoomId = null;
@@ -6494,6 +6508,7 @@ async function renderLeaderboardScreen() {
   // dei vari tornei". Scritta da concludeTournament quando un torneo
   // finisce tutti i suoi incontri (vedi allTournamentMatchesPlayed).
   const tourneyListWrap = el("div", { class: "leaderboard-list" }, el("p", { class: "muted" }, "Carico…"));
+  const avgListWrap = el("div", { class: "leaderboard-list" }, el("p", { class: "muted" }, "Carico…"));
   root.appendChild(
     el(
       "div",
@@ -6502,6 +6517,9 @@ async function renderLeaderboardScreen() {
       el("h2", { style: "margin:0 0 2px;" }, "🏆 Classifica generale"),
       el("p", { class: "muted" }, "Vittorie totali per giocatore, in tutte le stanze."),
       listWrap,
+      el("h2", { style: "margin:20px 0 2px;" }, "📊 Media vittorie"),
+      el("p", { class: "muted" }, "Percentuale di partite vinte sulle giocate. Conta solo le partite giocate da quando esiste questa classifica."),
+      avgListWrap,
       el("h2", { style: "margin:20px 0 2px;" }, "🥇 Tornei vinti"),
       el("p", { class: "muted" }, "Quanti tornei ha vinto ciascun giocatore (non le singole partite)."),
       tourneyListWrap,
@@ -6515,11 +6533,37 @@ async function renderLeaderboardScreen() {
     console.error(e);
   }
   listWrap.innerHTML = "";
+  avgListWrap.innerHTML = "";
   if (!list) {
     listWrap.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica, riprova."));
-  } else if (list.length === 0) {
-    listWrap.appendChild(el("p", { class: "muted" }, "Ancora nessuna vittoria registrata."));
+    avgListWrap.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica, riprova."));
   } else {
+    // Media: solo chi ha almeno una partita contata; ordinata per percentuale,
+    // a parità per numero di partite giocate (più partite = più affidabile).
+    const avg = list
+      .filter((p) => p.partite > 0)
+      .map((p) => ({ ...p, rate: Math.min(p.vinte, p.partite) / p.partite }))
+      .sort((a, b) => b.rate - a.rate || b.partite - a.partite || a.nome.localeCompare(b.nome, "it"));
+    if (avg.length === 0) {
+      avgListWrap.appendChild(el("p", { class: "muted" }, "Ancora nessuna partita contata: si riempie dalle prossime partite."));
+    } else {
+      avg.forEach((p, i) => {
+        avgListWrap.appendChild(
+          el(
+            "div",
+            { class: "leaderboard-row" },
+            el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
+            el("span", { class: "leaderboard-name" }, p.nome),
+            el("span", { class: "leaderboard-wins" }, Math.round(p.rate * 100) + "% · " + p.vinte + "/" + p.partite)
+          )
+        );
+      });
+    }
+    list = list.filter((p) => p.vittorie > 0);
+  }
+  if (list && list.length === 0) {
+    listWrap.appendChild(el("p", { class: "muted" }, "Ancora nessuna vittoria registrata."));
+  } else if (list) {
     list.forEach((p, i) => {
       listWrap.appendChild(
         el(
@@ -9768,8 +9812,10 @@ async function refreshTableStatuses(container) {
       const snap = await roomRef(n.getAttribute("data-room")).get();
       const st = snap.val();
       const allBots = n.getAttribute("data-allbots") === "1";
+      const room = n.getAttribute("data-room");
       if (st && st.phase === "finished") n.textContent = "✅ Finito";
-      else if (allBots) n.textContent = _botOnlyBusy.size ? "🤖 Sta giocando…" : "🤖 In attesa";
+      else if (allBots && _botOnlyFailed.has(room)) n.textContent = "⚠️ Errore, premi Avvia per riprovare";
+      else if (allBots) n.textContent = _botOnlyBusy.has(room) ? "🤖 Sta giocando…" : "🤖 In attesa";
       else if (!st || st.phase === "lobby") n.textContent = "⏳ Da iniziare";
       else n.textContent = "⏳ In corso";
     } catch (e) { /* stato non leggibile: lascia vuoto */ }
@@ -9778,6 +9824,7 @@ async function refreshTableStatuses(container) {
 
 const _botOnlyBusy = new Map(); // roomCode -> promise della simulazione in corso
 const _botOnlyDone = new Set();
+const _botOnlyFailed = new Map(); // roomCode -> messaggio dell'ultimo errore
 async function playBotOnlyTable(tb) {
   const snap = await roomRef(tb.roomCode).get();
   const cur = snap.val();
@@ -9787,12 +9834,34 @@ async function playBotOnlyTable(tb) {
   // scrive UNA volta sola alla fine.
   await simulateBotOnlyGame(sim, () => new Promise((r) => setTimeout(r, 0)));
   let finalState = null;
-  await updateState(tb.roomCode, (state) => {
-    if (state.phase === "finished") return; // nel frattempo l'ha finita qualcun altro
-    for (const k of Object.keys(state)) delete state[k];
-    Object.assign(state, sim);
-    finalState = state;
-  });
+  // Le transazioni Firebase partono dalla cache locale: se questo dispositivo
+  // non "ascolta" la stanza del tavolo, la cache è vuota e la transazione
+  // si annulla. Un ascoltatore temporaneo la riempie prima di scrivere.
+  const warmRef = roomRef(tb.roomCode);
+  const warmCb = () => {};
+  warmRef.on("value", warmCb);
+  try {
+    await new Promise((r) => setTimeout(r, 600));
+    let lastErr = null;
+    for (let attempt = 0; attempt < 4 && !finalState; attempt++) {
+      try {
+        await updateState(tb.roomCode, (state) => {
+          if (state.phase === "finished") return; // nel frattempo l'ha finita qualcun altro
+          for (const k of Object.keys(state)) delete state[k];
+          Object.assign(state, sim);
+          finalState = state;
+        });
+        lastErr = null;
+        break;
+      } catch (e) {
+        lastErr = e;
+        await new Promise((r) => setTimeout(r, 800));
+      }
+    }
+    if (lastErr) throw lastErr;
+  } finally {
+    try { warmRef.off("value", warmCb); } catch (_) {}
+  }
   if (finalState && finalState.winnerTeam) await tryClaimTournamentTableCredit(finalState, tb.roomCode);
   _botOnlyDone.add(tb.roomCode);
 }
@@ -9807,9 +9876,17 @@ async function autoPlayBotOnlyTables(tables) {
     if (!tb.giocatori.every((g) => g.bot)) continue;
     if (_botOnlyDone.has(tb.roomCode)) continue;
     if (!_botOnlyBusy.has(tb.roomCode)) {
+      _botOnlyFailed.delete(tb.roomCode);
       const job = playBotOnlyTable(tb)
-        .catch((e) => console.warn("tavolo solo bot:", e))
-        .finally(() => _botOnlyBusy.delete(tb.roomCode));
+        .catch((e) => {
+          console.warn("tavolo solo bot:", e);
+          _botOnlyFailed.set(tb.roomCode, (e && e.message) || String(e));
+        })
+        .finally(() => {
+          _botOnlyBusy.delete(tb.roomCode);
+          // aggiorna subito l'etichetta (Finito / errore) senza aspettare un altro giro
+          refreshTableStatuses(document.getElementById("torneo-lobby-body"));
+        });
       _botOnlyBusy.set(tb.roomCode, job);
     }
     jobs.push(_botOnlyBusy.get(tb.roomCode));
