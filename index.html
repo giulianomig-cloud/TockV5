@@ -22,7 +22,7 @@ try {
   }
 } catch (e) {}
 </script>
-<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icon-v2-180.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Tock" />
@@ -6273,7 +6273,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.81";
+const APP_VERSION = "v5.84";
 
 let myColor = null;
 let myRoomId = null;
@@ -12873,6 +12873,15 @@ function installDebugPanel() {
     panel.textContent = "ERRORE: " + msg;
   }
   window.addEventListener("error", (e) => {
+    // "Script error." senza file né riga è il messaggio generico che il browser
+    // dà per un errore dentro uno script di un ALTRO sito (Firebase/Google) —
+    // nessun dettaglio utile e di solito un semplice problema di rete passeggero
+    // (segnalato con la barra rossa su una schermata normale). Non mostrarlo;
+    // resta in console.
+    if ((e.message === "Script error." || e.message === "Script error") && !e.filename && !e.lineno) {
+      console.warn("Script error (script esterno, nessun dettaglio)", e);
+      return;
+    }
     showError((e.message || "errore sconosciuto") + " (" + (e.filename || "") + ":" + (e.lineno || "") + ")");
   });
   window.addEventListener("unhandledrejection", (e) => {
