@@ -180,7 +180,9 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
 .exchange-dot-yellow { background: #E3AC33; color: #3B2A0E; }
 .exchange-dot-blue { background: #3E8FCB; }
 /* Chi non ha ancora scelto è sbiadito; chi ha scelto è pieno con la spunta. */
-.exchange-dot.waiting { opacity: 0.4; }
+.exchange-dot.waiting { opacity: 0.45; }
+.exchange-dot.waiting .exchange-dot-check { opacity: 1; }
+.exchange-dot-check.pending { background: #B9B09F; }
 .exchange-dot-check {
   position: absolute; right: -4px; bottom: -4px; width: 13px; height: 13px; border-radius: 50%;
   background: #4E9770; color: #fff; font-size: 0.55rem; line-height: 13px; text-align: center;
@@ -832,6 +834,8 @@ button.danger:active {
 .room-team-row {
   display: flex;
   align-items: stretch;
+  box-sizing: border-box;
+  height: 46px; /* stessa altezza fissa del banner turno (.turn-line) */
   border-radius: 16px;
   overflow: hidden;
   border: 1.5px solid var(--panel-border);
@@ -1032,7 +1036,13 @@ button.danger:active {
      "il campo con il turno è ancora attaccato ai nomi" — prima avevo
      stretto lo spazio, invece andava allargato). */
   margin-top: 16px;
-  padding: 9px 14px;
+  /* Altezza FISSA e una sola riga in ogni fase (scambio, turno mio/altrui):
+     così la mano di carte e tutto quello sotto non si spostano mai. */
+  box-sizing: border-box;
+  height: 46px;
+  padding: 0 14px;
+  white-space: nowrap;
+  overflow: hidden;
   background: var(--panel);
   border: 1.5px solid var(--panel-border);
   border-radius: 16px;
@@ -1040,6 +1050,7 @@ button.danger:active {
   font-size: 0.95rem;
   color: var(--ink);
 }
+.turn-line > strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .turn-line.my-turn {
   border: none;
   background: linear-gradient(135deg, #F3D98A, #D9A93E);
@@ -1300,6 +1311,7 @@ button.danger:active {
   justify-content: center;
   gap: 8px;
   margin-bottom: 10px;
+  min-height: 100px; /* spazio fisso per le carte anche a mano vuota */
 }
 
 /* Mentre una mossa è in salvataggio verso Firebase (vedi moveInFlight):
@@ -6341,7 +6353,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.95";
+const APP_VERSION = "v5.98";
 
 let myColor = null;
 let myRoomId = null;
@@ -7385,6 +7397,18 @@ async function continueFromRoomCode() {
       // ("Cannot set properties of null", visto su un tavolo di torneo).
       renderGameShell();
       watchRoom(roomId, onStateChange);
+      return;
+    }
+  }
+
+  // Avviso: la stanza esiste già e questo dispositivo non ci era seduto
+  // (non è un rientro) — evita di finire per sbaglio nella partita di altri.
+  if (!existing.torneo) {
+    const dentro = COLORS.map((c) => existing.players && existing.players[c] && existing.players[c].name).filter(Boolean);
+    const chi = dentro.length ? "Dentro ci sono: " + dentro.join(", ") + "." : "Al momento è vuota.";
+    const finita = existing.phase === "finished" ? " (partita già finita)" : "";
+    if (!window.confirm("La stanza " + roomId + " è già stata creata" + finita + ". " + chi + "\n\nVuoi entrare?")) {
+      myRoomId = null;
       return;
     }
   }
@@ -10870,7 +10894,7 @@ function renderExchangeControls(state) {
           title: playerName(state, c) + (state.pendingExchange[c] ? " ha scelto" : " sta scegliendo"),
         },
         (playerName(state, c) || "?").trim().charAt(0).toUpperCase(),
-        state.pendingExchange[c] ? el("span", { class: "exchange-dot-check" }, "✓") : ""
+        el("span", { class: "exchange-dot-check" + (state.pendingExchange[c] ? "" : " pending") }, "✓")
       )
     )
   );
@@ -10879,7 +10903,7 @@ function renderExchangeControls(state) {
       "div",
       { class: "turn-line exchange-line" + (already ? "" : " my-turn") },
       already
-        ? el("strong", {}, waitingColors.length ? "✓ Scelta fatta · in attesa degli altri" : "Tutti pronti, avvio…")
+        ? el("strong", {}, waitingColors.length ? "✓ Scelta fatta" : "Tutti pronti, avvio…")
         : el("strong", {}, "🤝 Dai una carta a " + playerName(state, partner)),
       dots
     )
