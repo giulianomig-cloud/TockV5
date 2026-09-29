@@ -21,6 +21,10 @@ try {
     document.documentElement.setAttribute("data-theme", "dark");
   }
 } catch (e) {}
+// Aspetto "rilievo 3D": acceso di default, si spegne dal pulsante 🧊 in home.
+try {
+  if (localStorage.getItem("tock-fx3d") !== "0") document.documentElement.classList.add("fx3d");
+} catch (e) { document.documentElement.classList.add("fx3d"); }
 </script>
 <link rel="apple-touch-icon" sizes="180x180" href="icon-v3-180.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2108,6 +2112,46 @@ button.secondary.selected {
   transition: background .12s ease, border-color .12s ease;
 }
 .theme-toggle-btn:hover { border-color: var(--gold); }
+
+/* ================= Aspetto rilievo 3D (html.fx3d) =================
+   Spento con il pulsante 🧊 in home: senza la classe .fx3d nulla di questo
+   blocco si applica e l'app torna identica a prima.
+   Regola: ciò che informa/contiene (banner, tabellone, caselle, campo chat)
+   è INCASSATO; ciò che si tocca o si muove (carte, emoji, pedine, pulsanti)
+   è RIALZATO. */
+html.fx3d .room-team-row,
+html.fx3d .turn-line:not(.my-turn),
+html.fx3d .chat-preview {
+  box-shadow: 0 4px 8px -2px rgba(90,65,20,.35) inset, 0 2px 0 rgba(120,90,40,.18) inset, 0 1.5px 0 rgba(255,255,255,.9);
+  border-top-color: rgba(120,90,40,.35);
+}
+html.fx3d .room-team-room { box-shadow: 0 3px 6px -2px rgba(90,65,20,.3) inset; }
+html.fx3d .turn-line.my-turn {
+  box-shadow: 0 5px 9px -2px rgba(120,80,0,.5) inset, 0 2px 0 rgba(120,80,0,.25) inset, 0 1.5px 0 rgba(255,255,255,.85);
+  animation: none;
+}
+html.fx3d #board-wrap {
+  box-shadow: 0 8px 14px -4px rgba(90,60,15,.45) inset, 0 3px 0 rgba(110,80,30,.25) inset, 0 2px 0 rgba(255,255,255,.9);
+}
+html.fx3d .board-cell { filter: url(#fx3d-sunk); }
+html.fx3d .pawn { filter: drop-shadow(0 3px 2.5px rgba(45,28,5,.6)) drop-shadow(0 1px 0 rgba(255,255,255,.3)); }
+html.fx3d .icon-btn,
+html.fx3d .theme-toggle-btn,
+html.fx3d .chat-fab,
+html.fx3d .reaction-btn,
+html.fx3d .card-btn {
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 -2px 0 rgba(0,0,0,.06) inset, 0 3px 0 rgba(150,120,70,.55), 0 7px 10px -4px rgba(60,40,10,.4);
+}
+html.fx3d .card-btn:active, html.fx3d .reaction-btn:active { box-shadow: 0 1px 0 rgba(150,120,70,.55); transform: translateY(2px) scale(1); }
+html.fx3d[data-theme="dark"] .room-team-row,
+html.fx3d[data-theme="dark"] .turn-line:not(.my-turn),
+html.fx3d[data-theme="dark"] .chat-preview { box-shadow: 0 4px 8px -2px rgba(0,0,0,.6) inset, 0 1px 0 rgba(255,255,255,.08); }
+html.fx3d[data-theme="dark"] #board-wrap { box-shadow: 0 8px 14px -4px rgba(0,0,0,.6) inset, 0 1px 0 rgba(255,255,255,.08); }
+html.fx3d[data-theme="dark"] .icon-btn,
+html.fx3d[data-theme="dark"] .theme-toggle-btn,
+html.fx3d[data-theme="dark"] .chat-fab,
+html.fx3d[data-theme="dark"] .reaction-btn,
+html.fx3d[data-theme="dark"] .card-btn { box-shadow: 0 1px 0 rgba(255,255,255,.1) inset, 0 3px 0 rgba(0,0,0,.55), 0 7px 10px -4px rgba(0,0,0,.6); }
 
 </style>
 </head>
@@ -6353,7 +6397,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.98";
+const APP_VERSION = "v5.99";
 
 let myColor = null;
 let myRoomId = null;
@@ -6503,7 +6547,8 @@ function renderLobby() {
           "div",
           { style: "display:flex; align-items:center; gap:8px;" },
           el("button", { class: "sound-test-btn", onclick: testSound }, "🔊 Test suono"),
-          themeToggleButton()
+          themeToggleButton(),
+          fx3dToggleButton()
         ),
         el("span", { class: "app-meta" }, `Tock by Mig · ${APP_VERSION} · © 2026 Mig`)
       ),
@@ -9273,6 +9318,39 @@ function themeToggleButton() {
     currentTheme === "dark" ? "☀️" : "🌙"
   );
 }
+
+// ---------------- Aspetto rilievo 3D ----------------
+function ensureFx3dFilter() {
+  if (document.getElementById("fx3d-defs")) return;
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.id = "fx3d-defs";
+  svg.setAttribute("width", "0");
+  svg.setAttribute("height", "0");
+  svg.style.position = "absolute";
+  svg.innerHTML = '<defs><filter id="fx3d-sunk" x="-30%" y="-30%" width="160%" height="160%"><feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer><feOffset in="inv" dx="1.2" dy="3" result="off"/><feGaussianBlur in="off" stdDeviation="2.2" result="bl"/><feComposite in="bl" in2="SourceAlpha" operator="in" result="sh"/><feFlood flood-color="#3a2508" flood-opacity=".65"/><feComposite in2="sh" operator="in" result="shc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shc"/></feMerge></filter></defs>';
+  document.body.appendChild(svg);
+}
+function toggleFx3d() {
+  const on = !document.documentElement.classList.contains("fx3d");
+  document.documentElement.classList.toggle("fx3d", on);
+  try { localStorage.setItem("tock-fx3d", on ? "1" : "0"); } catch (e) {}
+  updateFx3dBtn();
+  showToast(on ? "🧊 Rilievo 3D acceso" : "Aspetto classico");
+}
+function updateFx3dBtn() {
+  const btn = document.getElementById("fx3d-toggle-btn");
+  if (!btn) return;
+  const on = document.documentElement.classList.contains("fx3d");
+  btn.style.opacity = on ? "1" : "0.45";
+  btn.setAttribute("aria-label", on ? "Passa all'aspetto classico" : "Attiva il rilievo 3D");
+}
+function fx3dToggleButton() {
+  const b = el("button", { id: "fx3d-toggle-btn", class: "theme-toggle-btn", onclick: toggleFx3d, title: "Rilievo 3D acceso/spento" }, "🧊");
+  b.style.opacity = document.documentElement.classList.contains("fx3d") ? "1" : "0.45";
+  return b;
+}
+ensureFx3dFilter();
 
 // ---------------- Sounds ----------------
 // Short synthesized tones (no audio files needed) for: your turn starts,
