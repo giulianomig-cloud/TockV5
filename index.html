@@ -4583,10 +4583,15 @@ async function reclaimOrganizer(code) {
 async function loadActiveTournaments() {
   const snap = await tournamentsRef().get();
   const all = snap.val() || {};
-  return Object.entries(all)
-    .filter(([, t]) => t && t.pubblico && t.stato !== "concluso")
+  const list = Object.entries(all)
+    .filter(([, t]) => t && t.pubblico !== false)
     .map(([code, t]) => ({ code, ...t }))
     .sort((a, b) => (b.creatoIl || 0) - (a.creatoIl || 0));
+  // Oltre a quelli attivi resta visibile l'ultimo torneo concluso, così
+  // quando finisce non "sparisce" dalla home (si può rivedere classifica e vincitore).
+  const attivi = list.filter((t) => t.stato !== "concluso");
+  const conclusi = list.filter((t) => t.stato === "concluso").slice(0, 1);
+  return attivi.concat(conclusi);
 }
 
 // ---------------- Torneo (v5) — pt.2: round e tavoli ----------------------
@@ -6287,7 +6292,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.90";
+const APP_VERSION = "v5.91";
 
 let myColor = null;
 let myRoomId = null;
@@ -6472,7 +6477,7 @@ async function fillActiveTournamentsList() {
   }
   list.forEach((t) => {
     const n = Object.keys(t.iscritti || {}).length;
-    const statusLabel = t.stato === "in_corso" ? "In corso" : "Iscrizioni aperte";
+    const statusLabel = t.stato === "concluso" ? "🏆 Concluso" : t.stato === "in_corso" ? "In corso" : "Iscrizioni aperte";
     wrap.appendChild(
       el(
         "button",
@@ -6487,7 +6492,7 @@ async function fillActiveTournamentsList() {
           "div",
           { class: "tourney-row-side" },
           el("span", { class: "tourney-row-count" }, n + (t.formato === "rotante_8" ? "/8" : "") + " iscritti"),
-          el("span", { class: "tourney-row-status " + (t.stato === "in_corso" ? "status-live" : "status-open") }, statusLabel)
+          el("span", { class: "tourney-row-status " + (t.stato === "in_corso" || t.stato === "concluso" ? "status-live" : "status-open") }, statusLabel)
         )
       )
     );
