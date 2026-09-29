@@ -1282,7 +1282,7 @@ button.danger:active {
   flex-shrink: 0;
   overflow: hidden;
 }
-.mini-pawns { width: 68px; height: 16px; flex-shrink: 0; }
+.mini-pawns { width: 68px; height: 16px; flex-shrink: 3; min-width: 50px; } /* si stringe per primo se manca posto, così il nome resta leggibile */
 .dealer-icon { width: 20px; height: 20px; flex-shrink: 0; }
 /* Asso di Cuori: la carta che si pesca davvero per diventare mazziere
    (dealAndRevealDealer), non un generico mazzetto di carte — più chiaro
@@ -2152,6 +2152,47 @@ html.fx3d[data-theme="dark"] .theme-toggle-btn,
 html.fx3d[data-theme="dark"] .chat-fab,
 html.fx3d[data-theme="dark"] .reaction-btn,
 html.fx3d[data-theme="dark"] .card-btn { box-shadow: 0 1px 0 rgba(255,255,255,.1) inset, 0 3px 0 rgba(0,0,0,.55), 0 7px 10px -4px rgba(0,0,0,.6); }
+
+/* --- rilievo 3D: tasti avanti/indietro, pallini, carte --- */
+html.fx3d .icon-btn-pair {
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 -2px 0 rgba(0,0,0,.06) inset, 0 3px 0 rgba(150,120,70,.55), 0 7px 10px -4px rgba(60,40,10,.4);
+}
+html.fx3d .icon-btn-half:active { background: rgba(120,90,40,.18); box-shadow: 0 2px 4px rgba(90,65,20,.35) inset; }
+html.fx3d[data-theme="dark"] .icon-btn-pair { box-shadow: 0 1px 0 rgba(255,255,255,.1) inset, 0 3px 0 rgba(0,0,0,.55), 0 7px 10px -4px rgba(0,0,0,.6); }
+/* barra in alto: con il tasto 3D in più le icone sono un filo più piccole per stare tutte in riga */
+.top-actions-icons { gap: 3px; }
+.top-actions-icons .icon-btn, .top-actions-icons .theme-toggle-btn { width: 29px; height: 29px; }
+.top-actions-icons .icon-btn-pair { height: 29px; }
+.top-actions-icons .icon-btn-half { width: 26px; }
+/* pallini pedine accanto ai nomi: piccole sfere in rilievo */
+html.fx3d .mini-pawns { filter: drop-shadow(0 2px 1.2px rgba(45,28,5,.55)); overflow: visible; }
+/* carte in mano: cartoncino con bordo interno, spessore e lucido */
+html.fx3d .card-btn {
+  background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 55%, #F0E5CB 100%);
+  border-color: #B5A78C;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.9) inset,
+    0 0 0 3px rgba(150,120,70,.10) inset,
+    0 -2px 0 rgba(0,0,0,.05) inset,
+    0 3px 0 #C9B992,
+    0 4px 0 rgba(120,90,40,.35),
+    0 10px 12px -3px rgba(50,32,8,.45);
+}
+html.fx3d .card-btn:disabled { box-shadow: 0 1px 0 #D8CBA9, 0 3px 5px -2px rgba(50,32,8,.25); }
+html.fx3d .card-btn.selected { background: var(--gold-metallic); }
+/* carta al centro: più grande, leggermente inclinata, con spessore */
+html.fx3d .center-discard { filter: drop-shadow(0 8px 8px rgba(30,18,4,.5)); }
+html.fx3d .center-discard .mini-card {
+  width: 48px; height: 64px; border-radius: 8px;
+  transform: rotate(-5deg);
+  background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 55%, #F0E5CB 100%);
+  border-color: #B5A78C;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.9) inset, 0 -2px 0 rgba(0,0,0,.05) inset, 0 3px 0 #C9B992, 0 4px 0 rgba(120,90,40,.35);
+}
+html.fx3d .center-discard .mini-card-rank { font-size: 1rem; top: 5px; left: 5px; }
+html.fx3d .center-discard .mini-card svg { width: 22px; height: 22px; }
+html.fx3d .center-discard .initial-badge { width: 24px; height: 24px; bottom: -9px; left: -10px; box-shadow: inset 0 -2px 3px rgba(0,0,0,.2), 0 3px 3px rgba(0,0,0,.35); }
+html.fx3d[data-theme="dark"] .card-btn { box-shadow: 0 0 0 1px rgba(255,255,255,.5) inset, 0 3px 0 #8B7B5A, 0 10px 12px -3px rgba(0,0,0,.7); }
 
 </style>
 </head>
@@ -6397,7 +6438,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.99";
+const APP_VERSION = "v5.101";
 
 let myColor = null;
 let myRoomId = null;
@@ -9087,6 +9128,7 @@ function renderGameShell() {
           "div",
           { class: "top-actions-icons" },
           themeToggleButton(),
+          fx3dToggleButton(),
           el(
             "button",
             { id: "sound-toggle-btn", class: "icon-btn" + (soundMuted ? " icon-btn-muted" : ""), "aria-label": soundMuted ? "Riattiva audio" : "Disattiva audio", onclick: toggleSoundMuted },
