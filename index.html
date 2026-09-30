@@ -3974,14 +3974,14 @@ function applyMove(state, color, card, move) {
     // con un'altra carta) — quello non è un "arrivo", la pedina era già a
     // casa.
     if (oldPos < 1000 && dest >= 1000) recordHomeEntry(state, color, move.pawnIndex, dest);
-    // Landing exactly back on one's own base cell only means "completed a
-    // full forward lap, ready to turn into home next" when this move was a
-    // FORWARD one (the "4" card moves backward and can coincidentally land
-    // on base too, but that's not a completed lap).
+    // Regola: una pedina che si è MOSSA e si ferma sulla propria base
+    // (anche tornando indietro con il 4) può entrare in casa alla prossima
+    // mossa in avanti. Solo la pedina appena entrata in gioco è "congelata"
+    // sulla base finché non si muove (vedi move.type === "enter").
     const allInNow = allPawnsOnBoard(state, color);
     const cardValue = moveValueOf(card, allInNow);
     const movedForward = cardValue === null || cardValue > 0; // seven/etc fall elsewhere; move-type cards are never null here
-    setLapped(state, color, move.pawnIndex, dest < 1000 && dest === BOARD.baseIndex[color] && movedForward);
+    setLapped(state, color, move.pawnIndex, dest < 1000 && dest === BOARD.baseIndex[color]);
     state.log.push(`${cn(color)} #${move.pawnIndex + 1} muove con ${cardLog(card)}: ${posLabel(color, oldPos)} → ${posLabel(color, dest)}.`);
     // if the path swung past this pawn's own base without turning into
     // its home stretch, say so explicitly — and be precise about WHY:
@@ -6480,7 +6480,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.108";
+const APP_VERSION = "v5.109";
 
 let myColor = null;
 let myRoomId = null;
