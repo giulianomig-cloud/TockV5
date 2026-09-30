@@ -820,6 +820,33 @@ button.danger:active {
    di build non è più una scritta fissa qui né sotto la pillola
    Stanza/Squadra (chiesto: "togli la build da lì") — resta consultabile
    solo a richiesta tramite il tastino "i" (vedi showVersionInfo). */
+/* Menu Impostazioni */
+.set-box { padding-bottom: 6px; }
+.set-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.set-title { font-weight:800; font-size:1.1rem; margin:0; }
+.set-close { width:32px; height:32px; border-radius:50%; border:1px solid var(--panel-border); background:var(--panel); color:var(--muted-3); font-size:.95rem; padding:0; cursor:pointer; }
+.set-card { background:var(--panel); border:1px solid var(--panel-border); border-radius:14px; margin-bottom:12px; overflow:hidden; }
+.set-card-title { font-size:.68rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted-3); padding:10px 14px 4px; }
+.set-row { display:flex; align-items:center; gap:12px; min-height:46px; padding:0 14px; border-top:1px solid var(--panel-border); }
+.set-card-title + .set-row { border-top:none; }
+.set-row-tap { cursor:pointer; }
+.set-row-tap:active { background:rgba(201,152,46,.14); }
+.set-ico { width:24px; text-align:center; font-size:1.05rem; }
+.set-lbl { flex:1; font-size:.92rem; font-weight:600; }
+.set-chev { color:var(--muted-3); font-size:1.3rem; }
+.set-radio { width:20px; height:20px; border-radius:50%; border:2px solid var(--panel-border); box-sizing:border-box; position:relative; }
+.set-radio.on { border-color:#C9982E; }
+.set-radio.on::after { content:""; position:absolute; inset:3px; border-radius:50%; background:linear-gradient(#E5BF63,#C9982E); }
+.set-tog { width:46px; height:28px; border-radius:14px; border:1px solid var(--panel-border); background:#D9D2C3; padding:0; position:relative; cursor:pointer; flex-shrink:0; transition:background .15s; }
+.set-tog.on { background:linear-gradient(#E5BF63,#C9982E); border-color:#B5851F; }
+.set-knob { position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.35); transition:transform .15s; }
+.set-tog.on .set-knob { transform:translateX(18px); }
+html.fx3d .set-card { box-shadow:0 3px 0 rgba(120,90,40,.22), 0 6px 10px -4px rgba(90,65,20,.3); }
+html.fx3d .set-close { box-shadow:0 2px 0 rgba(120,90,40,.3); }
+html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
+:root[data-theme="dark"] .set-tog { background:#4A3F31; }
+:root[data-theme="dark"] .set-tog.on { background:linear-gradient(#E5BF63,#C9982E); }
+
 .top-actions-row {
   display: flex;
   align-items: center;
@@ -6453,7 +6480,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.103";
+const APP_VERSION = "v5.108";
 
 let myColor = null;
 let myRoomId = null;
@@ -9142,45 +9169,10 @@ function renderGameShell() {
         el(
           "div",
           { class: "top-actions-icons" },
-          themeToggleButton(),
-          fx3dToggleButton(),
           el(
             "button",
-            { id: "sound-toggle-btn", class: "icon-btn" + (soundMuted ? " icon-btn-muted" : ""), "aria-label": soundMuted ? "Riattiva audio" : "Disattiva audio", onclick: toggleSoundMuted },
-            soundIconSvg(soundMuted)
-          ),
-          el(
-            "button",
-            { class: "icon-btn", "aria-label": "Invita amici", onclick: () => shareInviteLink(myRoomId) },
-            svgIcon(14, 14, "0 0 24 24", "#5A5145", 2.2, [
-              ["circle", { cx: 18, cy: 5, r: 3 }],
-              ["circle", { cx: 6, cy: 12, r: 3 }],
-              ["circle", { cx: 18, cy: 19, r: 3 }],
-              ["line", { x1: 8.6, y1: 10.6, x2: 15.4, y2: 6.4 }],
-              ["line", { x1: 8.6, y1: 13.4, x2: 15.4, y2: 17.6 }],
-            ])
-          ),
-          el(
-            "button",
-            { class: "icon-btn", "aria-label": "Registro mosse", onclick: openLogPicker },
-            svgIcon(14, 14, "0 0 24 24", "#5A5145", 2.2, [
-              ["line", { x1: 8, y1: 6, x2: 21, y2: 6 }],
-              ["line", { x1: 8, y1: 12, x2: 21, y2: 12 }],
-              ["line", { x1: 8, y1: 18, x2: 21, y2: 18 }],
-              ["line", { x1: 3, y1: 6, x2: 3.01, y2: 6 }],
-              ["line", { x1: 3, y1: 12, x2: 3.01, y2: 12 }],
-              ["line", { x1: 3, y1: 18, x2: 3.01, y2: 18 }],
-            ])
-          ),
-          el(
-            "button",
-            {
-              id: "hands-debug-toggle-btn",
-              class: "icon-btn" + (handsDebugVisible ? " icon-btn-muted" : ""),
-              "aria-label": handsDebugVisible ? "Nascondi mani (debug)" : "Mostra mani (debug)",
-              onclick: toggleHandsDebug,
-            },
-            "🃏"
+            { id: "settings-btn", class: "icon-btn", "aria-label": "Impostazioni", onclick: openSettingsPanel },
+            "⚙️"
           ),
           el(
             "div",
@@ -9195,27 +9187,6 @@ function renderGameShell() {
               { class: "icon-btn-half", "aria-label": "Mossa successiva", onclick: () => stepReplay(1) },
               svgIcon(13, 13, "0 0 24 24", "#5A5145", 2.4, [["polyline", { points: "9 18 15 12 9 6" }]])
             )
-          ),
-          el(
-            "button",
-            { class: "icon-btn", "aria-label": "Regole", onclick: openRulesPanel },
-            svgIcon(14, 14, "0 0 24 24", "#5A5145", 2.2, [
-              ["path", { d: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20" }],
-              ["path", { d: "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" }],
-            ])
-          ),
-          // Tastino "i": la build non è più una scritta fissa sotto la
-          // pillola Stanza/Squadra (chiesto: "togli la build da lì") — resta
-          // comunque consultabile, ma solo a richiesta, con un toast
-          // (vedi showVersionInfo).
-          el(
-            "button",
-            { class: "icon-btn", "aria-label": "Info versione", onclick: showVersionInfo },
-            svgIcon(14, 14, "0 0 24 24", "#5A5145", 2.2, [
-              ["circle", { cx: 12, cy: 12, r: 9 }],
-              ["line", { x1: 12, y1: 11, x2: 12, y2: 16 }],
-              ["line", { x1: 12, y1: 8, x2: 12.01, y2: 8 }],
-            ])
           ),
           // Casa: ultima icona, la più esterna a destra (chiesto: "icona
           // casa deve essere la prima a dx") — prima stava tra regole e
@@ -10036,6 +10007,9 @@ async function botPlayTurn() {
 // calcolo e su un telefono bloccherebbe la schermata.
 async function simulateBotOnlyGame(state, yielder) {
   if (state.phase === "lobby") {
+    state.deck = [];
+    state.firstHandOfCycle = true;
+    state.playedThisCycle = [];
     if (!state.hasDealtBefore) dealAndRevealDealer(state);
     else dealNewHand(state);
   }
@@ -10983,6 +10957,14 @@ async function startGame() {
   try {
     await updateState(myRoomId, (state) => {
       if (COLORS.some((c) => !state.players[c])) throw new Error("mancano giocatori");
+      // Si parte SEMPRE da un mazzo nuovo e intero: la prima mano di una partita
+      // è da 5 carte a testa. Se la stanza era già stata usata e restava un
+      // mazzo a metà (segnalato: "ha dato 4 carte di prima mano"), lo si scarta.
+      if (state.phase === "lobby") {
+        state.deck = [];
+        state.firstHandOfCycle = true;
+        state.playedThisCycle = [];
+      }
       if (!state.hasDealtBefore) {
         // Primissima mano di questa stanza: estrae il mazziere e distribuisce
         // subito (vedi dealAndRevealDealer per perché non si aspetta più
@@ -12008,6 +11990,58 @@ const RULE_BADGES = [
   { bg: "#E7F4EC", fg: "#2C7A54" },
   { bg: "#DCE9F3", fg: "#2E6690" },
 ];
+// ---------------- Menu Impostazioni (foglio dal basso) ----------------
+// Raccoglie le icone che prima affollavano la barra in alto: aspetto,
+// suoni, regole, partita e strumenti di sviluppo.
+function settingsToggle(on, onchange) {
+  const t = el("button", { class: "set-tog" + (on ? " on" : ""), role: "switch", "aria-checked": on ? "true" : "false" }, el("span", { class: "set-knob" }));
+  t.onclick = () => {
+    onchange();
+    openSettingsPanel(true);
+  };
+  return t;
+}
+function settingsRow(icon, label, control, onclick) {
+  const r = el("div", { class: "set-row" + (onclick ? " set-row-tap" : "") }, el("span", { class: "set-ico" }, icon), el("span", { class: "set-lbl" }, label), control || el("span", { class: "set-chev" }, "›"));
+  if (onclick) r.onclick = onclick;
+  return r;
+}
+function settingsCard(title, rows) {
+  return el("div", { class: "set-card" }, el("div", { class: "set-card-title" }, title), rows);
+}
+function openSettingsPanel(keepScroll) {
+  const wrap = document.getElementById("picker-wrap");
+  const prev = keepScroll === true && wrap ? wrap.querySelector(".picker-scroll") : null;
+  const prevTop = prev ? prev.scrollTop : 0;
+  const dark = currentTheme === "dark";
+  const fx = document.documentElement.classList.contains("fx3d");
+  const body = el(
+    "div",
+    { class: "choice-box set-box" },
+    el("div", { class: "set-head" }, el("p", { class: "set-title" }, "⚙️ Impostazioni"), el("button", { class: "set-close", "aria-label": "Chiudi", onclick: closePicker }, "✕")),
+    settingsCard("Aspetto", [
+      settingsRow("☀️", "Modalità chiara", el("span", { class: "set-radio" + (dark ? "" : " on") }), () => { applyTheme("light"); openSettingsPanel(true); }),
+      settingsRow("🌙", "Modalità scura", el("span", { class: "set-radio" + (dark ? " on" : "") }), () => { applyTheme("dark"); openSettingsPanel(true); }),
+      settingsRow("🧊", "Rilievo 3D", settingsToggle(fx, toggleFx3d)),
+    ]),
+    settingsCard("Suoni", [settingsRow("🔊", "Effetti sonori", settingsToggle(!soundMuted, toggleSoundMuted))]),
+    settingsCard("Regole", [settingsRow("📖", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); })]),
+    settingsCard("Partita", [
+      settingsRow("🔗", "Condividi il link della stanza", null, () => { closePicker(); shareInviteLink(myRoomId); }),
+      settingsRow("📜", "Registro delle mosse", null, () => { closePicker(); openLogPicker(); }),
+    ]),
+    settingsCard("Sviluppo", [
+      settingsRow("🃏", "Mostra le mani (codice)", settingsToggle(handsDebugVisible, toggleHandsDebug)),
+      settingsRow("ℹ️", "Versione " + APP_VERSION, el("span", {})),
+    ])
+  );
+  openPicker(body);
+  if (prevTop) {
+    const sc = document.getElementById("picker-wrap").querySelector(".picker-scroll");
+    if (sc) sc.scrollTop = prevTop;
+  }
+}
+
 function openRulesPanel() {
   openPicker(
     el(
