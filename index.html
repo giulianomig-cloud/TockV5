@@ -1081,6 +1081,10 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
   font-size: 0.95rem;
   color: var(--ink);
 }
+.turn-line.replay-line { background: #FBF1D8; border: 1.5px solid #C99A3A; }
+:root[data-theme="dark"] .turn-line.replay-line { background: #3A2F22; border-color: #C99A3A; }
+.replay-line .replay-txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
+.replay-live-btn { flex-shrink: 0; border: none; border-radius: 999px; padding: 6px 12px; font-size: .8rem; font-weight: 800; color: var(--ink-on-gold); background: linear-gradient(#E5BF63,#C9982E); cursor: pointer; }
 .turn-line > strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .turn-line.my-turn {
   border: none;
@@ -1189,9 +1193,18 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
   /* Leggero accenno di "bruciata", non un vero e proprio scurimento: il
      fuoco (badge in basso a dx) basta a segnalare lo stato, la carta deve
      restare leggibile (segnalato: "sembra più scura"). */
-  filter: grayscale(0.3);
-  opacity: 0.92;
+  /* Nessun filtro né opacità: segnalato più volte che la carta bruciata
+     "si scurisce". Lo stato lo dice già il badge del fuoco. */
+  filter: none;
+  opacity: 1;
 }
+/* Carta al centro del tabellone: un po' più grande (chiesto). Scoped qui
+   perché .mini-card è usata anche altrove. */
+.center-discard .mini-card { width: 48px; height: 64px; border-radius: 8px; }
+.center-discard .mini-card-rank { font-size: 0.95rem; top: 5px; left: 5px; }
+.center-discard .mini-card svg { width: 19px; height: 19px; }
+.center-discard .initial-badge { width: 26px; height: 26px; font-size: 0.78rem; }
+.center-discard .mini-card-burn-badge { width: 24px; height: 24px; font-size: 1rem; }
 /* Fuoco sull'angolo in basso a destra (chiesto), pallino iniziali su
    quello in basso a sinistra: i due badge stanno affiancati sullo stesso
    bordo inferiore della carta invece che sui due angoli opposti. Era
@@ -2210,15 +2223,15 @@ html.fx3d .card-btn.selected { background: var(--gold-metallic); }
 /* carta al centro: più grande, leggermente inclinata, con spessore */
 html.fx3d .center-discard { filter: drop-shadow(0 8px 8px rgba(30,18,4,.5)); }
 html.fx3d .center-discard .mini-card {
-  width: 48px; height: 64px; border-radius: 8px;
+  width: 56px; height: 75px; border-radius: 9px;
   transform: rotate(-5deg);
   background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 55%, #F0E5CB 100%);
   border-color: #B5A78C;
   box-shadow: 0 0 0 1px rgba(255,255,255,.9) inset, 0 -2px 0 rgba(0,0,0,.05) inset, 0 3px 0 #C9B992, 0 4px 0 rgba(120,90,40,.35);
 }
-html.fx3d .center-discard .mini-card-rank { font-size: 1rem; top: 5px; left: 5px; }
-html.fx3d .center-discard .mini-card svg { width: 22px; height: 22px; }
-html.fx3d .center-discard .initial-badge { width: 24px; height: 24px; bottom: -9px; left: -10px; box-shadow: inset 0 -2px 3px rgba(0,0,0,.2), 0 3px 3px rgba(0,0,0,.35); }
+html.fx3d .center-discard .mini-card-rank { font-size: 1.15rem; top: 6px; left: 6px; }
+html.fx3d .center-discard .mini-card svg { width: 26px; height: 26px; }
+html.fx3d .center-discard .initial-badge { width: 28px; height: 28px; bottom: -9px; left: -10px; box-shadow: inset 0 -2px 3px rgba(0,0,0,.2), 0 3px 3px rgba(0,0,0,.35); }
 html.fx3d[data-theme="dark"] .card-btn { box-shadow: 0 0 0 1px rgba(255,255,255,.5) inset, 0 3px 0 #8B7B5A, 0 10px 12px -3px rgba(0,0,0,.7); }
 
 /* --- effetto "premuto" per i tasti in rilievo --- */
@@ -6346,6 +6359,14 @@ function cellForColor(board, color, pos) {
 // comparire subito sopra la mossa finale ancora in corso (segnalato: "fai
 // vedere prima l'entrata e poi il banner, adesso copre la mossa finale").
 function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
+  // Replay in corso (frecce in alto): si disegna la posizione di quel momento,
+  // senza eventi "freschi" da animare — vedi enterReplayAt.
+  if (replayViewPawns) {
+    pawns = replayViewPawns;
+    lastSwap = null;
+    lastCapture = null;
+    lastHomeEntry = null;
+  }
   const ns = "http://www.w3.org/2000/svg";
   const R = board.cellRadiusMm;
   const capR = R - 1;
@@ -6480,7 +6501,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.111";
+const APP_VERSION = "v5.116";
 
 let myColor = null;
 let myRoomId = null;
@@ -9172,7 +9193,26 @@ function renderGameShell() {
           el(
             "button",
             { id: "settings-btn", class: "icon-btn", "aria-label": "Impostazioni", onclick: openSettingsPanel },
-            "⚙️"
+            // Ingranaggio a linee (stesso stile delle altre icone): l'emoji ⚙️ a
+            // questa dimensione sembrava una macchia grigia (segnalato: "non si
+            // capisce che è una rotella").
+            svgIcon(17, 17, "0 0 24 24", "#5A5145", 2, [
+              ["circle", { cx: 12, cy: 12, r: 3 }],
+              ["path", { d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" }],
+            ])
+          ),
+          // Registro delle mosse: di nuovo qui in alto (non più dentro il menu).
+          el(
+            "button",
+            { class: "icon-btn", "aria-label": "Registro mosse", onclick: openLogPicker },
+            svgIcon(14, 14, "0 0 24 24", "#5A5145", 2.2, [
+              ["line", { x1: 8, y1: 6, x2: 21, y2: 6 }],
+              ["line", { x1: 8, y1: 12, x2: 21, y2: 12 }],
+              ["line", { x1: 8, y1: 18, x2: 21, y2: 18 }],
+              ["line", { x1: 3, y1: 6, x2: 3.01, y2: 6 }],
+              ["line", { x1: 3, y1: 12, x2: 3.01, y2: 12 }],
+              ["line", { x1: 3, y1: 18, x2: 3.01, y2: 18 }],
+            ])
           ),
           el(
             "div",
@@ -10185,6 +10225,19 @@ var BOT_WEIGHTS = {
   // pedina è ancora vicina alla base (segnalato: "il bot mangia troppo il
   // compagno"). Così, se esiste un'alternativa ragionevole, la preferisce.
   teamCapturePenalty: 30,
+  // Blocchi (una pedina qualunque impedisce di superarla, vedi isBlockedAlongPath):
+  // - blockSeeker: una pedina in vista della propria casa (ultimi 20 passi del giro)
+  //   con un'altra pedina davanti a sé entro 13 caselle. Se la bloccata è
+  //   AVVERSARIA è un vantaggio (+), se è della propria squadra (compagno
+  //   compreso) è un ostacolo che il bot deve evitare di creare (−).
+  // - blockBack: pedina ferma sulla propria base con caselle libere dietro (4 indietro
+  //   e poi in casa): se qualcuno occupa le 3 caselle dietro, non può farlo.
+  // - parkBase: una pedina appena entrata e ferma sulla propria base è un "posto di
+  //   blocco" (protetta e nessuno può superarla): vale per ogni avversario che le
+  //   sta arrivando dietro, e costa per ogni pedina della propria squadra dietro.
+  blockSeeker: 3,
+  blockBack: 3,
+  parkBase: 1.5,
   // botRiskAdjustment: costo atteso = probabilità di essere mangiata × (passi fatti + 8) × riskScale.
   riskScale: 0.6,
   partnerRedundantRescue: -6, // la salva ma il compagno l'avrebbe comunque salvata da sé al suo turno: leggera penalità, meglio occuparsi d'altro
@@ -10293,13 +10346,25 @@ function botChooseCardAndMove(state, active, seat) {
   const hand = state.hands[seat];
   const botTeam = TEAM_OF[seat];
   const seatLevels = botComputeSeatLevels(state);
+  // Il bot non vede le carte altrui: valuta ogni mossa su alcune distribuzioni
+  // ipotetiche delle carte non ancora viste e ne fa la media.
+  const beliefs = [];
+  for (let b = 0; b < BOT_BELIEF_SAMPLES; b++) beliefs.push(botSampleBeliefState(state, seat));
   let best = null, bestScore = -Infinity;
+  const t0 = Date.now();
   for (const card of hand) {
     for (const move of botCandidatesForCard(state, active, card)) {
-      let score = botScoreMoveDeep(state, active, card, move, botTeam, seatLevels);
+      let acc = 0;
+      // Tetto di tempo (telefoni lenti, 7 con tante ripartizioni): oltre ~2 s
+      // le mosse rimaste si valutano su una sola distribuzione.
+      const used = Date.now() - t0 > 2000 ? beliefs.slice(0, 1) : beliefs;
+      for (const belief of used) {
+        acc += botScoreMoveDeep(belief, active, card, move, botTeam, seatLevels);
+        acc += botCoordinationAdjustment(belief, active, seat, card, move);
+      }
+      let score = acc / used.length;
       const holdPenalty = botHoldPenaltyFor(card);
       if (holdPenalty && !botMoveIsTactical(state, active, card, move)) score -= holdPenalty;
-      score += botCoordinationAdjustment(state, active, seat, card, move);
       score += botCardCountAdjustment(state, active, seat, card, move);
       score += botRiskAdjustment(state, active, seat, card, move);
       score -= BOT_WEIGHTS.teamCapturePenalty * botTeamPawnsEaten(state, botSimulate(state, active, card, move), botTeam);
@@ -10332,11 +10397,12 @@ function botChooseCardAndMove(state, active, seat) {
 function botChooseCardAndMoveEasy(state, active, seat) {
   const hand = state.hands[seat];
   const botTeam = TEAM_OF[seat];
+  const belief = botSampleBeliefState(state, seat); // non conosce la mano del compagno
   let best = null, bestScore = -Infinity;
   for (const card of hand) {
     for (const move of botCandidatesForCard(state, active, card)) {
       let score = botScoreMove(state, active, card, move, botTeam);
-      score += botCoordinationAdjustment(state, active, seat, card, move);
+      score += botCoordinationAdjustment(belief, active, seat, card, move);
       score -= BOT_WEIGHTS.teamCapturePenalty * botTeamPawnsEaten(state, botSimulate(state, active, card, move), botTeam);
       score += Math.random() * 0.5;
       if (score > bestScore) {
@@ -10391,13 +10457,50 @@ function botUnseenRankCounts(state, seat) {
 // meno le carte già giocate/bruciate in questo giro. In più sa con certezza
 // quale carta ha dato al compagno nello scambio (se non è ancora stata
 // giocata): sta in mano a lui, quindi non può averla un avversario.
-function botUnseenCards(state, seat) {
+function botUnseenInfo(state, seat) {
   const unseen = new Set(buildDeck());
   for (const card of state.hands[seat] || []) unseen.delete(card);
   for (const card of state.playedThisCycle || []) unseen.delete(card);
+  let partnerKnown = null;
   const given = state.lastReceivedCard && state.lastReceivedCard[PARTNER_OF[seat]];
-  if (given && unseen.has(given)) unseen.delete(given);
-  return unseen;
+  if (given && unseen.has(given)) {
+    unseen.delete(given);
+    partnerKnown = given; // in mano al compagno, finché non la gioca
+  }
+  return { unseen, partnerKnown };
+}
+function botUnseenCards(state, seat) {
+  return botUnseenInfo(state, seat).unseen;
+}
+
+// "Mani ipotetiche" per la ricerca: il bot NON può conoscere le carte degli
+// altri giocatori (compagno compreso), quindi per simulare i loro turni
+// distribuisce a caso, nelle loro mani, le carte che non ha ancora visto
+// (né in mano sua né già uscite). Le dimensioni delle mani sono pubbliche;
+// l'unica carta nota è quella che ha dato lui al compagno nello scambio.
+// Restituisce un finto "stato" con le mani ipotetiche al posto di quelle vere.
+function botSampleBeliefState(state, seat) {
+  const { unseen, partnerKnown } = botUnseenInfo(state, seat);
+  const pool = shuffle(Array.from(unseen));
+  const own = new Set(state.hands[seat] || []);
+  const hands = {};
+  const partner = PARTNER_OF[seat];
+  let next = 0;
+  for (const c of COLORS) {
+    if (c === seat) { hands[c] = (state.hands[c] || []).slice(); continue; }
+    const size = (state.hands[c] || []).length;
+    const h = [];
+    if (c === partner && partnerKnown && size > 0) h.push(partnerKnown);
+    while (h.length < size) {
+      if (next < pool.length) h.push(pool[next++]);
+      else { // mazzo "esaurito" (stato incoerente dopo un rimescolamento): riempie con carte qualunque non in mano mia
+        const any = shuffle(buildDeck().filter((x) => !own.has(x)));
+        h.push(any[0]);
+      }
+    }
+    hands[c] = h;
+  }
+  return Object.assign({}, state, { hands });
 }
 
 // Probabilità che un giocatore con `handSize` carte ne abbia almeno una tra le
@@ -10670,6 +10773,7 @@ function botScoreMove(state, active, card, move, botTeam) {
 // decisione resta comunque ampiamente dentro la pausa "umana" tra una
 // mossa e l'altra (vedi scheduleBotAction) — nel peggiore dei casi
 // osservato meno di 1 secondo, in media pochi millisecondi.
+var BOT_BELIEF_SAMPLES = 3; // quante distribuzioni ipotetiche delle carte altrui per ogni decisione
 const BOT_LOOKAHEAD_PLIES = 4; // 1 = solo la mossa propria (comportamento precedente)
 const BOT_LOOKAHEAD_BEAM = 5;  // quante mosse "papabili" esplorare per ogni turno successivo
 
@@ -10804,6 +10908,56 @@ function botScoreMoveDeep(state, active, card, move, botTeam, seatLevels) {
 // `forTeam`: quanta strada hanno fatto le proprie pedine (molto di più se
 // sono già in casa) meno quella delle avversarie, con una penalità per ogni
 // propria pedina lasciata a tiro (poche caselle davanti) di un avversario.
+
+// Termine strategico di botEvaluateBoard: chi ostacola chi (vedi BOT_WEIGHTS.block*).
+function botBlockingTerm(pawns, lapped, forTeam) {
+  const occ = new Array(64).fill(null);
+  for (const c of COLORS) for (let i = 0; i < 4; i++) {
+    const p = pawns[c][i];
+    if (p >= 0 && p < 1000) occ[p] = c;
+  }
+  const rel = (teamSeeker, teamBlocker, w) => {
+    if (teamSeeker !== teamBlocker) return teamBlocker === forTeam ? w : (teamSeeker === forTeam ? -w : 0);
+    return forTeam === teamSeeker ? -w : w;
+  };
+  let score = 0;
+  for (const c of COLORS) {
+    const base = BOARD.baseIndex[c];
+    for (let i = 0; i < 4; i++) {
+      const pos = pawns[c][i];
+      if (pos < 0 || pos >= 1000) continue;
+      const wasLapped = !!(lapped && lapped[c] && lapped[c][i]);
+      const steps = stepsFromOwnBase(c, pos, wasLapped);
+      const tS = TEAM_OF[c];
+      // (1) pedina in vista della propria casa: bloccata da chi ha davanti?
+      if (steps >= 44) {
+        const remaining = 64 - steps; // caselle fino alla propria base compresa
+        const reach = Math.min(remaining, 13);
+        for (let d = 1; d <= reach; d++) {
+          const bc = occ[(pos + d) % 64];
+          if (bc) { score += rel(tS, TEAM_OF[bc], BOT_WEIGHTS.blockSeeker); break; }
+        }
+      }
+      // (2) pedina ferma sulla propria base, non ancora "girata": 4 indietro + casa
+      if (pos === base && !wasLapped) {
+        for (let d = 1; d <= 3; d++) {
+          const bc = occ[(base - d + 64) % 64];
+          if (bc) { score += rel(tS, TEAM_OF[bc], BOT_WEIGHTS.blockBack); break; }
+        }
+        // (3) posto di blocco: chi le sta arrivando dietro (entro 12 caselle)
+        for (let d = 1; d <= 12; d++) {
+          const bc = occ[(base - d + 64) % 64];
+          if (!bc) continue;
+          const w = BOT_WEIGHTS.parkBase * (1 - (d - 1) / 13);
+          // bc è "bloccato" dalla pedina ferma: vantaggio per la squadra della ferma se bc è avversario, danno se è compagno
+          score += TEAM_OF[bc] === tS ? (forTeam === tS ? -w : w) : (forTeam === tS ? w : -w);
+        }
+      }
+    }
+  }
+  return score;
+}
+
 function botEvaluateBoard(pawns, lapped, forTeam) {
   let score = 0;
   for (const c of COLORS) {
@@ -10856,6 +11010,7 @@ function botEvaluateBoard(pawns, lapped, forTeam) {
       }
     }
   }
+  score += botBlockingTerm(pawns, lapped, forTeam);
   return score;
 }
 
@@ -11429,6 +11584,10 @@ function renderTurnIndicator(state) {
   if (!wrap) return; // schermata di gioco non presente (es. timer/ritardo dopo essere usciti dal tavolo)
   wrap.innerHTML = "";
   if (state.phase !== "playing") return;
+  if (replayViewPawns || replayNoteText) {
+    renderReplayBar(wrap);
+    return;
+  }
   ensureTurnTimerRunning();
   const active = activeColorFor(state, myColor);
   const isMyTurn = state.turnColor === myColor;
@@ -11460,8 +11619,9 @@ function renderCenterDiscard(state) {
   if (!boardWrap) return;
   const existing = boardWrap.querySelector(".center-discard");
   if (existing) existing.remove();
-  if (!state.lastCardPlayed) return;
-  const { color, card, burned } = state.lastCardPlayed;
+  const shownCard = replayViewPawns && replayViewCard ? { color: replayViewCard.color, card: replayViewCard.card, burned: false } : state.lastCardPlayed;
+  if (!shownCard) return;
+  const { color, card, burned } = shownCard;
   const hex = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" }[color];
   const initial = (playerName(state, color) || "?").trim().charAt(0).toUpperCase();
   // Pallino iniziali e fuoco sono FRATELLI della carta dentro
@@ -11641,6 +11801,7 @@ async function onCardClick(card, evt) {
     return;
   }
   keepAudioAlive();
+  if (replayViewPawns) exitReplay(); // si gioca sempre sulla posizione reale
   const active = activeColorFor(currentState, myColor);
   const options = legalMovesForCard(currentState, active, card);
 
@@ -12003,6 +12164,15 @@ const MOVE_HISTORY_MAX = 20;
 let moveReplayHistory = [];
 let moveReplayIndex = -1; // -1 = nessuna mossa selezionata (vista "live")
 const _historyTrack = { ids: { seven: 0, move: 0, capture: 0, swap: 0, homeEntry: 0 }, primed: false };
+// Replay vero: ogni mossa ricordata porta con sé la posizione delle pedine
+// DOPO di essa (e prima), così le frecce riportano davvero il tabellone
+// com'era. replayViewPawns != null = tabellone in modalità replay.
+let replayViewPawns = null;
+let replayViewCard = null;
+let replayNoteText = "";
+let replayNoteTimer = null;
+let _prevPawnsSnapshot = null;
+function clonePawnsSnapshot(p) { return JSON.parse(JSON.stringify(p)); }
 
 // Richiamata da buildBoardSVG (quindi a ogni renderGameShell, cioè a ogni
 // ingresso/ricollegamento in una stanza) — stesso momento in cui si azzera
@@ -12013,6 +12183,10 @@ const _historyTrack = { ids: { seven: 0, move: 0, capture: 0, swap: 0, homeEntry
 function resetMoveReplayHistory() {
   moveReplayHistory = [];
   moveReplayIndex = -1;
+  replayViewPawns = null;
+  replayViewCard = null;
+  replayNoteText = "";
+  _prevPawnsSnapshot = null;
   _historyTrack.ids = { seven: 0, move: 0, capture: 0, swap: 0, homeEntry: 0 };
   _historyTrack.primed = false;
 }
@@ -12038,16 +12212,28 @@ function recordMoveHistoryIfFresh(state) {
     }
   });
   t.primed = true;
+  const beforeSnap = _prevPawnsSnapshot;
+  _prevPawnsSnapshot = state.pawns ? clonePawnsSnapshot(state.pawns) : null;
   if (fresh.length === 0) return;
   fresh.sort((a, b) => (b.data.ts || 0) - (a.data.ts || 0));
   const entry = buildHistoryEntry(fresh[0].key, fresh[0].data);
   if (!entry) return;
+  entry.before = beforeSnap;
+  entry.after = _prevPawnsSnapshot;
+  const lcp = state.lastCardPlayed;
+  if (lcp && lcp.card && !lcp.burned) {
+    entry.card = lcp.card;
+    entry.cardColor = lcp.color;
+    entry.label = `${entry.label} · ${cardLabel(lcp.card)}`;
+  }
   moveReplayHistory.push(entry);
   if (moveReplayHistory.length > MOVE_HISTORY_MAX) moveReplayHistory.shift();
   // Una mossa vera e propria appena arrivata "chiude" una revisione in
   // corso: si torna alla vista live, altrimenti l'indice selezionato
   // resterebbe puntato a una mossa vecchia mentre la partita va avanti.
   moveReplayIndex = -1;
+  replayViewPawns = null;
+  replayViewCard = null;
 }
 
 function buildHistoryEntry(key, data) {
@@ -12074,29 +12260,87 @@ function buildHistoryEntry(key, data) {
 // mossa".
 function stepReplay(dir) {
   if (!currentState || !boardSvg) return;
-  if (moveReplayHistory.length === 0) {
-    showToast("Non c'è ancora nessuna mossa da rivedere in questa partita.");
+  const n = moveReplayHistory.length;
+  if (n === 0) {
+    showReplayNote("Nessuna mossa da rivedere ancora");
     return;
   }
+  let k;
   if (moveReplayIndex === -1) {
-    moveReplayIndex = moveReplayHistory.length - 1;
+    // Dalla vista live: ◀ parte dall'ultima mossa; ▶ non ha nulla più avanti.
+    if (dir > 0) {
+      showReplayNote("Sei già alla mossa più recente");
+      return;
+    }
+    k = n - 1;
   } else {
-    const next = moveReplayIndex + dir;
-    if (next < 0) {
-      showToast("Non ci sono altre mosse più indietro.");
+    k = moveReplayIndex + dir;
+    if (k < 0) {
+      showReplayNote("Non ci sono altre mosse più indietro");
       return;
     }
-    if (next > moveReplayHistory.length - 1) {
-      showToast("Sei già alla mossa più recente.");
+    if (k > n - 1) {
+      exitReplay(); // ▶ oltre l'ultima mossa = torna alla partita reale
       return;
     }
-    moveReplayIndex = next;
   }
-  const entry = moveReplayHistory[moveReplayIndex];
-  entry.run();
-  const fromEnd = moveReplayHistory.length - moveReplayIndex;
-  const arrow = dir < 0 ? "◀" : "▶";
-  showToast(`${arrow} ${fromEnd}/${moveReplayHistory.length} — ${entry.label}`);
+  enterReplayAt(k);
+}
+
+// Riporta il tabellone alla posizione DOPO la mossa k della cronologia e ne
+// ripropone l'animazione (partenza → arrivo). Locale: non tocca lo stato di
+// gioco né Firebase.
+function enterReplayAt(k) {
+  const entry = moveReplayHistory[k];
+  if (!entry) return;
+  moveReplayIndex = k;
+  replayNoteText = "";
+  replayViewPawns = entry.after || null;
+  replayViewCard = entry.card ? { color: entry.cardColor, card: entry.card } : null;
+  renderPawns(boardSvg, BOARD, currentState.pawns, null, null, null);
+  renderCenterDiscard(currentState);
+  renderTurnIndicator(currentState);
+  setTimeout(() => {
+    if (moveReplayIndex === k && replayViewPawns === (entry.after || null)) entry.run();
+  }, 450);
+}
+
+function exitReplay() {
+  moveReplayIndex = -1;
+  replayViewPawns = null;
+  replayViewCard = null;
+  replayNoteText = "";
+  if (!currentState || !boardSvg) return;
+  renderPawns(boardSvg, BOARD, currentState.pawns, currentState.lastSwap, currentState.lastCapture, currentState.lastHomeEntry);
+  renderCenterDiscard(currentState);
+  renderTurnIndicator(currentState);
+}
+
+// Avviso leggero nella barra del turno (nessun OK da chiudere): sparisce da solo.
+function showReplayNote(text) {
+  replayNoteText = text;
+  if (currentState) renderTurnIndicator(currentState);
+  clearTimeout(replayNoteTimer);
+  replayNoteTimer = setTimeout(() => {
+    replayNoteText = "";
+    if (currentState) renderTurnIndicator(currentState);
+  }, 1800);
+}
+
+function renderReplayBar(wrap) {
+  const n = moveReplayHistory.length;
+  const k = moveReplayIndex;
+  let text;
+  if (replayNoteText) text = "ℹ️ " + replayNoteText;
+  else text = `⏪ ${k + 1}/${n} · ${moveReplayHistory[k] ? moveReplayHistory[k].label : ""}`;
+  wrap.appendChild(
+    el(
+      "div",
+      { class: "turn-line replay-line" },
+      el("span", { class: "replay-txt" }, text),
+      replayViewPawns ? el("button", { class: "replay-live-btn", onclick: exitReplay }, "Torna al live") : ""
+    )
+  );
 }
 
 // Badge colorato davanti a ogni sezione, come nel mockup Regole.dc.html
@@ -12148,7 +12392,6 @@ function openSettingsPanel(keepScroll) {
     settingsCard("Regole", [settingsRow("📖", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); })]),
     settingsCard("Partita", [
       settingsRow("🔗", "Condividi il link della stanza", null, () => { closePicker(); shareInviteLink(myRoomId); }),
-      settingsRow("📜", "Registro delle mosse", null, () => { closePicker(); openLogPicker(); }),
     ]),
     settingsCard("Sviluppo", [
       settingsRow("🃏", "Mostra le mani (codice)", settingsToggle(handsDebugVisible, toggleHandsDebug)),
