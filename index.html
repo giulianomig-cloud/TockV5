@@ -6480,7 +6480,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.109";
+const APP_VERSION = "v5.111";
 
 let myColor = null;
 let myRoomId = null;
@@ -10179,6 +10179,14 @@ var BOT_WEIGHTS = {
   // mai era abbastanza per fargli davvero cambiare mossa. Spostati qui (per
   // poterli tarare) e alzati parecchio.
   partnerRescue: 30, // salva una pedina che il compagno da solo NON avrebbe potuto salvare
+  // Penalità extra per ogni pedina della PROPRIA squadra (compagno o proprio
+  // colore) mandata in base da questa stessa mossa: la valutazione di
+  // botEvaluateBoard la conta solo come "passi persi", troppo poco quando la
+  // pedina è ancora vicina alla base (segnalato: "il bot mangia troppo il
+  // compagno"). Così, se esiste un'alternativa ragionevole, la preferisce.
+  teamCapturePenalty: 30,
+  // botRiskAdjustment: costo atteso = probabilità di essere mangiata × (passi fatti + 8) × riskScale.
+  riskScale: 0.6,
   partnerRedundantRescue: -6, // la salva ma il compagno l'avrebbe comunque salvata da sé al suo turno: leggera penalità, meglio occuparsi d'altro
 };
 
@@ -10264,6 +10272,21 @@ function botComputeSeatLevels(state) {
   return levels;
 }
 
+// Quante pedine della squadra `botTeam` questa mossa manda in base (mangiate
+// dallo stesso giocatore o dal compagno): confronto prima/dopo, così conta
+// anche le catture lungo il percorso di un 7.
+function botTeamPawnsEaten(state, after, botTeam) {
+  let n = 0;
+  for (const c of COLORS) {
+    if (TEAM_OF[c] !== botTeam) continue;
+    for (let i = 0; i < 4; i++) {
+      const before = state.pawns[c][i];
+      if (before >= 0 && before < 1000 && after.pawns[c][i] === -1) n++;
+    }
+  }
+  return n;
+}
+
 // Sceglie la migliore coppia (carta, mossa) tra TUTTE quelle disponibili
 // nella mano del bot — non solo la prima carta con una mossa legale.
 function botChooseCardAndMove(state, active, seat) {
@@ -10278,6 +10301,8 @@ function botChooseCardAndMove(state, active, seat) {
       if (holdPenalty && !botMoveIsTactical(state, active, card, move)) score -= holdPenalty;
       score += botCoordinationAdjustment(state, active, seat, card, move);
       score += botCardCountAdjustment(state, active, seat, card, move);
+      score += botRiskAdjustment(state, active, seat, card, move);
+      score -= BOT_WEIGHTS.teamCapturePenalty * botTeamPawnsEaten(state, botSimulate(state, active, card, move), botTeam);
       score += Math.random() * 0.01;
       if (score > bestScore) {
         bestScore = score;
@@ -10312,6 +10337,7 @@ function botChooseCardAndMoveEasy(state, active, seat) {
     for (const move of botCandidatesForCard(state, active, card)) {
       let score = botScoreMove(state, active, card, move, botTeam);
       score += botCoordinationAdjustment(state, active, seat, card, move);
+      score -= BOT_WEIGHTS.teamCapturePenalty * botTeamPawnsEaten(state, botSimulate(state, active, card, move), botTeam);
       score += Math.random() * 0.5;
       if (score > bestScore) {
         bestScore = score;
@@ -10360,6 +10386,97 @@ function botUnseenRankCounts(state, seat) {
   return counts;
 }
 
+
+// Carte che `seat` NON ha ancora visto: tutto il mazzo meno la propria mano e
+// meno le carte già giocate/bruciate in questo giro. In più sa con certezza
+// quale carta ha dato al compagno nello scambio (se non è ancora stata
+// giocata): sta in mano a lui, quindi non può averla un avversario.
+function botUnseenCards(state, seat) {
+  const unseen = new Set(buildDeck());
+  for (const card of state.hands[seat] || []) unseen.delete(card);
+  for (const card of state.playedThisCycle || []) unseen.delete(card);
+  const given = state.lastReceivedCard && state.lastReceivedCard[PARTNER_OF[seat]];
+  if (given && unseen.has(given)) unseen.delete(given);
+  return unseen;
+}
+
+// Probabilità che un giocatore con `handSize` carte ne abbia almeno una tra le
+// `k` carte "utili" nascoste in un gruppo di `N` carte sconosciute
+// (distribuzione ipergeometrica).
+function botProbHoldsAny(k, N, handSize) {
+  if (k <= 0 || N <= 0 || handSize <= 0) return 0;
+  if (handSize > N - k) return 1;
+  let pNone = 1;
+  for (let i = 0; i < handSize; i++) pNone *= (N - k - i) / (N - i);
+  return 1 - pNone;
+}
+
+// Probabilità che UNA pedina mia (color,i) sul percorso venga mangiata dagli
+// avversari al loro prossimo turno, in base alle carte che possono ancora avere.
+function botPawnEatProbability(state, pawns, unseen, seat, color, i) {
+  const pos = pawns[color][i];
+  if (pos === -1 || pos >= 1000) return 0;
+  const myTeam = TEAM_OF[color];
+  let pNobody = 1;
+  for (const oc of COLORS) {
+    if (TEAM_OF[oc] === myTeam) continue;
+    const ranks = new Set();
+    const opponentAllIn = pawns[oc].every((p) => p !== -1);
+    for (let j = 0; j < 4; j++) {
+      const opos = pawns[oc][j];
+      if (opos === -1 && pos === BOARD.baseIndex[oc]) { ranks.add("A"); ranks.add("K"); } // entra sulla propria base mangiandomi
+      if (opos === -1 || opos >= 1000) continue;
+      const d = (pos - opos + 64) % 64;
+      if (d >= 2 && d <= 10) ranks.add(String(d));
+      if (d >= 1 && d <= 7) ranks.add("7");
+      if (d === 12) ranks.add("Q");
+      if (d === 13 && opponentAllIn) ranks.add("K");
+      if (d === 1 && opponentAllIn) ranks.add("A");
+      if (((opos - pos + 64) % 64) === 4) ranks.add("4"); // il 4 va indietro
+    }
+    if (ranks.size === 0) continue;
+    let k = 0;
+    for (const card of unseen) if (ranks.has(rankOf(card))) k++;
+    const handSize = (state.hands[oc] || []).length;
+    pNobody *= 1 - botProbHoldsAny(k, unseen.size, handSize);
+  }
+  return 1 - pNobody;
+}
+
+// Sostituisce la stima "ogni pedina a 1-10 passi è ugualmente a rischio" di
+// botEvaluateBoard con una probabilità vera (carte ancora in giro, 4 all'indietro,
+// 7, Q, entrata sulla base, carta data al compagno): toglie la penalità base e
+// mette quella calcolata = probabilità × (valore della pedina) × riskScale.
+function botRiskAdjustment(state, active, seat, card, move) {
+  const botTeam = TEAM_OF[seat];
+  const after = botSimulate(state, active, card, move);
+  const unseen = botUnseenCards(state, seat);
+  let delta = 0;
+  for (const c of COLORS) {
+    if (TEAM_OF[c] !== botTeam) continue;
+    for (let i = 0; i < 4; i++) {
+      const pos = after.pawns[c][i];
+      if (pos === -1 || pos >= 1000) continue;
+      // penalità già contata da botEvaluateBoard (solo avversari, 1-10 passi)
+      let baseline = 0;
+      for (const oc of COLORS) {
+        if (TEAM_OF[oc] === botTeam) continue;
+        for (let j = 0; j < 4; j++) {
+          const opos = after.pawns[oc][j];
+          if (opos === -1 || opos >= 1000) continue;
+          const d = (pos - opos + 64) % 64;
+          if (d >= 1 && d <= 10) baseline += (11 - d) * BOT_WEIGHTS.threatPenalty;
+        }
+      }
+      const p = botPawnEatProbability(state, after.pawns, unseen, seat, c, i);
+      const steps = stepsFromOwnBase(c, pos, after.lapped && after.lapped[c] && after.lapped[c][i]) || 0;
+      const model = p * (steps + 8) * BOT_WEIGHTS.riskScale;
+      delta += baseline - model;
+    }
+  }
+  return delta;
+}
+
 // Corregge la valutazione "a tiro"/"tengo sotto tiro" di botEvaluateBoard,
 // che tratta ogni distanza 1-10 come ugualmente pericolosa/promettente a
 // prescindere da quali carte siano realmente ancora in circolazione. Se
@@ -10387,9 +10504,7 @@ function botCardCountAdjustment(state, active, seat, card, move) {
           const opos = after.pawns[oc][j];
           if (opos === -1 || opos >= 1000) continue;
           if (TEAM_OF[c] === botTeam && TEAM_OF[oc] !== botTeam) {
-            // oc (avversario) potrebbe mangiare c (nostra): quanto dista oc da c
-            const w = rankWeight((pos - opos + 64) % 64);
-            if (w != null) delta -= (w - 0.5) * BOT_WEIGHTS.cardCountThreatToUs;
+            // minaccia verso di noi: ora la calcola botRiskAdjustment (probabilità vera)
           } else if (TEAM_OF[c] !== botTeam && TEAM_OF[oc] === botTeam) {
             // oc (nostra) potrebbe mangiare c (avversaria): quanto dista oc da c
             const w = rankWeight((opos - pos + 64) % 64);
@@ -10718,7 +10833,12 @@ function botEvaluateBoard(pawns, lapped, forTeam) {
       const pos = pawns[c][i];
       if (pos === -1 || pos >= 1000) continue;
       for (const oc of COLORS) {
-        if (oc === c) continue;
+        // Solo pedine AVVERSARIE: prima si saltava solo il proprio colore, quindi
+        // anche le pedine del COMPAGNO contavano come minaccia (penalità) e come
+        // bersaglio (bonus "le tengo sotto tiro") — il bot era premiato per
+        // restare dietro al compagno, che è una delle cause di "mangia troppo il
+        // compagno".
+        if (TEAM_OF[oc] === forTeam) continue;
         for (let j = 0; j < 4; j++) {
           const opos = pawns[oc][j];
           if (opos === -1 || opos >= 1000) continue;
