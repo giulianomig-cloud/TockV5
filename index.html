@@ -6501,7 +6501,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.116";
+const APP_VERSION = "v5.119";
 
 let myColor = null;
 let myRoomId = null;
@@ -9808,6 +9808,16 @@ function botCardToGiveAway(state, color) {
   const partnerNeedsEntry = pawnsInBase(state, partner).length > 0;
   const ownHomeRanks = ranksThatEnterHomeFor(state, color);
   const partnerHomeRanks = ranksThatEnterHomeFor(state, partner);
+  const ownRescue = ranksThatRescue(state, color);
+  const partnerRescue = ranksThatRescue(state, partner);
+  // Senza pedine sul percorso (tutte nella base o in casa, ma non "tutto a casa"
+  // = non muove quelle del compagno) Jack e 7 a me non servono: li regalo al
+  // compagno se lui ha pedine in gioco.
+  const loopCount = (c) => state.pawns[c].filter((p) => p >= 0 && p < 1000).length;
+  const ownHasNoPawnsOut = loopCount(color) === 0 && pawnsInBase(state, color).length > 0;
+  const giveJackAndSeven = ownHasNoPawnsOut && loopCount(partner) > 0;
+  const ownNeedsFour = fourUnlocksHome(state, color);
+  const partnerNeedsFour = fourUnlocksHome(state, partner);
 
   let best = hand[0], bestScore = Infinity;
   for (const card of hand) {
@@ -9819,6 +9829,15 @@ function botCardToGiveAway(state, color) {
     const r = rankOf(card);
     if (ownHomeRanks.has(r)) score += 45; // mi farebbe entrare subito in casa: la tengo
     else if (partnerHomeRanks.has(r)) score -= 40; // farebbe entrare in casa il compagno: gliela regalo
+    // Salvare una pedina minacciata: stessa logica (prima io, poi il compagno).
+    if (ownRescue.has(r)) score += 30;
+    else if (partnerRescue.has(r)) score -= 30;
+    if (giveJackAndSeven && (r === "J" || r === "7")) score -= r === "J" ? 120 : 100;
+    // Il 4 sblocca la pedina ferma sulla base (4 indietro e poi in casa).
+    if (r === "4") {
+      if (ownNeedsFour) score += 35;
+      else if (partnerNeedsFour) score -= 35;
+    }
     if (score < bestScore) { bestScore = score; best = card; }
   }
   return best;
@@ -9830,6 +9849,33 @@ function botCardToGiveAway(state, color) {
 // legalMovesForCard (il 4 è escluso: in questa variante va sempre
 // indietro, mai avanti; Jack e 7 sono carte speciali, non contano qui).
 const HOME_ENTRY_TEST_RANKS = ["A", "2", "3", "5", "6", "8", "9", "10", "Q", "K"];
+// Ranghi che, giocati subito, mettono al sicuro almeno una pedina di `color`
+// oggi minacciata (a 1-10 passi da un avversario), vedi botPawnThreatened.
+function ranksThatRescue(state, color) {
+  const found = new Set();
+  const threatened = [];
+  for (let i = 0; i < 4; i++) if (botPawnThreatened(state.pawns, color, i)) threatened.push(i);
+  if (threatened.length === 0) return found;
+  for (const r of HOME_ENTRY_TEST_RANKS.concat(["4"])) {
+    const card = r + "-hearts";
+    for (const opt of legalMovesForCard(state, color, card)) {
+      if (opt.type !== "move") continue;
+      const after = botSimulate(state, color, card, opt);
+      if (threatened.some((i) => !botPawnThreatened(after.pawns, color, i))) { found.add(r); break; }
+    }
+  }
+  return found;
+}
+
+// Vero se `color` ha una pedina ferma sulla propria base, non ancora "girata"
+// (appena entrata), che col 4 indietro può farsi spazio per entrare in casa.
+function fourUnlocksHome(state, color) {
+  const base = BOARD.baseIndex[color];
+  const idx = state.pawns[color].findIndex((p, i) => p === base && !hasLapped(state, color, i));
+  if (idx === -1) return false;
+  return legalMovesForCard(state, color, "4-hearts").some((o) => o.type === "move" && o.pawnIndex === idx);
+}
+
 function ranksThatEnterHomeFor(state, color) {
   const found = new Set();
   for (const r of HOME_ENTRY_TEST_RANKS) {
