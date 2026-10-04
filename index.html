@@ -1205,6 +1205,21 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
 .center-discard .mini-card svg { width: 19px; height: 19px; }
 .center-discard .initial-badge { width: 26px; height: 26px; font-size: 0.78rem; }
 .center-discard .mini-card-burn-badge { width: 24px; height: 24px; font-size: 1rem; }
+/* Carta al centro = stessa carta delle mani (classe .card-btn): qui solo
+   dimensione fissa e nessuna interazione. */
+.center-discard .card-btn.center-card {
+  width: 54px; min-width: 54px; max-width: 54px;
+  padding: 0;
+  cursor: default;
+  pointer-events: none;
+}
+.center-discard .card-btn.center-card.mini-card-burned { filter: none; opacity: 1; }
+html.fx3d .center-discard .card-btn.center-card { transform: rotate(-5deg); }
+/* Fuoco proprio sullo spigolo in basso a destra, speculare al pallino
+   iniziali (stessa distanza dal bordo), così non copre l'indice della
+   carta (chiesto: "più carino"). */
+.center-discard .mini-card-burn-badge { bottom: -12px; right: -12px; width: 26px; height: 26px; font-size: 1.05rem; box-shadow: inset 0 -2px 3px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.3); }
+html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; width: 30px; height: 30px; font-size: 1.2rem; }
 /* Fuoco sull'angolo in basso a destra (chiesto), pallino iniziali su
    quello in basso a sinistra: i due badge stanno affiancati sullo stesso
    bordo inferiore della carta invece che sui due angoli opposti. Era
@@ -3126,6 +3141,7 @@ function dealNewHand(state) {
   // anche se per qualche motivo quella carta fosse ancora in mano (es. non
   // giocata) — non deve restare evidenziata oltre la mano in cui è arrivata.
   state.lastReceivedCard = {};
+  state.exchangeDebug = {};
   state.log.push(`Nuova mano distribuita (mazziere: ${cn(state.dealerColor)}). In attesa dello scambio tra compagni.`);
 }
 
@@ -3146,6 +3162,10 @@ function submitExchangeCard(state, color, card) {
   const hand = state.hands[color];
   const ci = hand.indexOf(card);
   if (ci === -1) throw new Error("carta non trovata in mano");
+  // Solo per il registro completo di debug (downloadDebugDump): mano di
+  // partenza, carta data e pedine in quel momento.
+  if (!state.exchangeDebug) state.exchangeDebug = {};
+  state.exchangeDebug[color] = { mano: hand.slice(), data: card, pedine: state.pawns[color].slice() };
   hand.splice(ci, 1);
   state.pendingExchange[color] = card;
   state.log.push(`${cn(color)} ha scelto la carta da scambiare.`);
@@ -4071,6 +4091,13 @@ function resetForNewGame(state) {
   state.pendingExchange = {};
   state.log = ["Nuova partita nella stessa stanza."];
   state.winnerTeam = null;
+  // Segni "vittoria già accreditata in classifica" (vedi
+  // tryClaimLeaderboardCredit / tryClaimTournamentTableCredit): vanno azzerati
+  // a ogni rivincita, altrimenti dalla 2ª partita nella stessa stanza in poi
+  // nessuna vittoria veniva più contata (segnalato: "Francesco ha vinto due
+  // partite e non risulta").
+  state.leaderboardClaimed = null;
+  state.tournClaimed = null;
   state.stats = null;
   state.lastSwap = null;
   state.lastCapture = null;
@@ -6501,7 +6528,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.119";
+const APP_VERSION = "v5.129";
 
 let myColor = null;
 let myRoomId = null;
@@ -6786,7 +6813,7 @@ async function renderLeaderboardScreen() {
           { class: "leaderboard-row" },
           el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
           el("span", { class: "leaderboard-name" }, p.nome),
-          el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie") + " · " + (p.diff > 0 ? "+" : "") + p.diff + " catt.")
+          el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie") + (typeof p.diff === "number" ? " · " + (p.diff > 0 ? "+" : "") + p.diff + " catt." : ""))
         )
       );
     });
@@ -9793,6 +9820,65 @@ function botCardUsefulness(card) {
   return parseInt(r, 10) * 5; // 2..10: più alto, più utile
 }
 
+// ---- Finale cooperativo: deduzioni sullo scambio ---------------------------
+// Quando alla squadra restano da portare a casa al massimo 2 pedine, la
+// carta passata nello scambio non è casuale: chi la dà tiene in mano la
+// carta "complementare" che completa il percorso (es. mancano 11 caselle:
+// io ho 5 e 6, do il 6 e tengo il 5).
+function botTeamPawnsLeft(state, color) {
+  let n = 0;
+  for (const c of COLORS) {
+    if (TEAM_OF[c] !== TEAM_OF[color]) continue;
+    for (const p of state.pawns[c]) if (p < 1000) n++;
+  }
+  return n;
+}
+// Dopo `move` con `card`, un solo rango (carta singola) farebbe entrare in casa
+// una pedina di `pawnColor`? Restituisce l'insieme dei ranghi.
+function botRanksAfterMove(state, pawnColor, card, move) {
+  const after = botSimulate(state, pawnColor, card, move);
+  return ranksThatEnterHomeFor(after, pawnColor);
+}
+// Bonus per giocare SUBITO la carta ricevuta dal compagno nel finale: se lascia
+// la pedina a una distanza che una singola carta può chiudere, il compagno
+// (che l'ha scelta apposta) probabilmente tiene proprio quella carta.
+function botReceivedCardAdjustment(state, active, seat, card, move) {
+  if (!state.lastReceivedCard || state.lastReceivedCard[seat] !== card) return 0;
+  if (move.type !== "move" || !move.path) return 0;
+  if (botTeamPawnsLeft(state, seat) > 2) return 0;
+  const dest = move.path[move.path.length - 1];
+  if (dest >= 1000) return 0; // entra in casa: già premiato dalla valutazione
+  const before = ranksThatEnterHomeFor(state, active);
+  if (before.size > 0) return 0; // poteva già chiudere da sé
+  return botRanksAfterMove(state, active, card, move).size > 0 ? 35 : 0;
+}
+// Lato "dare": nel finale, se giocando la carta `g` sulla pedina rimasta ne
+// resta una nella mia mano che la fa entrare in casa, regalo `g` e tengo l'altra.
+function botGiveCompletesPath(state, color, g) {
+  if (botTeamPawnsLeft(state, color) > 2) return false;
+  const others = new Set(state.hands[color].filter((c) => c !== g).map(rankOf));
+  for (const pc of COLORS) {
+    if (TEAM_OF[pc] !== TEAM_OF[color]) continue;
+    if (!state.pawns[pc].some((p) => p >= 0 && p < 1000)) continue;
+    if (ranksThatEnterHomeFor(state, pc).size > 0) continue; // già chiudibile da una sola carta
+    for (const move of legalMovesForCard(state, pc, g)) {
+      if (move.type !== "move" || !move.path) continue;
+      if (move.path[move.path.length - 1] >= 1000) continue;
+      for (const r of botRanksAfterMove(state, pc, g, move)) if (others.has(r)) return true;
+    }
+  }
+  return false;
+}
+
+// Vero se `color` ha, con questa carta (Jack/7), almeno una mossa tattica
+// (mangia, entra in casa, salva una pedina, rispedisce indietro molto).
+function botHasTacticalUse(state, color, card) {
+  for (const move of botCandidatesForCard(state, color, card)) {
+    if (botMoveIsTactical(state, color, card, move)) return true;
+  }
+  return false;
+}
+
 // Scelta della carta da regalare al compagno nello scambio alla cieca —
 // tiene conto di chi ha davvero bisogno di cosa — non solo il valore
 // generico della carta:
@@ -9816,15 +9902,21 @@ function botCardToGiveAway(state, color) {
   const loopCount = (c) => state.pawns[c].filter((p) => p >= 0 && p < 1000).length;
   const ownHasNoPawnsOut = loopCount(color) === 0 && pawnsInBase(state, color).length > 0;
   const giveJackAndSeven = ownHasNoPawnsOut && loopCount(partner) > 0;
-  const ownNeedsFour = fourUnlocksHome(state, color);
+  const partnerHasPawnsOut = loopCount(partner) > 0;
+  const entryCount = hand.filter(isEntryCard).length;
+  // Anche se ora la pedina è ancora nell'angolo: con un Asso/Re in mano entrerà
+  // subito sulla base, e lì il 4 (indietro) sblocca la corsa verso casa.
+  const ownNeedsFour = fourUnlocksHome(state, color) || (ownNeedsEntry && hand.some(isEntryCard));
   const partnerNeedsFour = fourUnlocksHome(state, partner);
 
   let best = hand[0], bestScore = Infinity;
   for (const card of hand) {
     let score = botCardUsefulness(card);
     if (isEntryCard(card)) {
-      if (ownNeedsEntry) score += 40; // mi serve per entrare: la tengo
-      else if (partnerNeedsEntry) score -= 35; // a me non serve, al compagno sì: gliela regalo
+      // Se ne ho più di una, quelle in più sono "surplus": se il compagno non ha
+      // pedine in gioco (e ne ha in base) gliene regalo una anche se servono a me.
+      if (ownNeedsEntry && !(entryCount >= 2 && partnerNeedsEntry)) score += 40; // mi serve per entrare: la tengo
+      else if (partnerNeedsEntry) score -= loopCount(partner) === 0 ? 55 : 35; // al compagno serve (urgente se non ha pedine fuori): gliela regalo
     }
     const r = rankOf(card);
     if (ownHomeRanks.has(r)) score += 45; // mi farebbe entrare subito in casa: la tengo
@@ -9832,12 +9924,18 @@ function botCardToGiveAway(state, color) {
     // Salvare una pedina minacciata: stessa logica (prima io, poi il compagno).
     if (ownRescue.has(r)) score += 30;
     else if (partnerRescue.has(r)) score -= 30;
-    if (giveJackAndSeven && (r === "J" || r === "7")) score -= r === "J" ? 120 : 100;
+    if ((r === "J" || r === "7") && partnerHasPawnsOut) {
+      // Jack/7 mi servono solo se ho una mossa che mangia, entra in casa o salva
+      // una pedina; altrimenti avvantaggiano di più il compagno.
+      if (botHasTacticalUse(state, color, card)) score += 40;
+      else if (giveJackAndSeven || loopCount(color) > 0) score -= r === "J" ? 120 : 100;
+    }
     // Il 4 sblocca la pedina ferma sulla base (4 indietro e poi in casa).
     if (r === "4") {
       if (ownNeedsFour) score += 35;
       else if (partnerNeedsFour) score -= 35;
     }
+    if (botGiveCompletesPath(state, color, card)) score -= 50;
     if (score < bestScore) { bestScore = score; best = card; }
   }
   return best;
@@ -9871,9 +9969,13 @@ function ranksThatRescue(state, color) {
 // (appena entrata), che col 4 indietro può farsi spazio per entrare in casa.
 function fourUnlocksHome(state, color) {
   const base = BOARD.baseIndex[color];
+  const moves4 = legalMovesForCard(state, color, "4-hearts").filter((o) => o.type === "move");
+  // 1) pedina ferma sulla base (non girata): 4 indietro e poi può entrare in casa;
   const idx = state.pawns[color].findIndex((p, i) => p === base && !hasLapped(state, color, i));
-  if (idx === -1) return false;
-  return legalMovesForCard(state, color, "4-hearts").some((o) => o.type === "move" && o.pawnIndex === idx);
+  if (idx !== -1 && moves4.some((o) => o.pawnIndex === idx)) return true;
+  // 2) pedina 4 passi oltre la base: il 4 indietro la riporta SULLA base, da
+  //    dove (regola: "è rientrata in base") può entrare subito in casa.
+  return moves4.some((o) => o.path && o.path[o.path.length - 1] === base);
 }
 
 function ranksThatEnterHomeFor(state, color) {
@@ -10412,6 +10514,7 @@ function botChooseCardAndMove(state, active, seat) {
       const holdPenalty = botHoldPenaltyFor(card);
       if (holdPenalty && !botMoveIsTactical(state, active, card, move)) score -= holdPenalty;
       score += botCardCountAdjustment(state, active, seat, card, move);
+      score += botReceivedCardAdjustment(state, active, seat, card, move);
       score += botRiskAdjustment(state, active, seat, card, move);
       score -= BOT_WEIGHTS.teamCapturePenalty * botTeamPawnsEaten(state, botSimulate(state, active, card, move), botTeam);
       score += Math.random() * 0.01;
@@ -11690,18 +11793,13 @@ function renderCenterDiscard(state) {
 }
 
 function miniCardVisual(card, burned) {
-  const [r, s] = card.split("-");
+  const s = card.split("-")[1];
   const isRed = !!RED_SUITS[s];
-  const icon = suitIconSvg(s, 14);
-  icon.style.position = "absolute";
-  icon.style.left = "50%";
-  icon.style.top = "58%";
-  icon.style.transform = "translate(-50%, -50%)";
+  // Stessa carta (stesse classi e stessa facciata) di quelle in mano.
   return el(
-    "span",
-    { class: "mini-card " + (isRed ? "suit-red" : "suit-black") + (burned ? " mini-card-burned" : "") },
-    el("span", { class: "mini-card-rank" }, r),
-    icon
+    "div",
+    { class: "card-btn center-card " + (isRed ? "suit-red" : "suit-black") + (burned ? " mini-card-burned" : "") },
+    ...buildCardFace(card)
   );
 }
 
@@ -11797,9 +11895,11 @@ function suitIconSvg(suit, size, glossy) {
   return svg;
 }
 
-function buildCardButton(card, enabled, onClick, highlighted) {
+// Facciata della carta (indice numero+seme nei due angoli + simbolo grande in
+// filigrana): UNICA per le carte in mano e per quella al centro del
+// tabellone, così hanno lo stesso aspetto (chiesto).
+function buildCardFace(card) {
   const [r, s] = card.split("-");
-  const isRed = !!RED_SUITS[s];
   const cornerSuit = () => {
     const i = suitIconSvg(s, 10);
     i.setAttribute("class", "card-corner-suit");
@@ -11818,6 +11918,13 @@ function buildCardButton(card, enabled, onClick, highlighted) {
   faceContent.style.transform = "translate(-50%, -50%)";
   const cornerTl = el("span", { class: "card-corner card-corner-tl" }, r, cornerSuit());
   const cornerBr = el("span", { class: "card-corner card-corner-br" }, r, cornerSuit());
+  return [cornerTl, faceContent, cornerBr];
+}
+
+function buildCardButton(card, enabled, onClick, highlighted) {
+  const s = card.split("-")[1];
+  const isRed = !!RED_SUITS[s];
+  const [cornerTl, faceContent, cornerBr] = buildCardFace(card);
   return el(
     "button",
     {
@@ -13461,6 +13568,14 @@ function downloadDebugDump(state) {
   for (const c of COLORS) {
     const name = playerName(state, c);
     lines.push(`${colorLabel(c)} (${name}): pedine=${JSON.stringify(state.pawns[c])} mano=${JSON.stringify(state.hands[c])}`);
+  }
+  const xd = state.exchangeDebug || {};
+  if (Object.keys(xd).length) {
+    lines.push("");
+    lines.push("=== ULTIMO SCAMBIO (mano di partenza, carta data, pedine) ===");
+    for (const c of COLORS) {
+      if (xd[c]) lines.push(`${colorLabel(c)}: mano=${JSON.stringify(xd[c].mano)} ha dato=${xd[c].data} pedine=${JSON.stringify(xd[c].pedine)}`);
+    }
   }
   lines.push("");
   lines.push("=== REGISTRO MOSSE (in ordine) ===");
