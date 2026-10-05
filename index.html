@@ -1286,19 +1286,46 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
 /* Carta al centro = stessa carta delle mani (classe .card-btn): qui solo
    dimensione fissa e nessuna interazione. */
 .center-discard .card-btn.center-card {
-  width: 50px; min-width: 50px; max-width: 50px;
-  padding: 0;
+  /* Stessa carta delle mani (dimensione di una carta in mano, 64px), solo
+     rimpicciolita in modo UNIFORME con zoom: angoli, pallino e ombra restano
+     in proporzione identica alle carte dei giocatori. */
+  width: 64px; min-width: 64px; max-width: 64px;
+  zoom: 0.84;
+  padding: 4px;
   cursor: default;
   pointer-events: none;
 }
 .center-discard .card-btn.center-card.mini-card-burned { filter: none; opacity: 1; }
 html.fx3d .center-discard .card-btn.center-card { transform: none; }
-/* Fuoco proprio sullo spigolo in basso a destra, speculare al pallino
-   iniziali (stessa distanza dal bordo), così non copre l'indice della
-   carta (chiesto: "più carino"). */
-.center-discard .mini-card-burn-badge { bottom: -3px; right: -11px; width: 19px; height: 19px; font-size: .78rem; box-shadow: inset 0 -2px 3px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.3); }
-html.fx3d .center-discard .mini-card-burn-badge { bottom: -4px; right: -12px; width: 21px; height: 21px; font-size: .85rem; }
-.center-discard .initial-badge { width: 19px !important; height: 19px !important; font-size: .64rem !important; bottom: -3px !important; left: -11px !important; }
+/* Bollino iniziale = stesso del banner turno (.turn-av): colore pieno del
+   giocatore, anello bianco, ombra. */
+.center-discard .initial-badge {
+  width: 22px !important; height: 22px !important; font-size: .72rem !important;
+  bottom: -7px !important; left: -12px !important;
+  border: 0 !important; background-image: none;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.3) !important;
+}
+.center-discard .initial-badge { background-color: var(--sw, #888); }
+.center-discard .initial-badge.swatch-yellow { color: #3B2A0E; }
+/* Carta bruciata: fiamme vive dietro la carta (si muovono). */
+.center-flames { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: -1; pointer-events: none; }
+.center-flames span {
+  position: absolute; left: 0; top: 0; line-height: 1; transform-origin: 50% 85%;
+  filter: drop-shadow(0 0 9px rgba(255,120,30,.85));
+}
+.center-flames .fl-a { font-size: 70px; margin: -40px 0 0 -35px; animation: flameA 0.9s ease-in-out infinite; }
+.center-flames .fl-b { font-size: 36px; margin: -16px 0 0 -48px; animation: flameB 0.7s ease-in-out infinite; }
+.center-flames .fl-c { font-size: 36px; margin: -16px 0 0 12px;  animation: flameB 0.8s ease-in-out infinite reverse; }
+@keyframes flameA {
+  0%,100% { transform: translateY(0) scale(1,1) rotate(-2deg); }
+  35%     { transform: translateY(-3px) scale(.96,1.08) rotate(2deg); }
+  70%     { transform: translateY(1px) scale(1.03,.96) rotate(-1deg); }
+}
+@keyframes flameB {
+  0%,100% { transform: translateY(0) scale(1,1) rotate(3deg); }
+  50%     { transform: translateY(-4px) scale(.92,1.14) rotate(-4deg); }
+}
+@media (prefers-reduced-motion: reduce) { .center-flames span { animation: none; } }
 /* Fuoco sull'angolo in basso a destra (chiesto), pallino iniziali su
    quello in basso a sinistra: i due badge stanno affiancati sullo stesso
    bordo inferiore della carta invece che sui due angoli opposti. Era
@@ -2398,7 +2425,6 @@ html.fx3d .center-discard .mini-card {
 }
 html.fx3d .center-discard .mini-card-rank { font-size: 1.15rem; top: 6px; left: 6px; }
 html.fx3d .center-discard .mini-card svg { width: 26px; height: 26px; }
-html.fx3d .center-discard .initial-badge { width: 28px; height: 28px; bottom: -9px; left: -10px; box-shadow: inset 0 -2px 3px rgba(0,0,0,.2), 0 3px 3px rgba(0,0,0,.35); }
 html.fx3d[data-theme="dark"] .card-btn { box-shadow: 0 0 0 1px rgba(255,255,255,.5) inset, 0 3px 0 #8B7B5A, 0 10px 12px -3px rgba(0,0,0,.7); }
 
 /* --- effetto "premuto" per i tasti in rilievo --- */
@@ -6720,7 +6746,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.155";
+const APP_VERSION = "v5.157";
 
 let myColor = null;
 let myRoomId = null;
@@ -12034,9 +12060,9 @@ function renderCenterDiscard(state) {
     el(
       "div",
       { class: "center-discard", title: `${playerName(state, color)} ha ${burned ? "bruciato" : "giocato"}: ${card}` },
+      burned ? el("div", { class: "center-flames" }, el("span", { class: "fl-b" }, "🔥"), el("span", { class: "fl-c" }, "🔥"), el("span", { class: "fl-a" }, "🔥")) : "",
       miniCardVisual(card, burned),
-      el("span", { class: "initial-badge", style: `background:${hex};` }, initial),
-      burned ? el("span", { class: "mini-card-burn-badge" }, "🔥") : ""
+      el("span", { class: "initial-badge swatch-" + color }, initial)
     )
   );
 }
