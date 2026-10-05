@@ -148,7 +148,7 @@ html:has(.game-shell), html:has(.game-shell) body {
   overflow: hidden; overscroll-behavior: none; height: 100%;
 }
 body:has(.game-shell) { position: fixed; inset: 0; width: 100%; }
-body:has(.game-shell) #app { height: 100%; min-height: 0; overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 8px); padding-bottom: calc(env(safe-area-inset-bottom) * 0.5 + 8px); }
+body:has(.game-shell) #app { height: 100%; min-height: 0; overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 24px); padding-bottom: calc(env(safe-area-inset-bottom) * 0.5 + 8px); }
 .game-shell { transform-origin: top center; max-width: 440px; margin: 0 auto; }
 body:has(.game-shell) #app { max-width: none; }
 /* Telefono in orizzontale: non si gioca, si chiede di ruotare. */
@@ -6717,7 +6717,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.142";
+const APP_VERSION = "v5.143";
 
 let myColor = null;
 let myRoomId = null;
@@ -9521,9 +9521,12 @@ function renderGameShell() {
       // zona più delicata da toccare. Il registro ora è tra i pulsanti
       // menu in alto (vedi openLogPicker), non più qui accanto alla chat.
       el("div", { id: "chat-wrap" }),
-      el("div", { id: "picker-wrap" }),
     )
   );
+  // Il foglio delle scelte sta nel body (non dentro .game-shell): lo shell viene
+  // scalato con transform, che altererebbe il suo position:fixed.
+  document.querySelectorAll("#picker-wrap").forEach((n) => n.remove());
+  { const pw = document.createElement("div"); pw.id = "picker-wrap"; document.body.appendChild(pw); }
   boardSvg = buildBoardSVG($("#board-wrap"), BOARD);
   watchConnection();
   watchPresence(myRoomId);
@@ -9536,29 +9539,23 @@ function fitGameShell() {
   const shell = document.querySelector(".game-shell");
   const app = $("#app");
   if (!shell || !app) return;
-  shell.style.zoom = "";
-  shell.style.width = "";
-  shell.style.margin = "";
+  shell.style.transform = "";
   const cs = getComputedStyle(app);
   const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-  // Altezza reale disponibile = quella di #app (il body è fisso a tutto
-  // schermo): più affidabile di innerHeight/visualViewport su iPhone.
-  const vh = app.clientHeight || window.innerHeight;
+  const padH = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
   const natural = shell.offsetHeight;
-  const avail = vh - padV;
-  // Si adatta sia in altezza sia in larghezza: il fattore è il minore dei due
-  // (può anche ingrandire, fino a 1.6, su tablet/PC).
-  const availW = (app.clientWidth || window.innerWidth) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const raw = Math.min(avail / natural, availW / shell.offsetWidth, 1.6);
+  const naturalW = shell.offsetWidth;
+  if (!natural || !naturalW) return;
+  // Altezza/larghezza reali disponibili (scalo con transform: non cambia il
+  // layout, quindi le misure restano affidabili anche su iOS).
+  const availH = (app.clientHeight || window.innerHeight) - padV;
+  const availW = (app.clientWidth || window.innerWidth) - padH;
+  const raw = Math.min(availH / natural, availW / naturalW, 1.6);
   const tooSmall = raw < 0.6;
   document.documentElement.classList.toggle("game-scroll", tooSmall);
   const f = tooSmall ? 1 : raw;
-  if (Math.abs(f - 1) > 0.005) {
-    const w = shell.offsetWidth;
-    shell.style.width = w + "px";
-    shell.style.margin = "0 auto";
-    shell.style.zoom = String(f);
-  }
+  shell.style.transformOrigin = "top center";
+  shell.style.transform = Math.abs(f - 1) > 0.005 ? "scale(" + f.toFixed(4) + ")" : "";
 }
 let _fitRaf = 0;
 function scheduleFit() { cancelAnimationFrame(_fitRaf); _fitRaf = requestAnimationFrame(fitGameShell); }
