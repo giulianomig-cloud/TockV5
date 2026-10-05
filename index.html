@@ -758,6 +758,60 @@ button.primary:disabled {
 .leaderboard-rank { font-weight: 800; color: var(--muted-2); width: 26px; flex-shrink: 0; }
 .leaderboard-name { flex: 1; font-weight: 700; color: var(--ink); }
 .leaderboard-wins { font-size: 0.82rem; font-weight: 700; color: var(--muted-3); flex-shrink: 0; }
+/* Righe classifica (vedi buildLbRow) */
+.lb-desc { color: var(--muted-2); }
+.lb-row {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  background: var(--panel); border: 1px solid var(--panel-border); border-radius: 14px;
+}
+.lb-row > * { position: relative; z-index: 1; }
+.lb-row > .lb-fill {
+  position: absolute; z-index: 0; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, rgba(201,154,58,.30), rgba(201,154,58,.10));
+}
+.lb-rank {
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.84rem; color: var(--muted-2);
+  font-variant-numeric: tabular-nums;
+}
+.lb-r1 .lb-rank, .lb-r2 .lb-rank, .lb-r3 .lb-rank { color: #2B2016; box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 1px 2px rgba(0,0,0,.3); }
+.lb-r1 .lb-rank { background: linear-gradient(135deg, #F7DE91 0%, #D4A63F 55%, #A87D22 100%); }
+.lb-r2 .lb-rank { background: linear-gradient(135deg, #F1F1F1 0%, #BDBDBD 55%, #8F8F8F 100%); }
+.lb-r3 .lb-rank { background: linear-gradient(135deg, #EBB98C 0%, #C0804A 55%, #8F5A2E 100%); }
+.lb-r1 { border-color: var(--gold); }
+.lb-r1 .lb-name { font-size: 1.04rem; }
+.lb-name { flex: 1; min-width: 0; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-you {
+  margin-left: 8px; padding: 1px 7px; border-radius: 999px; vertical-align: 2px;
+  font-size: 0.62rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  background: var(--gold); color: var(--ink-on-gold);
+}
+.lb-me { box-shadow: 0 0 0 1.5px var(--gold) inset; }
+.lb-val { display: flex; align-items: baseline; gap: 5px; flex-shrink: 0; color: var(--ink); }
+.lb-val b { font-size: 1.12rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.lb-val small { font-size: 0.74rem; font-weight: 700; color: var(--muted-2); }
+:root[data-theme="dark"] .lb-row { background: linear-gradient(180deg, #2A231B, #211B15); border-color: #4A3C2C; }
+:root[data-theme="dark"] .lb-r1 { background: linear-gradient(180deg, #34291A, #271F14); border-color: #9C7420; }
+:root[data-theme="dark"] .lb-row > .lb-fill { background: linear-gradient(90deg, rgba(214,170,74,.34), rgba(214,170,74,.08)); }
+:root[data-theme="dark"] .lb-val small { color: var(--muted-3); }
+/* rilievo 3D: righe in cartoncino con spessore, come le carte */
+html.fx3d .lb-row {
+  background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 60%, #F3E9D0 100%);
+  border-color: #D9CBA8;
+  box-shadow: 0 1px 0 rgba(255,255,255,.95) inset, 0 -2px 0 rgba(0,0,0,.04) inset, 0 3px 0 #D2C093, 0 8px 10px -4px rgba(60,40,10,.35);
+  margin-bottom: 3px;
+}
+html.fx3d .lb-me { box-shadow: 0 1px 0 rgba(255,255,255,.95) inset, 0 0 0 1.5px var(--gold) inset, 0 3px 0 #C8A24E, 0 8px 10px -4px rgba(60,40,10,.35); }
+html.fx3d .lb-rank { box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 2px 0 rgba(0,0,0,.25); }
+html.fx3d[data-theme="dark"] .lb-row {
+  background: linear-gradient(165deg, #30281E 0%, #261F17 100%);
+  border-color: #4F4030;
+  box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 3px 0 #0E0B08, 0 8px 10px -4px rgba(0,0,0,.65);
+}
+html.fx3d[data-theme="dark"] .lb-r1 { background: linear-gradient(165deg, #3B2E1B 0%, #2B2216 100%); }
+html.fx3d[data-theme="dark"] .lb-me { box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 0 0 1.5px var(--gold) inset, 0 3px 0 #0E0B08, 0 8px 10px -4px rgba(0,0,0,.65); }
 
 /* Passi numerati 1-2-3 nella lobby: guidano l'occhio nell'ordine giusto
    (nome → colore → entra) invece di lasciare i tre blocchi alla stessa
@@ -1105,6 +1159,7 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
   color: var(--muted);
   flex-shrink: 0;
 }
+.turn-line.my-turn, .turn-line.my-turn > strong, .turn-line.my-turn span { color: var(--ink-on-gold); }
 .turn-line.my-turn .turn-timer { color: #6B4E12; opacity: .8; }
 .swatch { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
 .swatch-red { background: var(--red); }
@@ -1426,6 +1481,29 @@ html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; w
   border: 2px solid var(--gold);
   box-shadow: 0 0 0 2px rgba(201,154,58,0.35), 0 4px 10px rgba(201,154,58,0.5), 0 1px 0 rgba(255,255,255,0.8) inset, 0 0 0 1px rgba(255,255,255,0.55) inset;
 }
+
+/* Animazione scambio carte: la mano si apre (stagger) e la carta ricevuta
+   arriva dall'alto (lato compagno), si gira e si assesta. */
+.card-btn.deal-in { animation: cardDealIn .38s cubic-bezier(.2,.8,.3,1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes cardDealIn {
+  0% { opacity: 0; transform: translateY(26px) scale(.85) rotate(-4deg); }
+  100% { opacity: 1; transform: none; }
+}
+.card-btn.received-fly { animation: cardReceiveFly .95s cubic-bezier(.2,.8,.25,1) both; animation-delay: .35s; z-index: 3; }
+@keyframes cardReceiveFly {
+  0% { opacity: 0; transform: translateY(-260px) scale(.6) rotateY(180deg); }
+  15% { opacity: 1; }
+  65% { transform: translateY(6px) scale(1.12) rotateY(0deg); }
+  82% { transform: translateY(-3px) scale(1.04); }
+  100% { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .card-btn.deal-in, .card-btn.received-fly { animation-duration: .01s; animation-delay: 0s; } }
+
+.card-btn.card-giving { animation: cardGive .6s cubic-bezier(.5,0,.8,.4) forwards; }
+@keyframes cardGive {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-330px) scale(.55) rotate(8deg); }
+}
 .card-btn.card-burning {
   pointer-events: none;
   animation: cardBurn 0.45s ease-in forwards;
@@ -1473,6 +1551,9 @@ html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; w
 .picker-overlay:not(.picker-opaque) .choice-box {
   text-shadow: 0 1px 2px rgba(255,252,244,0.9), 0 0 9px rgba(255,252,244,0.75);
 }
+:root[data-theme="dark"] .picker-overlay .choice-box,
+:root[data-theme="dark"] .picker-overlay:not(.picker-opaque) .choice-box { text-shadow: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .picker-overlay:not(.picker-opaque) .choice-box { text-shadow: none; } }
 /* L'alone (text-shadow) sopra bastava per le righe/chip già opache
    (v5.27), ma per titolo e sottotitolo — che restano soli, direttamente
    sullo sfondo quasi trasparente del foglio — non è abbastanza sopra il
@@ -1860,7 +1941,9 @@ button.secondary.selected {
 .nudge-call { flex: 0 0 34%; opacity: 0.45; cursor: not-allowed; }
 .nudge-btn { width: 100%; margin: -4px 0 10px; padding: 7px; border-radius: 12px; border: 1px dashed var(--line, rgba(0,0,0,0.25)); background: transparent; color: var(--muted); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
 .nudge-btn:active { transform: scale(0.97); }
-.reaction-btn { flex: 1; font-size: 1.25rem; line-height: 1; padding: 7px 0; border-radius: 12px; border: 1px solid var(--line, rgba(0,0,0,0.12)); background: rgba(255,255,255,0.6); cursor: pointer; }
+.reaction-btn { flex: 1; font-size: 1.25rem; line-height: 1; padding: 7px 0; border-radius: 12px; border: 1px solid var(--line, rgba(0,0,0,0.12)); background: var(--reaction-bg, rgba(255,255,255,0.6)); color: var(--ink); cursor: pointer; }
+:root[data-theme="dark"] { --reaction-bg: var(--panel); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --reaction-bg: var(--panel); } }
 .reaction-btn:active { transform: scale(0.88); }
 .reaction-float { position: fixed; bottom: 22%; z-index: 9999; pointer-events: none; text-align: center; animation: reactionUp 2.2s ease-out forwards; }
 .reaction-emoji { font-size: 3.2rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
@@ -6528,7 +6611,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.129";
+const APP_VERSION = "v5.133";
 
 let myColor = null;
 let myRoomId = null;
@@ -6736,6 +6819,25 @@ async function fillActiveTournamentsList() {
   });
 }
 
+// Riga di classifica (generale / media / tornei): medaglia metallica per i
+// primi tre, riga di chi guarda evidenziata, barra di avanzamento opzionale.
+function lbMyName() {
+  const sp = typeof getSavedPlayerShortcut === "function" ? getSavedPlayerShortcut() : null;
+  return String(myName || (sp && sp.nome) || "").trim().toLowerCase();
+}
+function buildLbRow({ rank, name, main, unit, sub, bar }) {
+  const isMe = !!name && String(name).trim().toLowerCase() === lbMyName();
+  const cls = "lb-row" + (rank <= 3 ? " lb-r" + rank : "") + (isMe ? " lb-me" : "");
+  return el(
+    "div",
+    { class: cls },
+    bar != null ? el("span", { class: "lb-fill", style: "width:" + Math.max(0, Math.min(100, bar)) + "%;" }) : "",
+    el("span", { class: "lb-rank" }, String(rank)),
+    el("span", { class: "lb-name" }, name, isMe ? el("span", { class: "lb-you" }, "tu") : ""),
+    el("span", { class: "lb-val" }, el("b", {}, main), el("small", {}, unit + (sub ? " · " + sub : "")))
+  );
+}
+
 // Classifica generale (v5): vittorie totali per giocatore, aggregate tra
 // tutte le stanze — vedi docs/v5-roadmap.md, sezione "Classifica". Voce a
 // sé in home, pubblica e cliccabile da chiunque, senza dover prima avere
@@ -6757,13 +6859,13 @@ async function renderLeaderboardScreen() {
       { class: "lobby-card" },
       el("div", { class: "app-logo" }, el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" })),
       el("h2", { style: "margin:0 0 2px;" }, "🏆 Classifica generale"),
-      el("p", { class: "muted" }, "Vittorie totali per giocatore, in tutte le stanze."),
+      el("p", { class: "muted lb-desc" }, "Vittorie totali per giocatore, in tutte le stanze."),
       listWrap,
       el("h2", { style: "margin:20px 0 2px;" }, "📊 Media vittorie"),
-      el("p", { class: "muted" }, "Percentuale di partite vinte sulle giocate. Conta solo le partite giocate da quando esiste questa classifica."),
+      el("p", { class: "muted lb-desc" }, "Percentuale di partite vinte sulle giocate. Conta solo le partite giocate da quando esiste questa classifica."),
       avgListWrap,
       el("h2", { style: "margin:20px 0 2px;" }, "🥇 Tornei vinti"),
-      el("p", { class: "muted" }, "Quanti tornei ha vinto ciascun giocatore (non le singole partite)."),
+      el("p", { class: "muted lb-desc" }, "Quanti tornei ha vinto ciascun giocatore (non le singole partite)."),
       tourneyListWrap,
       el("button", { class: "primary", style: "margin-top:12px;", onclick: renderLobby }, "Torna alla home")
     )
@@ -6791,13 +6893,13 @@ async function renderLeaderboardScreen() {
     } else {
       avg.forEach((p, i) => {
         avgListWrap.appendChild(
-          el(
-            "div",
-            { class: "leaderboard-row" },
-            el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
-            el("span", { class: "leaderboard-name" }, p.nome),
-            el("span", { class: "leaderboard-wins" }, Math.round(p.rate * 100) + "% · " + p.vinte + "/" + p.partite)
-          )
+          buildLbRow({
+            rank: i + 1,
+            name: p.nome,
+            main: Math.round(p.rate * 100) + "%",
+            unit: p.vinte + "/" + p.partite,
+            bar: p.rate * 100,
+          })
         );
       });
     }
@@ -6808,13 +6910,13 @@ async function renderLeaderboardScreen() {
   } else if (list) {
     list.forEach((p, i) => {
       listWrap.appendChild(
-        el(
-          "div",
-          { class: "leaderboard-row" },
-          el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
-          el("span", { class: "leaderboard-name" }, p.nome),
-          el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie") + (typeof p.diff === "number" ? " · " + (p.diff > 0 ? "+" : "") + p.diff + " catt." : ""))
-        )
+        buildLbRow({
+          rank: i + 1,
+          name: p.nome,
+          main: String(p.vittorie),
+          unit: p.vittorie === 1 ? "vittoria" : "vittorie",
+          sub: typeof p.diff === "number" ? (p.diff > 0 ? "+" : "") + p.diff + " catt." : "",
+        })
       );
     });
   }
@@ -6833,13 +6935,7 @@ async function renderLeaderboardScreen() {
   } else {
     tourneyList.forEach((p, i) => {
       tourneyListWrap.appendChild(
-        el(
-          "div",
-          { class: "leaderboard-row" },
-          el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
-          el("span", { class: "leaderboard-name" }, p.nome),
-          el("span", { class: "leaderboard-wins" }, p.tornei + (p.tornei === 1 ? " torneo" : " tornei"))
-        )
+        buildLbRow({ rank: i + 1, name: p.nome, main: String(p.tornei), unit: p.tornei === 1 ? "torneo" : "tornei" })
       );
     });
   }
@@ -9575,6 +9671,8 @@ const SOUND_RECIPES = {
   jackPlayed: () => { beep(700, 0, 70, "square", 0.32); beep(500, 0.08, 70, "square", 0.32); beep(700, 0.16, 90, "square", 0.32); },
   // a soft, unobtrusive notification pop
   chatMessage: () => { beep(880, 0, 60, "sine", 0.28); },
+  // scambio carte: breve "swish" + tic di arrivo
+  cardSwap: () => { beep(300, 0, 70, "triangle", 0.22); beep(520, 0.06, 80, "triangle", 0.22); beep(780, 0.34, 90, "sine", 0.3); },
 };
 
 // Called from every interactive tap in the game (a card, sending a chat
@@ -11452,9 +11550,27 @@ function renderExchangeControls(state) {
   // restano solo le carte che tieni davvero.
   state.hands[myColor].forEach((card) => {
     handWrap.appendChild(
-      already ? buildCardButton(card, false) : buildCardButton(card, true, () => sendExchangeCard(card))
+      already ? buildCardButton(card, false) : buildCardButton(card, true, (e) => { flyGivenCard(e && e.currentTarget); sendExchangeCard(card); })
     );
   });
+}
+
+// Animazione carta data: un clone della carta vola verso l'alto (lato
+// compagno) rimpicciolendosi e sfumando; la carta vera sparisce subito
+// dalla mano perché lo stato la toglie.
+function flyGivenCard(btn) {
+  try {
+    if (!btn || !btn.getBoundingClientRect) return;
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const r = btn.getBoundingClientRect();
+    const c = btn.cloneNode(true);
+    c.removeAttribute("disabled");
+    c.classList.add("card-giving");
+    Object.assign(c.style, { position: "fixed", left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", margin: "0", zIndex: 9999, pointerEvents: "none" });
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 700);
+    try { playSound("chatMessage"); } catch (e) {}
+  } catch (e) {}
 }
 
 async function sendExchangeCard(card) {
@@ -11809,7 +11925,7 @@ function miniCardVisual(card, burned) {
 // dispositivo) invece che confrontando timestamp tra dispositivi diversi,
 // che è la stessa causa già vista con la mangiata che a volte non si
 // animava per orologi non sincronizzati (vedi flashCapture).
-const _receivedHighlight = { card: null, until: 0 };
+const _receivedHighlight = { card: null, until: 0, animDone: null };
 const RECEIVED_HIGHLIGHT_MS = 10000;
 
 function renderHand(state) {
@@ -11827,10 +11943,20 @@ function renderHand(state) {
   } else if (!receivedCard) {
     _receivedHighlight.card = null;
     _receivedHighlight.until = 0;
+    _receivedHighlight.animDone = null;
   }
   const highlightNow = receivedCard && receivedCard === _receivedHighlight.card && Date.now() < _receivedHighlight.until;
-  hand.forEach((card) => {
+  // Animazione di arrivo: solo la prima volta che si disegna la mano dopo lo scambio
+  const animKey = receivedCard ? receivedCard : null;
+  const playAnim = !!(highlightNow && animKey && _receivedHighlight.animDone !== animKey);
+  if (playAnim) { _receivedHighlight.animDone = animKey; try { playSound("cardSwap"); } catch (e) {} }
+  hand.forEach((card, i) => {
     const btn = buildCardButton(card, isMyTurn, (e) => onCardClick(card, e), highlightNow && card === receivedCard);
+    if (playAnim) {
+      if (card === receivedCard) btn.classList.add("received-fly");
+      else { btn.classList.add("deal-in"); btn.style.setProperty("--i", i); }
+      setTimeout(() => btn.classList.remove("deal-in", "received-fly"), 1600);
+    }
     wrap.appendChild(btn);
   });
 }
