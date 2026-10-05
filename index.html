@@ -148,7 +148,7 @@ html:has(.game-shell), html:has(.game-shell) body {
   overflow: hidden; overscroll-behavior: none; height: 100%;
 }
 body:has(.game-shell) { position: fixed; inset: 0; width: 100%; }
-body:has(.game-shell) #app { height: 100%; min-height: 0; overflow: hidden; }
+body:has(.game-shell) #app { height: 100%; min-height: 0; overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 8px); padding-bottom: calc(env(safe-area-inset-bottom) * 0.5 + 8px); }
 .game-shell { transform-origin: top center; }
 
 /* Su schermi più larghi del telefono (tablet in verticale, es. iPad) fa
@@ -1525,10 +1525,6 @@ html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; w
   0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sw, #888) 60%, transparent); }
   100% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--sw, #888) 0%, transparent); }
 }
-/* mano a ventaglio: leggera inclinazione (impostata da applyHandFan) */
-#hand-wrap .card-btn { transform: translateY(var(--fy, 0px)) rotate(var(--fr, 0deg)); transform-origin: 50% 120%; transition: transform .15s ease; }
-#hand-wrap .card-btn:not(:disabled):hover { transform: translateY(calc(var(--fy, 0px) - 6px)) rotate(var(--fr, 0deg)); }
-#hand-wrap .card-btn:not(:disabled):active { transform: translateY(2px) rotate(0deg); }
 /* pedine candidate mentre si sceglie la mossa */
 .pawn.pawn-candidate .pawn-visual { transform-box: fill-box; transform-origin: center; animation: pawnPulse .85s ease-in-out infinite; }
 .pawn.pawn-hot .pawn-visual { animation-duration: .45s; filter: drop-shadow(0 0 5px #FFD76A) drop-shadow(0 0 2px #fff); }
@@ -1541,9 +1537,16 @@ html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; w
 @media (prefers-reduced-motion: reduce) { .turn-line .swatch, .pawn.pawn-candidate .pawn-visual { animation: none; } }
 
 /* --- v5.137: righe giocatore a "pillola", avatar sul turno, alone sulla base attiva --- */
-.board-player { padding: 5px 9px; border-radius: 999px; background: color-mix(in srgb, var(--sw, #888) 12%, var(--panel)); border: 1.5px solid color-mix(in srgb, var(--sw, #888) 38%, transparent); box-shadow: 0 2px 0 color-mix(in srgb, var(--sw, #888) 22%, transparent); gap: 6px; }
+.board-player { padding: 5px 8px; border-radius: 999px; background: color-mix(in srgb, var(--sw, #888) 12%, var(--panel)); border: 1.5px solid color-mix(in srgb, var(--sw, #888) 38%, transparent); box-shadow: 0 2px 0 color-mix(in srgb, var(--sw, #888) 22%, transparent); gap: 6px; }
 .board-player.bp-red { --sw: #D9636B; } .board-player.bp-green { --sw: #3FA77E; } .board-player.bp-yellow { --sw: #E3AC33; } .board-player.bp-blue { --sw: #3E8FCB; }
-.board-player .mini-pawns { width: 52px; height: 13px; }
+.board-player .mini-pawns { width: 40px; height: 11px; flex-shrink: 0; }
+.board-players-row { gap: 6px !important; justify-content: stretch !important; }
+.board-player { flex: 1 1 0; min-width: 0; max-width: none; }
+.board-player .board-player-name { flex: 1 1 auto; min-width: 0; }
+.board-player.bp-right .board-player-name { text-align: right; }
+.bp-side { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.bp-gap { flex: 0 0 76px; display: flex; justify-content: space-between; align-items: center; gap: 2px; min-width: 0; }
+.bp-gap:empty { display: flex; }
 .board-player-name { font-size: .76rem; }
 .board-player.bp-active { background: linear-gradient(135deg, color-mix(in srgb, var(--sw) 78%, #fff), var(--sw)); border-color: var(--sw); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sw) 28%, transparent), 0 4px 10px -3px var(--sw); }
 .board-player.bp-active .board-player-name { color: #fff !important; text-decoration: none !important; text-shadow: 0 1px 1px rgba(0,0,0,.25); }
@@ -6699,7 +6702,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.137";
+const APP_VERSION = "v5.140";
 
 let myColor = null;
 let myRoomId = null;
@@ -9523,8 +9526,9 @@ function fitGameShell() {
   shell.style.margin = "";
   const cs = getComputedStyle(app);
   const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-  const padH = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-  const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+  // Altezza reale disponibile = quella di #app (il body è fisso a tutto
+  // schermo): più affidabile di innerHeight/visualViewport su iPhone.
+  const vh = app.clientHeight || window.innerHeight;
   const natural = shell.offsetHeight;
   const avail = vh - padV;
   const f = Math.max(0.6, Math.min(1, avail / natural));
@@ -9538,6 +9542,7 @@ function fitGameShell() {
 let _fitRaf = 0;
 function scheduleFit() { cancelAnimationFrame(_fitRaf); _fitRaf = requestAnimationFrame(fitGameShell); }
 window.addEventListener("resize", scheduleFit);
+window.addEventListener("load", () => { scheduleFit(); setTimeout(scheduleFit, 400); setTimeout(scheduleFit, 1500); });
 window.addEventListener("orientationchange", () => setTimeout(scheduleFit, 250));
 if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleFit);
 new MutationObserver(scheduleFit).observe(document.documentElement, { subtree: true, childList: true });
@@ -11774,30 +11779,34 @@ function renderPlayerStatus(state) {
     // board-player-head insieme al nome): vedi ordine sotto.
     const extras = el(
       "span",
-      { class: "board-player-extras" },
-      // Icona mazziere + mani rimaste in un unico contenitore (dealerBadge).
-      isDealer ? dealerBadge(handsRemainingBeforeReshuffle(state)) : "",
-      // Solo l'icona (senza la scritta "offline"): il motivo resta
-      // comunque leggibile al tocco/hover tramite il title.
-      !isBotSeat && state.players[c] && !isOnline
-        ? el("span", { class: "status-offline-warning", title: `${colorLabel(c)} non è connesso in questo momento` }, "⚠️")
-        : ""
+      { class: "board-player-extras" }
     );
+    // Avviso "non connesso": fuori dalla pillola, accanto ad essa (come il mazziere).
+    const warn = !isBotSeat && state.players[c] && !isOnline
+      ? el("span", { class: "status-offline-warning", title: `${colorLabel(c)} non è connesso in questo momento` }, "⚠️")
+      : null;
     // Dall'esterno (bordo schermo) verso l'interno (centro/tabellone):
     // nome, pedine, poi le altre info (mazziere/disconnesso) — chiesto.
     // Prima erano nome+mazziere/disconnesso insieme più esterni delle
     // pedine; ora le pedine stanno in mezzo.
-    return el(
+    const pill = el(
       "div",
       { class: `board-player bp-${c}` + (isTurn ? " bp-active" : "") + (isRightSide ? " bp-right" : "") },
       ...(isRightSide ? [extras, dots, nameEl] : [nameEl, dots, extras])
     );
+    // Il mazziere sta FUORI dalla pillola, accanto ad essa (nello spazio
+    // centrale della riga): così le 4 pillole hanno tutte la stessa misura.
+    const badge = isDealer ? dealerBadge(handsRemainingBeforeReshuffle(state)) : null;
+    return { pill, side: el("div", { class: "bp-side" }, warn || "", badge || "") };
   };
-
-  topWrap.appendChild(buildPlayer(STATUS_TOP_ORDER[0], false));
-  topWrap.appendChild(buildPlayer(STATUS_TOP_ORDER[1], true));
-  bottomWrap.appendChild(buildPlayer(STATUS_BOTTOM_ORDER[0], false));
-  bottomWrap.appendChild(buildPlayer(STATUS_BOTTOM_ORDER[1], true));
+  const buildRow = (wrap, cL, cR) => {
+    const L = buildPlayer(cL, false), R = buildPlayer(cR, true);
+    wrap.appendChild(L.pill);
+    wrap.appendChild(el("div", { class: "bp-gap" }, L.side, R.side));
+    wrap.appendChild(R.pill);
+  };
+  buildRow(topWrap, STATUS_TOP_ORDER[0], STATUS_TOP_ORDER[1]);
+  buildRow(bottomWrap, STATUS_BOTTOM_ORDER[0], STATUS_BOTTOM_ORDER[1]);
 }
 
 // Icona del mazziere: l'Asso di Cuori, la carta che si pesca davvero per
@@ -12070,17 +12079,7 @@ function miniCardVisual(card, burned) {
 const _receivedHighlight = { card: null, until: 0, animDone: null };
 const RECEIVED_HIGHLIGHT_MS = 10000;
 
-function applyHandFan() {
-  const wrap = $("#hand-wrap");
-  if (!wrap) return;
-  const cards = wrap.querySelectorAll(".card-btn");
-  const n = cards.length;
-  cards.forEach((c, i) => {
-    const d = i - (n - 1) / 2;
-    c.style.setProperty("--fr", (d * 2.2).toFixed(2) + "deg");
-    c.style.setProperty("--fy", (Math.abs(d) * Math.abs(d) * 1.1).toFixed(1) + "px");
-  });
-}
+function applyHandFan() { /* carte dritte (ventaglio rimosso) */ }
 
 function renderHand(state) {
   const wrap = $("#hand-wrap");
@@ -12871,10 +12870,12 @@ function openRulesPanel() {
 // anche se questa schermata non ha un mockup dedicato.
 function setPawnCandidates(active, options) {
   document.querySelectorAll(".pawn.pawn-candidate, .pawn.pawn-hot").forEach((p) => p.classList.remove("pawn-candidate", "pawn-hot"));
-  (options || []).forEach((o) => {
-    const g = _pawnAnimState.els[active + "-" + o.pawnIndex];
+  // Pulsano TUTTE le pedine in gioco del giocatore di turno (non solo quelle
+  // che possono giocare la carta); quella evidenziata nell'elenco pulsa di più.
+  for (let i = 0; i < 4; i++) {
+    const g = _pawnAnimState.els[active + "-" + i];
     if (g) g.classList.add("pawn-candidate");
-  });
+  }
 }
 function setPawnHot(active, idx) {
   document.querySelectorAll(".pawn.pawn-hot").forEach((p) => p.classList.remove("pawn-hot"));
