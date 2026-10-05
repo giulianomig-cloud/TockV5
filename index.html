@@ -1539,6 +1539,22 @@ html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; w
 @keyframes reactionUp2 { 0% { transform: translateY(0) scale(0.4); opacity: 0; } 12% { transform: translateY(-18px) scale(1.35); opacity: 1; } 22% { transform: translateY(-30px) scale(0.95); } 32% { transform: translateY(-44px) scale(1.12); } 100% { transform: translateY(-200px) scale(1); opacity: 0; } }
 .reaction-float { animation-name: reactionUp2; }
 @media (prefers-reduced-motion: reduce) { .turn-line .swatch, .pawn.pawn-candidate .pawn-visual { animation: none; } }
+
+/* --- v5.137: righe giocatore a "pillola", avatar sul turno, alone sulla base attiva --- */
+.board-player { padding: 5px 9px; border-radius: 999px; background: color-mix(in srgb, var(--sw, #888) 12%, var(--panel)); border: 1.5px solid color-mix(in srgb, var(--sw, #888) 38%, transparent); box-shadow: 0 2px 0 color-mix(in srgb, var(--sw, #888) 22%, transparent); gap: 6px; }
+.board-player.bp-red { --sw: #D9636B; } .board-player.bp-green { --sw: #3FA77E; } .board-player.bp-yellow { --sw: #E3AC33; } .board-player.bp-blue { --sw: #3E8FCB; }
+.board-player .mini-pawns { width: 52px; height: 13px; }
+.board-player-name { font-size: .76rem; }
+.board-player.bp-active { background: linear-gradient(135deg, color-mix(in srgb, var(--sw) 78%, #fff), var(--sw)); border-color: var(--sw); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sw) 28%, transparent), 0 4px 10px -3px var(--sw); }
+.board-player.bp-active .board-player-name { color: #fff !important; text-decoration: none !important; text-shadow: 0 1px 1px rgba(0,0,0,.25); }
+.board-player.bp-active.bp-yellow .board-player-name { color: #3B2A0E !important; text-shadow: none; }
+.turn-line .turn-av { width: 32px; height: 32px; border-radius: 50%; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(255,255,255,.7), 0 3px 6px rgba(0,0,0,.25); background: var(--sw, #888); }
+.turn-line .turn-av.swatch-yellow { color: #3B2A0E; }
+.turn-line .swatch { display: none; }
+.turn-line.my-turn .you-badge-strong { background: #241C15; color: #F3D98A; padding: 5px 11px; border-radius: 999px; letter-spacing: .04em; }
+.base-glow { pointer-events: none; fill: none; animation: baseGlow 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes baseGlow { 0%,100% { opacity: .85; transform: scale(1); } 50% { opacity: .35; transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .base-glow { animation: none; } }
 .card-btn.card-burning {
   pointer-events: none;
   animation: cardBurn 0.45s ease-in forwards;
@@ -4302,6 +4318,21 @@ let app, db;
 function initFirebase() {
   app = firebase.initializeApp(FIREBASE_CONFIG);
   db = firebase.database();
+  // Ogni lettura .get() ha un tetto di 20 s: se il server non risponde si
+  // ottiene un errore leggibile invece di restare in attesa all'infinito.
+  try {
+    const proto = Object.getPrototypeOf(db.ref("x"));
+    const origGet = proto.get;
+    if (typeof origGet === "function" && !proto.__timeoutPatched) {
+      proto.get = function () {
+        return Promise.race([
+          origGet.apply(this, arguments),
+          new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("Il server non risponde (timeout). Controlla la connessione o lo stato di Firebase."), { code: "TIMEOUT" })), 20000)),
+        ]);
+      };
+      proto.__timeoutPatched = true;
+    }
+  } catch (e) { console.warn("patch get", e); }
 }
 
 function roomRef(roomId) {
@@ -4507,8 +4538,15 @@ async function tryClaimTournamentTableCredit(state, roomId) {
   }
 }
 
+// Evita il "Carico…" infinito se il server non risponde: dopo 12 s errore chiaro.
+function withTimeout(promise, ms, what) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error((what || "Il server") + " non risponde (timeout). Controlla la connessione o lo stato di Firebase.")), ms)),
+  ]);
+}
 async function loadLeaderboard() {
-  const snap = await leaderboardRef().get();
+  const snap = await withTimeout(leaderboardRef().get(), 12000, "Il server");
   const all = snap.val() || {};
   return Object.entries(all)
     .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, partite: (p && p.partite) || 0, vinte: (p && p.vinte) || 0 }))
@@ -6661,7 +6699,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.136";
+const APP_VERSION = "v5.137";
 
 let myColor = null;
 let myRoomId = null;
@@ -6921,16 +6959,19 @@ async function renderLeaderboardScreen() {
     )
   );
   let list = null;
+  let lbError = "";
   try {
     list = await loadLeaderboard();
   } catch (e) {
     console.error(e);
+    lbError = (e && (e.code || e.message)) ? String(e.code || e.message) : "errore sconosciuto";
   }
   listWrap.innerHTML = "";
   avgListWrap.innerHTML = "";
   if (!list) {
-    listWrap.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica, riprova."));
-    avgListWrap.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica, riprova."));
+    const msg = "Non riesco a caricare la classifica (" + lbError + "). Riprova.";
+    listWrap.appendChild(el("p", { class: "muted" }, msg));
+    avgListWrap.appendChild(el("p", { class: "muted" }, msg));
   } else {
     // Media: solo chi ha almeno una partita contata; ordinata per percentuale,
     // a parità per numero di partite giocate (più partite = più affidabile).
@@ -11942,6 +11983,7 @@ function renderTurnIndicator(state) {
     "div",
     { class: "turn-line" + (isMyTurn ? " my-turn" : "") },
     el("span", { class: "swatch swatch-" + state.turnColor }),
+    el("span", { class: "turn-av swatch-" + state.turnColor }, (playerName(state, state.turnColor) || "?").trim().charAt(0).toUpperCase()),
     el("strong", {}, ` Turno di ${playerName(state, state.turnColor)}`),
     isMyTurn
       ? el(
@@ -11953,6 +11995,25 @@ function renderTurnIndicator(state) {
     el("span", { id: "turn-timer", class: "turn-timer" }, formatElapsed(elapsedNow))
   );
   wrap.appendChild(turnLineEl);
+  updateActiveBaseGlow(state.turnColor);
+}
+
+// Doppio anello pulsante sulla base di chi ha il turno.
+function updateActiveBaseGlow(color) {
+  try {
+    const svg = document.querySelector("#board-wrap svg");
+    if (!svg || typeof BOARD === "undefined" || !BOARD.baseIndex) return;
+    svg.querySelectorAll(".base-glow").forEach((n) => n.remove());
+    if (!color) return;
+    const c = BOARD.loopCells[BOARD.baseIndex[color]];
+    if (!c) return;
+    const first = svg.querySelector(".pawn");
+    [[1.9, 3, 0.85], [2.6, 2, 0.35]].forEach(([k, w, o]) => {
+      const r = ns_el("circle", { cx: c.x, cy: c.y, r: BOARD.cellRadiusMm * k, stroke: BASE_COL[color], "stroke-width": w, opacity: o });
+      r.setAttribute("class", "base-glow");
+      if (first) svg.insertBefore(r, first); else svg.appendChild(r);
+    });
+  } catch (e) {}
 }
 
 // L'ultima carta giocata (da chiunque, non solo dagli avversari) è mostrata
