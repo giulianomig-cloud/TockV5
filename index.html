@@ -6741,7 +6741,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.151";
+const APP_VERSION = "v5.152";
 
 let myColor = null;
 let myRoomId = null;
@@ -9573,7 +9573,10 @@ function fitGameShell() {
   if (!natural || !naturalW) return;
   // Altezza/larghezza reali disponibili (scalo con transform: non cambia il
   // layout, quindi le misure restano affidabili anche su iOS).
-  const availH = Math.max(app.clientHeight || 0, window.innerHeight || 0) - padV;
+  // Altezza di riferimento STABILE (indipendente dalla modalità scorrevole/fissa:
+  // app.clientHeight cambia quando si passa da una all'altra e causava un
+  // continuo avanti-indietro, cioè "vibrazione" di tutta la schermata).
+  const availH = (window.innerHeight || document.documentElement.clientHeight || 0) - padV;
   const availW = (app.clientWidth || window.innerWidth) - padH;
   let raw = Math.min(availH / natural, availW / naturalW, 1.6);
   if (raw < 0.95) {
@@ -9584,7 +9587,8 @@ function fitGameShell() {
   }
   // Se serve ridurre più del 5% si lascia la schermata a grandezza normale
   // (com'era prima) e la pagina torna scorrevole; si scala solo per piccoli aggiustamenti.
-  const tooSmall = raw < 0.95;
+  const wasScroll = document.documentElement.classList.contains("game-scroll");
+  const tooSmall = raw < (wasScroll ? 0.96 : 0.95);
   document.documentElement.classList.toggle("game-scroll", tooSmall);
   const f = tooSmall ? 1 : raw;
   shell.style.transformOrigin = "top center";
@@ -9596,7 +9600,15 @@ window.addEventListener("resize", scheduleFit);
 window.addEventListener("load", () => { scheduleFit(); setTimeout(scheduleFit, 400); setTimeout(scheduleFit, 1500); });
 window.addEventListener("orientationchange", () => setTimeout(scheduleFit, 250));
 if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleFit);
-new MutationObserver(scheduleFit).observe(document.documentElement, { subtree: true, childList: true });
+new MutationObserver((muts) => {
+  // Solo cambi strutturali veri: niente reazione al timer del turno (ogni secondo)
+  // né ai nodi di testo, altrimenti il ricalcolo continuo faceva "vibrare" la pagina.
+  const relevant = muts.some((m) => {
+    if (m.target && m.target.closest && m.target.closest("#turn-timer")) return false;
+    return [...m.addedNodes, ...m.removedNodes].some((n) => n.nodeType === 1);
+  });
+  if (relevant) scheduleFit();
+}).observe(document.documentElement, { subtree: true, childList: true });
 
 function watchConnection() {
   try {
