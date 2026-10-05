@@ -141,16 +141,16 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
    sul 100vh sopra come fallback). */
 #app { max-width: 480px; margin: 0 auto; padding: calc(26px + env(safe-area-inset-top)) 20px 20px; min-height: 100vh; min-height: 100dvh; }
 
-/* Schermata di gioco FISSA: niente scroll/rimbalzo (su iPhone la pagina era
-   più alta dello schermo e "ballava"). La pagina è bloccata e il contenuto
-   viene rimpicciolito (fitGameShell) quando non ci sta nell'altezza. */
-html:has(.game-shell), html:has(.game-shell) body {
-  overflow: hidden; overscroll-behavior: none; height: 100%;
-}
-body:has(.game-shell) { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100vh; height: 100dvh; }
-body:has(.game-shell) #app { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 24px); padding-bottom: calc(env(safe-area-inset-bottom) * 0.5 + 8px); }
-.game-shell { transform-origin: top center; max-width: 440px; margin: 0 auto; }
-body:has(.game-shell) #app { max-width: none; }
+/* Distanze verticali COSTANTI (10px) tra tutti i blocchi della schermata di
+   gioco: prima ogni blocco aveva un margine suo (6/10/16px). Ora decide solo
+   il gap del contenitore; i blocchi vuoti non occupano spazio. */
+.game-shell { display: flex; flex-direction: column; gap: 10px; }
+.game-shell > * { margin: 0 !important; }
+.game-shell > #conn-banner:empty, .game-shell > #dealer-draw-wrap:empty,
+.game-shell > #start-wrap:empty, .game-shell > #exchange-wrap:empty { display: none; }
+#chat-wrap { display: flex; flex-direction: column; gap: 10px; }
+#chat-wrap > *, #chat-wrap .nudge-btn { margin: 0 !important; }
+#turn-indicator > * { margin: 0 !important; }
 /* Telefono in orizzontale: non si gioca, si chiede di ruotare. */
 @media (orientation: landscape) and (max-height: 500px) {
   body:has(.game-shell)::before {
@@ -160,27 +160,6 @@ body:has(.game-shell) #app { max-width: none; }
     font-weight: 800; font-size: 1.15rem; line-height: 1.4;
   }
 }
-/* Schermi troppo bassi (es. telefono in orizzontale): zoom minimo 0.6 non basta,
-   si torna alla pagina scorrevole normale invece di tagliare il contenuto. */
-/* Modalità compatta (aggiunta da fitGameShell solo se la schermata non ci sta):
-   emoji + sveglia + chiamata sulla stessa riga, chat più bassa. */
-.game-shell.compact #chat-wrap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.game-shell.compact .chat-fab-row { grid-column: 1 / -1; margin-bottom: 0; }
-.game-shell.compact .reaction-bar, .game-shell.compact .nudge-row { display: contents; }
-.game-shell.compact .reaction-btn { padding: 6px 0; }
-.game-shell.compact .nudge-btn { margin: 0; padding: 6px 0; font-size: 1.05rem; line-height: 1; }
-.game-shell.compact .nudge-label { display: none; }
-.game-shell.compact .nudge-call { flex: none; }
-.game-shell.compact .chat-preview { padding-top: 6px; padding-bottom: 6px; }
-.game-shell.compact .top-actions-row { margin-bottom: 6px; }
-.game-shell.compact .room-team-row { margin-bottom: 6px; }
-.game-shell.compact #board-wrap { margin-bottom: 6px; }
-.game-shell.compact #board-players-bottom { margin-top: 6px; }
-.game-shell.compact #hand-wrap { margin-bottom: 6px; }
-html.game-scroll:has(.game-shell), html.game-scroll:has(.game-shell) body { overflow: auto; height: auto; overscroll-behavior: auto; }
-html.game-scroll body:has(.game-shell) { position: static; width: auto; }
-html.game-scroll body:has(.game-shell) #app { height: auto; min-height: 100dvh; overflow: visible; padding-top: calc(26px + env(safe-area-inset-top)); padding-bottom: 20px; }
-html.game-scroll, html.game-scroll body { overscroll-behavior-y: none; }
 
 /* Su schermi più larghi del telefono (tablet in verticale, es. iPad) fa
    crescere la colonna principale e i fogli/toast che condividono lo stesso
@@ -6741,7 +6720,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.152";
+const APP_VERSION = "v5.155";
 
 let myColor = null;
 let myRoomId = null;
@@ -9547,8 +9526,7 @@ function renderGameShell() {
       el("div", { id: "chat-wrap" }),
     )
   );
-  // Il foglio delle scelte sta nel body (non dentro .game-shell): lo shell viene
-  // scalato con transform, che altererebbe il suo position:fixed.
+  // Il foglio delle scelte sta nel body (non dentro .game-shell).
   document.querySelectorAll("#picker-wrap").forEach((n) => n.remove());
   { const pw = document.createElement("div"); pw.id = "picker-wrap"; document.body.appendChild(pw); }
   boardSvg = buildBoardSVG($("#board-wrap"), BOARD);
@@ -9556,59 +9534,6 @@ function renderGameShell() {
   watchPresence(myRoomId);
   setupOwnPresence(myRoomId, myColor);
 }
-
-// Adatta la schermata di gioco all'altezza disponibile (zoom <= 1): così non
-// serve mai scrollare e la pagina resta immobile su tutti i telefoni.
-function fitGameShell() {
-  const shell = document.querySelector(".game-shell");
-  const app = $("#app");
-  if (!shell || !app) return;
-  shell.style.transform = "";
-  shell.classList.remove("compact");
-  const cs = getComputedStyle(app);
-  const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-  const padH = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-  let natural = shell.offsetHeight;
-  const naturalW = shell.offsetWidth;
-  if (!natural || !naturalW) return;
-  // Altezza/larghezza reali disponibili (scalo con transform: non cambia il
-  // layout, quindi le misure restano affidabili anche su iOS).
-  // Altezza di riferimento STABILE (indipendente dalla modalità scorrevole/fissa:
-  // app.clientHeight cambia quando si passa da una all'altra e causava un
-  // continuo avanti-indietro, cioè "vibrazione" di tutta la schermata).
-  const availH = (window.innerHeight || document.documentElement.clientHeight || 0) - padV;
-  const availW = (app.clientWidth || window.innerWidth) - padH;
-  let raw = Math.min(availH / natural, availW / naturalW, 1.6);
-  if (raw < 0.95) {
-    // Prova la modalità compatta (riga emoji unica) prima di scalare/scorrere.
-    shell.classList.add("compact");
-    natural = shell.offsetHeight;
-    raw = Math.min(availH / natural, availW / naturalW, 1.6);
-  }
-  // Se serve ridurre più del 5% si lascia la schermata a grandezza normale
-  // (com'era prima) e la pagina torna scorrevole; si scala solo per piccoli aggiustamenti.
-  const wasScroll = document.documentElement.classList.contains("game-scroll");
-  const tooSmall = raw < (wasScroll ? 0.96 : 0.95);
-  document.documentElement.classList.toggle("game-scroll", tooSmall);
-  const f = tooSmall ? 1 : raw;
-  shell.style.transformOrigin = "top center";
-  shell.style.transform = Math.abs(f - 1) > 0.005 ? "scale(" + f.toFixed(4) + ")" : "";
-}
-let _fitRaf = 0;
-function scheduleFit() { cancelAnimationFrame(_fitRaf); _fitRaf = requestAnimationFrame(fitGameShell); }
-window.addEventListener("resize", scheduleFit);
-window.addEventListener("load", () => { scheduleFit(); setTimeout(scheduleFit, 400); setTimeout(scheduleFit, 1500); });
-window.addEventListener("orientationchange", () => setTimeout(scheduleFit, 250));
-if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleFit);
-new MutationObserver((muts) => {
-  // Solo cambi strutturali veri: niente reazione al timer del turno (ogni secondo)
-  // né ai nodi di testo, altrimenti il ricalcolo continuo faceva "vibrare" la pagina.
-  const relevant = muts.some((m) => {
-    if (m.target && m.target.closest && m.target.closest("#turn-timer")) return false;
-    return [...m.addedNodes, ...m.removedNodes].some((n) => n.nodeType === 1);
-  });
-  if (relevant) scheduleFit();
-}).observe(document.documentElement, { subtree: true, childList: true });
 
 function watchConnection() {
   try {
