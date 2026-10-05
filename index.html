@@ -141,6 +141,16 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
    sul 100vh sopra come fallback). */
 #app { max-width: 480px; margin: 0 auto; padding: calc(26px + env(safe-area-inset-top)) 20px 20px; min-height: 100vh; min-height: 100dvh; }
 
+/* Schermata di gioco FISSA: niente scroll/rimbalzo (su iPhone la pagina era
+   più alta dello schermo e "ballava"). La pagina è bloccata e il contenuto
+   viene rimpicciolito (fitGameShell) quando non ci sta nell'altezza. */
+html:has(.game-shell), html:has(.game-shell) body {
+  overflow: hidden; overscroll-behavior: none; height: 100%;
+}
+body:has(.game-shell) { position: fixed; inset: 0; width: 100%; }
+body:has(.game-shell) #app { height: 100%; min-height: 0; overflow: hidden; }
+.game-shell { transform-origin: top center; }
+
 /* Su schermi più larghi del telefono (tablet in verticale, es. iPad) fa
    crescere la colonna principale e i fogli/toast che condividono lo stesso
    max-width, invece di lasciarli piccoli in mezzo a bordi vuoti. Sotto i
@@ -183,9 +193,12 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
 .exchange-dot-green { background: #3FA77E; }
 .exchange-dot-yellow { background: #E3AC33; color: #3B2A0E; }
 .exchange-dot-blue { background: #3E8FCB; }
-/* Chi non ha ancora scelto è sbiadito; chi ha scelto è pieno con la spunta. */
-.exchange-dot.waiting { opacity: 0.45; }
-.exchange-dot.waiting .exchange-dot-check { opacity: 1; }
+/* Tutti i cerchietti sempre ben visibili (colore pieno, bordo chiaro);
+   la spunta compare solo quando quel giocatore ha davvero scelto/scambiato. */
+.exchange-dot { box-shadow: 0 0 0 2px rgba(255,255,255,0.85), 0 1px 4px rgba(0,0,0,0.3); }
+.exchange-dot.waiting { opacity: 1; }
+.exchange-dot-check.pending { display: none; }
+.exchange-dot-check { opacity: 1; }
 .exchange-dot-check.pending { background: #B9B09F; }
 .exchange-dot-check {
   position: absolute; right: -4px; bottom: -4px; width: 13px; height: 13px; border-radius: 50%;
@@ -1504,6 +1517,28 @@ html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; w
   0% { opacity: 1; transform: translateY(0) scale(1); }
   100% { opacity: 0; transform: translateY(-330px) scale(.55) rotate(8deg); }
 }
+
+/* --- migliorie grafiche partita (v5.135) --- */
+.turn-line .swatch { width: 17px; height: 17px; flex-shrink: 0; animation: swatchPulse 1.8s ease-out infinite; }
+.swatch-red { --sw: var(--red); } .swatch-green { --sw: var(--green); } .swatch-yellow { --sw: var(--yellow); } .swatch-blue { --sw: var(--blue); }
+@keyframes swatchPulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sw, #888) 60%, transparent); }
+  100% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--sw, #888) 0%, transparent); }
+}
+/* mano a ventaglio: leggera inclinazione (impostata da applyHandFan) */
+#hand-wrap .card-btn { transform: translateY(var(--fy, 0px)) rotate(var(--fr, 0deg)); transform-origin: 50% 120%; transition: transform .15s ease; }
+#hand-wrap .card-btn:not(:disabled):hover { transform: translateY(calc(var(--fy, 0px) - 6px)) rotate(var(--fr, 0deg)); }
+#hand-wrap .card-btn:not(:disabled):active { transform: translateY(2px) rotate(0deg); }
+/* pedine candidate mentre si sceglie la mossa */
+.pawn.pawn-candidate .pawn-visual { transform-box: fill-box; transform-origin: center; animation: pawnPulse .85s ease-in-out infinite; }
+.pawn.pawn-hot .pawn-visual { animation-duration: .45s; filter: drop-shadow(0 0 5px #FFD76A) drop-shadow(0 0 2px #fff); }
+@keyframes pawnPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.22); } }
+/* ultima mossa: anelli su partenza e arrivo */
+.lastmove-mark { pointer-events: none; animation: lmIn .35s ease-out both; }
+@keyframes lmIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes reactionUp2 { 0% { transform: translateY(0) scale(0.4); opacity: 0; } 12% { transform: translateY(-18px) scale(1.35); opacity: 1; } 22% { transform: translateY(-30px) scale(0.95); } 32% { transform: translateY(-44px) scale(1.12); } 100% { transform: translateY(-200px) scale(1); opacity: 0; } }
+.reaction-float { animation-name: reactionUp2; }
+@media (prefers-reduced-motion: reduce) { .turn-line .swatch, .pawn.pawn-candidate .pawn-visual { animation: none; } }
 .card-btn.card-burning {
   pointer-events: none;
   animation: cardBurn 0.45s ease-in forwards;
@@ -6235,13 +6270,13 @@ function flashCapture(svg, board, color, pos) {
 // instead of it just vanishing instantly.
 function animateCaptureOut(el) {
   let step = 0;
-  const steps = 6;
+  const steps = 8;
   const baseTransform = el.getAttribute("transform") || "";
   const tick = () => {
     step++;
-    const scale = Math.max(0, 1 - step / steps);
-    el.setAttribute("transform", `${baseTransform} scale(${scale})`);
-    el.setAttribute("opacity", String(scale));
+    const scale = step <= 2 ? 1 + step * 0.18 : Math.max(0, 1.36 * (1 - (step - 2) / (steps - 2)));
+    el.setAttribute("transform", `${baseTransform} rotate(${step * 40}) scale(${scale})`);
+    el.setAttribute("opacity", String(Math.min(1, scale)));
     if (step < steps) setTimeout(tick, 45);
     else el.remove();
   };
@@ -6524,6 +6559,17 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
   _pawnAnimState.primed = true;
 
   const seen = new Set();
+  let _marksCleared = false;
+  const addMark = (cell, dashed, color) => {
+    if (!cell) return;
+    if (!_marksCleared) { _marksCleared = true; svg.querySelectorAll(".lastmove-mark").forEach((m) => m.remove()); }
+    const m = ns_el("circle", { cx: cell.x, cy: cell.y, r: R * (dashed ? 0.98 : 1.12), fill: "none", stroke: BASE_COL[color], "stroke-width": dashed ? 2.6 : 3.4, opacity: dashed ? 0.8 : 0.95 });
+    if (dashed) m.setAttribute("stroke-dasharray", "3,3");
+    m.setAttribute("class", "lastmove-mark");
+    const firstPawn = svg.querySelector(".pawn");
+    if (firstPawn) svg.insertBefore(m, firstPawn); else svg.appendChild(m);
+  };
+  if (replayViewPawns) svg.querySelectorAll(".lastmove-mark").forEach((m) => m.remove());
 
   for (const color of Object.keys(pawns)) {
     pawns[color].forEach((pos, pawnIndex) => {
@@ -6564,6 +6610,10 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 
       if (prevPos === pos) return; // unchanged, nothing to do
       _pawnAnimState.positions[key] = pos;
+      if (isFreshEvent && !replayViewPawns && prevPos !== -1 && prevPos != null) {
+        addMark(cellForColor(board, color, prevPos), true, color);
+        addMark(target, false, color);
+      }
 
       const gen = (outer.__animGen || 0) + 1;
       outer.__animGen = gen;
@@ -6611,7 +6661,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.133";
+const APP_VERSION = "v5.136";
 
 let myColor = null;
 let myRoomId = null;
@@ -9421,6 +9471,36 @@ function renderGameShell() {
   setupOwnPresence(myRoomId, myColor);
 }
 
+// Adatta la schermata di gioco all'altezza disponibile (zoom <= 1): così non
+// serve mai scrollare e la pagina resta immobile su tutti i telefoni.
+function fitGameShell() {
+  const shell = document.querySelector(".game-shell");
+  const app = $("#app");
+  if (!shell || !app) return;
+  shell.style.zoom = "";
+  shell.style.width = "";
+  shell.style.margin = "";
+  const cs = getComputedStyle(app);
+  const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const padH = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+  const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+  const natural = shell.offsetHeight;
+  const avail = vh - padV;
+  const f = Math.max(0.6, Math.min(1, avail / natural));
+  if (f < 0.995) {
+    const w = shell.offsetWidth;
+    shell.style.width = w + "px";
+    shell.style.margin = "0 auto";
+    shell.style.zoom = String(f);
+  }
+}
+let _fitRaf = 0;
+function scheduleFit() { cancelAnimationFrame(_fitRaf); _fitRaf = requestAnimationFrame(fitGameShell); }
+window.addEventListener("resize", scheduleFit);
+window.addEventListener("orientationchange", () => setTimeout(scheduleFit, 250));
+if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleFit);
+new MutationObserver(scheduleFit).observe(document.documentElement, { subtree: true, childList: true });
+
 function watchConnection() {
   try {
     db.ref(".info/connected").on("value", (snap) => {
@@ -11553,6 +11633,7 @@ function renderExchangeControls(state) {
       already ? buildCardButton(card, false) : buildCardButton(card, true, (e) => { flyGivenCard(e && e.currentTarget); sendExchangeCard(card); })
     );
   });
+  applyHandFan();
 }
 
 // Animazione carta data: un clone della carta vola verso l'alto (lato
@@ -11928,6 +12009,18 @@ function miniCardVisual(card, burned) {
 const _receivedHighlight = { card: null, until: 0, animDone: null };
 const RECEIVED_HIGHLIGHT_MS = 10000;
 
+function applyHandFan() {
+  const wrap = $("#hand-wrap");
+  if (!wrap) return;
+  const cards = wrap.querySelectorAll(".card-btn");
+  const n = cards.length;
+  cards.forEach((c, i) => {
+    const d = i - (n - 1) / 2;
+    c.style.setProperty("--fr", (d * 2.2).toFixed(2) + "deg");
+    c.style.setProperty("--fy", (Math.abs(d) * Math.abs(d) * 1.1).toFixed(1) + "px");
+  });
+}
+
 function renderHand(state) {
   const wrap = $("#hand-wrap");
   if (!wrap) return; // schermata di gioco non presente (es. timer/ritardo dopo essere usciti dal tavolo)
@@ -11959,6 +12052,7 @@ function renderHand(state) {
     }
     wrap.appendChild(btn);
   });
+  applyHandFan();
 }
 
 const RED_SUITS = { hearts: "♥", diamonds: "♦" };
@@ -12224,6 +12318,7 @@ function openPicker(contentEl, opts) {
   setupPickerDragToClose(wrap, handleZone);
 }
 function closePicker() {
+  document.querySelectorAll(".pawn.pawn-candidate, .pawn.pawn-hot").forEach((p) => p.classList.remove("pawn-candidate", "pawn-hot"));
   const wrap = $("#picker-wrap");
   wrap.innerHTML = "";
   wrap.className = "";
@@ -12713,7 +12808,21 @@ function openRulesPanel() {
 // pallini stile dado" del picker del Jack/7 (pipIcon), invece del vecchio
 // elenco di bottoni di solo testo — coerenza visiva con gli altri picker
 // anche se questa schermata non ha un mockup dedicato.
+function setPawnCandidates(active, options) {
+  document.querySelectorAll(".pawn.pawn-candidate, .pawn.pawn-hot").forEach((p) => p.classList.remove("pawn-candidate", "pawn-hot"));
+  (options || []).forEach((o) => {
+    const g = _pawnAnimState.els[active + "-" + o.pawnIndex];
+    if (g) g.classList.add("pawn-candidate");
+  });
+}
+function setPawnHot(active, idx) {
+  document.querySelectorAll(".pawn.pawn-hot").forEach((p) => p.classList.remove("pawn-hot"));
+  const g = _pawnAnimState.els[active + "-" + idx];
+  if (g) g.classList.add("pawn-hot");
+}
+
 function showPawnChoice(active, card, options) {
+  setPawnCandidates(active, options);
   openPicker(
     el(
       "div",
@@ -12728,6 +12837,8 @@ function showPawnChoice(active, card, options) {
             "button",
             {
               class: "jack-chip",
+              onpointerenter: () => setPawnHot(active, opt.pawnIndex),
+              onfocus: () => setPawnHot(active, opt.pawnIndex),
               onclick: async () => { closePicker(); await playMove(active, card, opt); },
             },
             pipIcon(active, opt.pawnIndex, 28),
