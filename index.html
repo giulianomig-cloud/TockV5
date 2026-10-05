@@ -1291,7 +1291,7 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
      rimpicciolita in modo UNIFORME con zoom: angoli, pallino e ombra restano
      in proporzione identica alle carte dei giocatori. */
   width: 64px; min-width: 64px; max-width: 64px;
-  zoom: 0.84;
+  zoom: 0.64;
   padding: 4px;
   cursor: default;
   pointer-events: none;
@@ -1301,15 +1301,14 @@ html.fx3d .center-discard .card-btn.center-card { transform: none; }
 /* Bollino iniziale = stesso del banner turno (.turn-av): colore pieno del
    giocatore, anello bianco, ombra. */
 .center-discard .initial-badge {
-  /* Timbro impresso al centro della carta (sul seme), carta leggermente inclinata. */
-  width: 30px !important; height: 30px !important; font-size: .95rem !important;
-  left: 50% !important; top: 50% !important; bottom: auto !important;
-  border: 0 !important; background-image: none;
-  transform: translate(-50%, -50%) rotate(8deg);
-  box-shadow: inset 0 0 0 3px rgba(255,255,255,.55), inset 0 0 0 4px rgba(0,0,0,.12), 0 2px 3px rgba(0,0,0,.3) !important;
+  /* Centro del bollino esattamente sullo spigolo in basso a sinistra della carta
+     (la carta è un po' più piccola per lasciare spazio alle caselle intorno). */
+  width: 18px !important; height: 18px !important; font-size: .6rem !important;
+  bottom: -9px !important; left: -9px !important; top: auto !important;
+  border: 0 !important; background-image: none; transform: none;
+  box-shadow: 0 0 0 2px #fff, 0 2px 5px rgba(0,0,0,.4) !important;
   text-shadow: 0 1px 0 rgba(0,0,0,.25);
 }
-.center-discard .card-btn.center-card, html.fx3d .center-discard .card-btn.center-card { transform: rotate(-6deg) !important; }
 .center-discard .initial-badge { background-color: var(--sw, #888); }
 .center-discard .initial-badge.swatch-yellow { color: #3B2A0E; }
 /* Carta bruciata: fiamme vive dietro la carta (si muovono). */
@@ -1554,6 +1553,18 @@ html.fx3d .center-discard .card-btn.center-card { transform: none; }
   100% { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { .card-btn.deal-in, .card-btn.received-fly { animation-duration: .01s; animation-delay: 0s; } }
+
+/* Distribuzione a inizio mano: le carte arrivano una alla volta dal centro
+   del tavolo, con rotazione e un piccolo rimbalzo. */
+.card-btn.deal-card { animation: cardDealCard .62s cubic-bezier(.2,.85,.3,1) both; animation-delay: calc(var(--i, 0) * 260ms); }
+@keyframes cardDealCard {
+  0%   { opacity: 0; transform: translate(var(--dx, 0), -300px) scale(.45) rotate(var(--rot, 14deg)); }
+  12%  { opacity: 1; }
+  68%  { transform: translate(0, 8px) scale(1.06) rotate(-2deg); }
+  85%  { transform: translate(0, -3px) scale(1.01) rotate(1deg); }
+  100% { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .card-btn.deal-card { animation-duration: .01s; animation-delay: 0s; } }
 
 .card-btn.card-giving { animation: cardGive .6s cubic-bezier(.5,0,.8,.4) forwards; }
 @keyframes cardGive {
@@ -2206,6 +2217,32 @@ button.secondary.selected {
   0% { transform: translate(0, 0) rotate(var(--rot0)); opacity: 1; }
   100% { transform: translate(var(--drift), 110vh) rotate(calc(var(--rot0) + 540deg)); opacity: 0.9; }
 }
+
+
+/* Vittoria: carte che cadono + cannoni di coriandoli dagli angoli. */
+.confetti-card {
+  position: absolute; top: -50px; width: 26px; height: 36px; border-radius: 4px;
+  background: linear-gradient(165deg, #fff, #F0E5CB); border: 1px solid #B5A78C;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; line-height: 1;
+  box-shadow: 0 3px 6px rgba(0,0,0,.3);
+  animation-name: confettiFall; animation-timing-function: cubic-bezier(0.35, 0, 0.65, 1); animation-fill-mode: forwards;
+}
+.confetti-card.red { color: #B03040; } .confetti-card.black { color: #241C15; }
+.confetti-piece.burst { top: auto; bottom: -20px; animation-name: confettiBurst; animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+@keyframes confettiBurst {
+  0%   { transform: translate(0, 0) rotate(var(--rot0)); opacity: 1; }
+  45%  { transform: translate(var(--bx), -62vh) rotate(calc(var(--rot0) + 300deg)); opacity: 1; }
+  100% { transform: translate(calc(var(--bx) * 1.5), 30vh) rotate(calc(var(--rot0) + 700deg)); opacity: .9; }
+}
+/* Sveglia: il banner del turno trema. */
+.turn-line.shake, .turn-line.my-turn.shake { animation: turnShake .9s ease-in-out 1 !important; }
+@keyframes turnShake {
+  0%,100% { transform: translateX(0) rotate(0); }
+  12% { transform: translateX(-7px) rotate(-1.2deg); } 25% { transform: translateX(7px) rotate(1.2deg); }
+  38% { transform: translateX(-6px) rotate(-1deg); }  50% { transform: translateX(6px) rotate(1deg); }
+  63% { transform: translateX(-4px); } 76% { transform: translateX(4px); } 88% { transform: translateX(-2px); }
+}
+@media (prefers-reduced-motion: reduce) { .turn-line.shake { animation: none !important; } }
 
 .board-cell { cursor: default; }
 
@@ -6821,7 +6858,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.161";
+const APP_VERSION = "v5.166";
 
 let myColor = null;
 let myRoomId = null;
@@ -11763,13 +11800,27 @@ function renderExchangeControls(state) {
   );
   // La carta data è già stata tolta da state.hands (vedi submitExchangeCard):
   // restano solo le carte che tieni davvero.
-  state.hands[myColor].forEach((card) => {
-    handWrap.appendChild(
-      already ? buildCardButton(card, false) : buildCardButton(card, true, (e) => { flyGivenCard(e && e.currentTarget); sendExchangeCard(card); })
-    );
+  // Distribuzione: animazione solo la prima volta che si vede una mano appena data
+  // (chiave = carte rimaste nel mazzo, cambia a ogni distribuzione) e solo se è
+  // davvero appena successo (non rientrando a metà scambio).
+  const dealKey = String((state.deck || []).length) + ":" + (state.dealerColor || "");
+  const justDealt = _dealAnimKey !== dealKey && Date.now() - (state.turnStartedAt || 0) < 15000;
+  _dealAnimKey = dealKey;
+  state.hands[myColor].forEach((card, i) => {
+    const btn = already ? buildCardButton(card, false) : buildCardButton(card, true, (e) => { flyGivenCard(e && e.currentTarget); sendExchangeCard(card); });
+    if (justDealt) {
+      btn.classList.add("deal-card");
+      btn.style.setProperty("--i", i);
+      btn.style.setProperty("--dx", ((i - 2) * -14) + "px");
+      btn.style.setProperty("--rot", (i % 2 ? -16 : 16) + "deg");
+      setTimeout(() => { try { playSound("cardSwap"); } catch (e) {} }, i * 260 + 120);
+      setTimeout(() => btn.classList.remove("deal-card"), i * 260 + 900);
+    }
+    handWrap.appendChild(btn);
   });
   applyHandFan();
 }
+let _dealAnimKey = null;
 
 // Animazione carta data: un clone della carta vola verso l'alto (lato
 // compagno) rimpicciolendosi e sfumando; la carta vera sparisce subito
@@ -13544,6 +13595,7 @@ function showReactionsFrom(state) {
   const fresh = msgs.filter((m) => (m.id || 0) > reactionTracker.lastId && (REACTIONS.includes(m.text) || m.text === NUDGE_TEXT));
   reactionTracker.lastId = lastId;
   fresh.slice(-3).forEach((m, i) => {
+    if (m.text === NUDGE_TEXT && !state.winnerTeam) shakeTurnBanner();
     if (m.text === NUDGE_TEXT && m.color !== myColor && state.turnColor === myColor && !state.winnerTeam) {
       try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
       showToast("👋 " + playerName(state, m.color) + " ti sveglia: tocca a te!");
@@ -14119,7 +14171,49 @@ function launchConfetti(winnerColors) {
     piece.style.setProperty("--rot0", rotStart + "deg");
     layer.appendChild(piece);
   }
-  setTimeout(() => layer.remove(), 4800);
+  // Carte da gioco che cadono.
+  const suits = [["♥", "red"], ["♦", "red"], ["♠", "black"], ["♣", "black"]];
+  for (let i = 0; i < 18; i++) {
+    const [g, k] = suits[i % 4];
+    const c = document.createElement("div");
+    c.className = "confetti-card " + k;
+    c.textContent = g;
+    c.style.left = (4 + Math.random() * 92) + "vw";
+    c.style.animationDelay = (0.3 + Math.random() * 1.6) + "s";
+    c.style.animationDuration = (3.4 + Math.random() * 1.8) + "s";
+    c.style.setProperty("--drift", ((Math.random() - 0.5) * 120) + "px");
+    c.style.setProperty("--rot0", (Math.random() * 60 - 30) + "deg");
+    layer.appendChild(c);
+  }
+  // Due "cannoni" di coriandoli dagli angoli in basso.
+  for (let i = 0; i < 44; i++) {
+    const p = document.createElement("div");
+    p.className = "confetti-piece burst";
+    const fromLeft = i % 2 === 0;
+    const size = 6 + Math.random() * 6;
+    p.style.left = fromLeft ? "2vw" : "auto";
+    p.style.right = fromLeft ? "auto" : "2vw";
+    p.style.width = size + "px";
+    p.style.height = size * 1.4 + "px";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.borderRadius = Math.random() < 0.5 ? "50%" : "2px";
+    p.style.animationDelay = (Math.random() * 0.35) + "s";
+    p.style.animationDuration = (2.2 + Math.random() * 1.2) + "s";
+    const dir = fromLeft ? 1 : -1;
+    p.style.setProperty("--bx", (dir * (30 + Math.random() * 150)) + "px");
+    p.style.setProperty("--rot0", (Math.random() * 360) + "deg");
+    layer.appendChild(p);
+  }
+  setTimeout(() => layer.remove(), 7000);
+}
+
+function shakeTurnBanner() {
+  const t = document.querySelector(".turn-line");
+  if (!t) return;
+  t.classList.remove("shake");
+  void t.offsetWidth;
+  t.classList.add("shake");
+  setTimeout(() => t.classList.remove("shake"), 1000);
 }
 
 // ---------------- boot ----------------
