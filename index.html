@@ -21,6 +21,7 @@ try {
     document.documentElement.setAttribute("data-theme", "dark");
   }
 } catch (e) {}
+try { const sk = localStorage.getItem("tock-skin"); if (sk === "wood" || sk === "night" || sk === "bright") document.documentElement.setAttribute("data-skin", sk); } catch (e) {}
 // Aspetto "rilievo 3D": acceso di default, si spegne dal pulsante 🧊 in home.
 try {
   if (localStorage.getItem("tock-fx3d") !== "0") document.documentElement.classList.add("fx3d");
@@ -2346,6 +2347,76 @@ button.secondary.selected {
   transition: background .12s ease, border-color .12s ease;
 }
 .theme-toggle-btn:hover { border-color: var(--gold); }
+
+/* ================= Stili grafici selezionabili (html[data-skin]) =================
+   Scelti da Impostazioni → Stile grafico. "classico" = nessun attributo. */
+/* --- Stile "wood" --- */
+html[data-skin="wood"]:has(.game-shell),
+html[data-skin="wood"]:has(.game-shell) body {background:radial-gradient(120% 60% at 50% 0%,#5A3A22 0%,#3B2515 55%,#2A190E 100%)!important;color:#F6E7C8}
+html[data-skin="wood"] #board-wrap {padding:12px!important;background:linear-gradient(145deg,#8A5A32,#5E3B1E 50%,#7A4E2A)!important;border:2px solid #C79A4B!important;border-radius:30px!important;
+ box-shadow:inset 0 2px 0 rgba(255,220,160,.35),inset 0 -4px 8px rgba(0,0,0,.5),0 0 0 3px #2A190E,0 20px 34px -10px rgba(0,0,0,.8)!important}
+html[data-skin="wood"] #board-wrap>svg {border-radius:14px;box-shadow:0 0 0 2px #C79A4B,0 4px 10px rgba(0,0,0,.5) inset}
+html[data-skin="wood"] .room-team-row,
+html[data-skin="wood"] .chat-preview {background:linear-gradient(180deg,#4B311C,#3A2515)!important;border:1.5px solid #B88A3E!important;color:#F6E7C8!important;box-shadow:0 1px 0 rgba(255,220,160,.25) inset,0 8px 14px -6px rgba(0,0,0,.7)!important}
+html[data-skin="wood"] .room-team-row *,
+html[data-skin="wood"] .chat-preview * {color:#F6E7C8!important}
+html[data-skin="wood"] .room-team-room {background:transparent!important}
+html[data-skin="wood"] .room-team-team {background:transparent!important}
+html[data-skin="wood"] .turn-line.my-turn {background:linear-gradient(180deg,#FBE49A 0%,#E4B64A 50%,#B9892A 100%)!important;border:1.5px solid #FFE9A8!important;box-shadow:0 0 22px rgba(240,190,70,.55),0 8px 16px -6px rgba(0,0,0,.7)!important;color:#2A190E!important}
+html[data-skin="wood"] .board-player {box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 5px 10px -3px rgba(0,0,0,.6)!important}
+html[data-skin="wood"] .card-btn {box-shadow:0 0 0 1px #fff inset,0 3px 0 #C9B992,0 14px 18px -4px rgba(0,0,0,.7)!important;border-color:#C9A24D!important}
+html[data-skin="wood"] .reaction-btn,
+html[data-skin="wood"] .icon-btn,
+html[data-skin="wood"] .icon-btn-pair {background:linear-gradient(180deg,#5B3C22,#3F2916)!important;border:1px solid #B88A3E!important;color:#F6E7C8!important;box-shadow:0 1px 0 rgba(255,220,160,.3) inset,0 4px 8px rgba(0,0,0,.6)!important}
+html[data-skin="wood"] .icon-btn svg,
+html[data-skin="wood"] .icon-btn-half svg {stroke:#F6D88F!important}
+html[data-skin="wood"] .chat-fab {background:linear-gradient(180deg,#FBE49A,#C9982E)!important;box-shadow:0 0 14px rgba(240,190,70,.5),0 6px 10px rgba(0,0,0,.6)!important}
+html[data-skin="wood"] .nudge-btn {border-color:#B88A3E!important;color:#E9CF98!important}
+html[data-skin="wood"] .status-bar-shield {background:transparent!important;backdrop-filter:none!important}
+/* --- Stile "night" --- */
+html[data-skin="night"]:has(.game-shell),
+html[data-skin="night"]:has(.game-shell) body {background:radial-gradient(110% 60% at 50% 0%,#17382E 0%,#0F241D 60%,#0A1713 100%)!important}
+html[data-skin="night"] #board-wrap {padding:10px!important;background:linear-gradient(160deg,#1E4A3C,#12302A)!important;border:2px solid #D9B658!important;border-radius:28px!important;
+ box-shadow:inset 0 0 30px rgba(0,0,0,.5),0 0 0 3px #0A1713,0 0 26px rgba(217,182,88,.25),0 20px 34px -10px rgba(0,0,0,.8)!important}
+html[data-skin="night"] #board-wrap>svg {border-radius:14px;filter:saturate(1.08) contrast(1.03)}
+html[data-skin="night"] .room-team-row,
+html[data-skin="night"] .chat-preview {background:rgba(255,255,255,.07)!important;backdrop-filter:blur(6px);border:1.5px solid rgba(217,182,88,.55)!important;box-shadow:0 8px 16px -8px rgba(0,0,0,.7)!important}
+html[data-skin="night"] .room-team-row *,
+html[data-skin="night"] .chat-preview * {color:#F4EBD0!important}
+html[data-skin="night"] .room-team-room,
+html[data-skin="night"] .room-team-team {background:transparent!important}
+html[data-skin="night"] .turn-line.my-turn {background:linear-gradient(90deg,#E9C560,#F7DE8E 50%,#E1B24A)!important;border:1.5px solid #FFF1BF!important;box-shadow:0 0 26px rgba(233,197,96,.6),0 8px 16px -6px rgba(0,0,0,.7)!important;color:#1B1405!important}
+html[data-skin="night"] .board-player {box-shadow:0 0 12px -2px var(--sw,#888),0 4px 8px -2px rgba(0,0,0,.6)!important}
+html[data-skin="night"] .card-btn {box-shadow:0 0 0 1px #fff inset,0 3px 0 #BFAE80,0 16px 20px -6px rgba(0,0,0,.8)!important;border-color:#D9B658!important}
+html[data-skin="night"] .reaction-btn,
+html[data-skin="night"] .icon-btn,
+html[data-skin="night"] .icon-btn-pair {background:rgba(255,255,255,.09)!important;border:1px solid rgba(217,182,88,.5)!important;color:#fff!important;box-shadow:0 5px 10px rgba(0,0,0,.5)!important}
+html[data-skin="night"] .icon-btn svg,
+html[data-skin="night"] .icon-btn-half svg {stroke:#F2D888!important}
+html[data-skin="night"] .chat-fab {background:linear-gradient(180deg,#F2D888,#D1A53C)!important;box-shadow:0 0 16px rgba(233,197,96,.6),0 6px 10px rgba(0,0,0,.6)!important}
+html[data-skin="night"] .nudge-btn {border-color:rgba(217,182,88,.6)!important;color:#E8D699!important}
+html[data-skin="night"] .status-bar-shield {background:transparent!important;backdrop-filter:none!important}
+/* --- Stile "bright" --- */
+html[data-skin="bright"]:not([data-theme="dark"]):has(.game-shell),
+html[data-skin="bright"]:not([data-theme="dark"]):has(.game-shell) body {background:linear-gradient(180deg,#EAF4FF 0%,#F7F1FF 55%,#FFF4EA 100%)!important}
+html[data-skin="bright"]:not([data-theme="dark"]) #board-wrap {padding:10px!important;background:linear-gradient(160deg,#FFFFFF,#F1E7D3)!important;border:1px solid #fff!important;border-radius:32px!important;
+ box-shadow:0 1px 0 #fff inset,0 24px 40px -18px rgba(70,60,120,.45),0 4px 10px rgba(70,60,120,.12)!important}
+html[data-skin="bright"]:not([data-theme="dark"]) #board-wrap>svg {border-radius:18px}
+html[data-skin="bright"]:not([data-theme="dark"]) .room-team-row,
+html[data-skin="bright"]:not([data-theme="dark"]) .chat-preview {background:rgba(255,255,255,.75)!important;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.9)!important;border-radius:20px!important;box-shadow:0 10px 20px -10px rgba(70,60,120,.35)!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn {background:linear-gradient(90deg,#FF8A5B,#FFB347)!important;border:0!important;border-radius:20px!important;color:#fff!important;box-shadow:0 12px 22px -8px rgba(255,138,91,.7)!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn * {color:#fff!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn .turn-badge,
+html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn [class*=tocca] {color:#fff!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .board-player {box-shadow:0 8px 14px -6px rgba(70,60,120,.35)!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .card-btn {border-radius:12px!important;border:0!important;box-shadow:0 14px 22px -8px rgba(70,60,120,.5),0 2px 4px rgba(70,60,120,.15)!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .reaction-btn,
+html[data-skin="bright"]:not([data-theme="dark"]) .icon-btn,
+html[data-skin="bright"]:not([data-theme="dark"]) .icon-btn-pair {background:rgba(255,255,255,.85)!important;border:0!important;border-radius:16px!important;box-shadow:0 8px 14px -6px rgba(70,60,120,.35)!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .chat-fab {background:linear-gradient(135deg,#7C5CFF,#B06BFF)!important;box-shadow:0 12px 20px -6px rgba(124,92,255,.65)!important;color:#fff}
+html[data-skin="bright"]:not([data-theme="dark"]) .chat-fab svg {stroke:#fff!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .nudge-btn {border-radius:16px!important;border:1px solid rgba(124,92,255,.35)!important;color:#6A4FD8!important;background:rgba(255,255,255,.6)!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .status-bar-shield {background:transparent!important;backdrop-filter:none!important}
 
 /* ================= Aspetto rilievo 3D (html.fx3d) =================
    Spento con il pulsante 🧊 in home: senza la classe .fx3d nulla di questo
@@ -6746,7 +6817,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.157";
+const APP_VERSION = "v5.158";
 
 let myColor = null;
 let myRoomId = null;
@@ -12815,6 +12886,12 @@ function settingsRow(icon, label, control, onclick) {
 function settingsCard(title, rows) {
   return el("div", { class: "set-card" }, el("div", { class: "set-card-title" }, title), rows);
 }
+function applySkin(k) {
+  if (k) document.documentElement.setAttribute("data-skin", k);
+  else document.documentElement.removeAttribute("data-skin");
+  try { localStorage.setItem("tock-skin", k || ""); } catch (e) {}
+}
+
 function openSettingsPanel(keepScroll) {
   const wrap = document.getElementById("picker-wrap");
   const prev = keepScroll === true && wrap ? wrap.querySelector(".picker-scroll") : null;
@@ -12830,6 +12907,9 @@ function openSettingsPanel(keepScroll) {
       settingsRow("🌙", "Modalità scura", el("span", { class: "set-radio" + (dark ? " on" : "") }), () => { applyTheme("dark"); openSettingsPanel(true); }),
       settingsRow("🧊", "Rilievo 3D", settingsToggle(fx, toggleFx3d)),
     ]),
+    settingsCard("Stile grafico", [
+      ["", "🎴", "Classico"], ["wood", "🪵", "Legno pregiato"], ["night", "🌙", "Notte da casinò"], ["bright", "✨", "Moderno luminoso"],
+    ].map(([k, ic, lab]) => settingsRow(ic, lab, el("span", { class: "set-radio" + ((document.documentElement.getAttribute("data-skin") || "") === k ? " on" : "") }), () => { applySkin(k); openSettingsPanel(true); }))),
     settingsCard("Suoni", [settingsRow("🔊", "Effetti sonori", settingsToggle(!soundMuted, toggleSoundMuted))]),
     settingsCard("Regole", [settingsRow("📖", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); })]),
     settingsCard("Partita", [
