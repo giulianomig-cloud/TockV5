@@ -147,8 +147,8 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 html:has(.game-shell), html:has(.game-shell) body {
   overflow: hidden; overscroll-behavior: none; height: 100%;
 }
-body:has(.game-shell) { position: fixed; inset: 0; width: 100%; }
-body:has(.game-shell) #app { height: 100%; min-height: 0; overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 24px); padding-bottom: calc(env(safe-area-inset-bottom) * 0.5 + 8px); }
+body:has(.game-shell) { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100vh; height: 100dvh; }
+body:has(.game-shell) #app { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 24px); padding-bottom: calc(env(safe-area-inset-bottom) * 0.5 + 8px); }
 .game-shell { transform-origin: top center; max-width: 440px; margin: 0 auto; }
 body:has(.game-shell) #app { max-width: none; }
 /* Telefono in orizzontale: non si gioca, si chiede di ruotare. */
@@ -1291,7 +1291,7 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
 /* Carta al centro = stessa carta delle mani (classe .card-btn): qui solo
    dimensione fissa e nessuna interazione. */
 .center-discard .card-btn.center-card {
-  width: 54px; min-width: 54px; max-width: 54px;
+  width: 44px; min-width: 44px; max-width: 44px;
   padding: 0;
   cursor: default;
   pointer-events: none;
@@ -1301,8 +1301,9 @@ html.fx3d .center-discard .card-btn.center-card { transform: rotate(-5deg); }
 /* Fuoco proprio sullo spigolo in basso a destra, speculare al pallino
    iniziali (stessa distanza dal bordo), così non copre l'indice della
    carta (chiesto: "più carino"). */
-.center-discard .mini-card-burn-badge { bottom: -12px; right: -12px; width: 26px; height: 26px; font-size: 1.05rem; box-shadow: inset 0 -2px 3px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.3); }
-html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; width: 30px; height: 30px; font-size: 1.2rem; }
+.center-discard .mini-card-burn-badge { bottom: -3px; right: -4px; width: 19px; height: 19px; font-size: .78rem; box-shadow: inset 0 -2px 3px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.3); }
+html.fx3d .center-discard .mini-card-burn-badge { bottom: -4px; right: -5px; width: 21px; height: 21px; font-size: .85rem; }
+.center-discard .initial-badge { width: 19px !important; height: 19px !important; font-size: .64rem !important; bottom: -3px !important; left: -4px !important; }
 /* Fuoco sull'angolo in basso a destra (chiesto), pallino iniziali su
    quello in basso a sinistra: i due badge stanno affiancati sullo stesso
    bordo inferiore della carta invece che sui due angoli opposti. Era
@@ -1549,7 +1550,7 @@ html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; w
 @keyframes lmIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes reactionUp2 { 0% { transform: translateY(0) scale(0.4); opacity: 0; } 12% { transform: translateY(-18px) scale(1.35); opacity: 1; } 22% { transform: translateY(-30px) scale(0.95); } 32% { transform: translateY(-44px) scale(1.12); } 100% { transform: translateY(-200px) scale(1); opacity: 0; } }
 .reaction-float { animation-name: reactionUp2; }
-@media (prefers-reduced-motion: reduce) { .turn-line .swatch, .pawn.pawn-candidate .pawn-visual { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .turn-line .swatch, .pawn.pawn-candidate .pawn-visual, .pawn.pawn-turn .pawn-visual { animation: none; } }
 
 /* --- v5.137: righe giocatore a "pillola", avatar sul turno, alone sulla base attiva --- */
 .board-player { padding: 5px 8px; border-radius: 999px; background: color-mix(in srgb, var(--sw, #888) 12%, var(--panel)); border: 1.5px solid color-mix(in srgb, var(--sw, #888) 38%, transparent); box-shadow: 0 2px 0 color-mix(in srgb, var(--sw, #888) 22%, transparent); gap: 6px; }
@@ -1570,6 +1571,10 @@ html.fx3d .center-discard .mini-card-burn-badge { bottom: -14px; right: -15px; w
 .turn-line .turn-av.swatch-yellow { color: #3B2A0E; }
 .turn-line .swatch { display: none; }
 .turn-line.my-turn .you-badge-strong { background: #241C15; color: #F3D98A; padding: 5px 11px; border-radius: 999px; letter-spacing: .04em; }
+.pawn.pawn-turn .pawn-visual { transform-box: fill-box; transform-origin: center; animation: pawnTurnPulse 1.4s ease-in-out infinite; }
+@keyframes pawnTurnPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+.pawn.pawn-turn.pawn-candidate .pawn-visual { animation: pawnPulse .85s ease-in-out infinite; }
+.pawn.pawn-turn.pawn-hot .pawn-visual { animation-duration: .45s; }
 .base-glow { pointer-events: none; fill: none; animation: baseGlow 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 @keyframes baseGlow { 0%,100% { opacity: .85; transform: scale(1); } 50% { opacity: .35; transform: scale(1.12); } }
 @media (prefers-reduced-motion: reduce) { .base-glow { animation: none; } }
@@ -6705,6 +6710,9 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
     }
   }
 
+  if (typeof currentState !== "undefined" && currentState && currentState.phase === "playing" && !replayViewPawns) updateActiveBaseGlow(currentState.turnColor);
+  else updateActiveBaseGlow(null);
+
   return animDurationMs;
 }
 
@@ -6717,7 +6725,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.143";
+const APP_VERSION = "v5.147";
 
 let myColor = null;
 let myRoomId = null;
@@ -9548,7 +9556,7 @@ function fitGameShell() {
   if (!natural || !naturalW) return;
   // Altezza/larghezza reali disponibili (scalo con transform: non cambia il
   // layout, quindi le misure restano affidabili anche su iOS).
-  const availH = (app.clientHeight || window.innerHeight) - padV;
+  const availH = Math.max(app.clientHeight || 0, window.innerHeight || 0) - padV;
   const availW = (app.clientWidth || window.innerWidth) - padH;
   const raw = Math.min(availH / natural, availW / naturalW, 1.6);
   const tooSmall = raw < 0.6;
@@ -12025,21 +12033,15 @@ function renderTurnIndicator(state) {
   updateActiveBaseGlow(state.turnColor);
 }
 
-// Doppio anello pulsante sulla base di chi ha il turno.
+// Le pedine in gioco di chi ha il turno pulsano piano (al posto dell'anello sulla base).
 function updateActiveBaseGlow(color) {
   try {
     const svg = document.querySelector("#board-wrap svg");
-    if (!svg || typeof BOARD === "undefined" || !BOARD.baseIndex) return;
+    if (!svg) return;
     svg.querySelectorAll(".base-glow").forEach((n) => n.remove());
+    svg.querySelectorAll(".pawn.pawn-turn").forEach((p) => p.classList.remove("pawn-turn"));
     if (!color) return;
-    const c = BOARD.loopCells[BOARD.baseIndex[color]];
-    if (!c) return;
-    const first = svg.querySelector(".pawn");
-    [[1.9, 3, 0.85], [2.6, 2, 0.35]].forEach(([k, w, o]) => {
-      const r = ns_el("circle", { cx: c.x, cy: c.y, r: BOARD.cellRadiusMm * k, stroke: BASE_COL[color], "stroke-width": w, opacity: o });
-      r.setAttribute("class", "base-glow");
-      if (first) svg.insertBefore(r, first); else svg.appendChild(r);
-    });
+    svg.querySelectorAll('.pawn[data-color="' + color + '"]').forEach((p) => p.classList.add("pawn-turn"));
   } catch (e) {}
 }
 
