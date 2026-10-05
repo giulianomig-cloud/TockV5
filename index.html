@@ -149,7 +149,22 @@ html:has(.game-shell), html:has(.game-shell) body {
 }
 body:has(.game-shell) { position: fixed; inset: 0; width: 100%; }
 body:has(.game-shell) #app { height: 100%; min-height: 0; overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 8px); padding-bottom: calc(env(safe-area-inset-bottom) * 0.5 + 8px); }
-.game-shell { transform-origin: top center; }
+.game-shell { transform-origin: top center; max-width: 440px; margin: 0 auto; }
+body:has(.game-shell) #app { max-width: none; }
+/* Telefono in orizzontale: non si gioca, si chiede di ruotare. */
+@media (orientation: landscape) and (max-height: 500px) {
+  body:has(.game-shell)::before {
+    content: "📱 Ruota il telefono in verticale per giocare";
+    position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 24px; background: var(--cream); color: var(--ink);
+    font-weight: 800; font-size: 1.15rem; line-height: 1.4;
+  }
+}
+/* Schermi troppo bassi (es. telefono in orizzontale): zoom minimo 0.6 non basta,
+   si torna alla pagina scorrevole normale invece di tagliare il contenuto. */
+html.game-scroll:has(.game-shell), html.game-scroll:has(.game-shell) body { overflow: auto; height: auto; overscroll-behavior: auto; }
+html.game-scroll body:has(.game-shell) { position: static; width: auto; }
+html.game-scroll body:has(.game-shell) #app { height: auto; min-height: 100dvh; overflow: visible; }
 
 /* Su schermi più larghi del telefono (tablet in verticale, es. iPad) fa
    crescere la colonna principale e i fogli/toast che condividono lo stesso
@@ -6702,7 +6717,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.140";
+const APP_VERSION = "v5.142";
 
 let myColor = null;
 let myRoomId = null;
@@ -9531,8 +9546,14 @@ function fitGameShell() {
   const vh = app.clientHeight || window.innerHeight;
   const natural = shell.offsetHeight;
   const avail = vh - padV;
-  const f = Math.max(0.6, Math.min(1, avail / natural));
-  if (f < 0.995) {
+  // Si adatta sia in altezza sia in larghezza: il fattore è il minore dei due
+  // (può anche ingrandire, fino a 1.6, su tablet/PC).
+  const availW = (app.clientWidth || window.innerWidth) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const raw = Math.min(avail / natural, availW / shell.offsetWidth, 1.6);
+  const tooSmall = raw < 0.6;
+  document.documentElement.classList.toggle("game-scroll", tooSmall);
+  const f = tooSmall ? 1 : raw;
+  if (Math.abs(f - 1) > 0.005) {
     const w = shell.offsetWidth;
     shell.style.width = w + "px";
     shell.style.margin = "0 auto";
