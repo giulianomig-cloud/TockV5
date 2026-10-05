@@ -164,7 +164,8 @@ body:has(.game-shell) #app { max-width: none; }
    si torna alla pagina scorrevole normale invece di tagliare il contenuto. */
 html.game-scroll:has(.game-shell), html.game-scroll:has(.game-shell) body { overflow: auto; height: auto; overscroll-behavior: auto; }
 html.game-scroll body:has(.game-shell) { position: static; width: auto; }
-html.game-scroll body:has(.game-shell) #app { height: auto; min-height: 100dvh; overflow: visible; }
+html.game-scroll body:has(.game-shell) #app { height: auto; min-height: 100dvh; overflow: visible; padding-top: calc(26px + env(safe-area-inset-top)); padding-bottom: 20px; }
+html.game-scroll, html.game-scroll body { overscroll-behavior-y: none; }
 
 /* Su schermi più larghi del telefono (tablet in verticale, es. iPad) fa
    crescere la colonna principale e i fogli/toast che condividono lo stesso
@@ -1291,19 +1292,19 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
 /* Carta al centro = stessa carta delle mani (classe .card-btn): qui solo
    dimensione fissa e nessuna interazione. */
 .center-discard .card-btn.center-card {
-  width: 44px; min-width: 44px; max-width: 44px;
+  width: 50px; min-width: 50px; max-width: 50px;
   padding: 0;
   cursor: default;
   pointer-events: none;
 }
 .center-discard .card-btn.center-card.mini-card-burned { filter: none; opacity: 1; }
-html.fx3d .center-discard .card-btn.center-card { transform: rotate(-5deg); }
+html.fx3d .center-discard .card-btn.center-card { transform: none; }
 /* Fuoco proprio sullo spigolo in basso a destra, speculare al pallino
    iniziali (stessa distanza dal bordo), così non copre l'indice della
    carta (chiesto: "più carino"). */
-.center-discard .mini-card-burn-badge { bottom: -3px; right: -4px; width: 19px; height: 19px; font-size: .78rem; box-shadow: inset 0 -2px 3px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.3); }
-html.fx3d .center-discard .mini-card-burn-badge { bottom: -4px; right: -5px; width: 21px; height: 21px; font-size: .85rem; }
-.center-discard .initial-badge { width: 19px !important; height: 19px !important; font-size: .64rem !important; bottom: -3px !important; left: -4px !important; }
+.center-discard .mini-card-burn-badge { bottom: -3px; right: -11px; width: 19px; height: 19px; font-size: .78rem; box-shadow: inset 0 -2px 3px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.3); }
+html.fx3d .center-discard .mini-card-burn-badge { bottom: -4px; right: -12px; width: 21px; height: 21px; font-size: .85rem; }
+.center-discard .initial-badge { width: 19px !important; height: 19px !important; font-size: .64rem !important; bottom: -3px !important; left: -11px !important; }
 /* Fuoco sull'angolo in basso a destra (chiesto), pallino iniziali su
    quello in basso a sinistra: i due badge stanno affiancati sullo stesso
    bordo inferiore della carta invece che sui due angoli opposti. Era
@@ -2396,7 +2397,7 @@ html.fx3d .card-btn.selected { background: var(--gold-metallic); }
 html.fx3d .center-discard { filter: drop-shadow(0 8px 8px rgba(30,18,4,.5)); }
 html.fx3d .center-discard .mini-card {
   width: 56px; height: 75px; border-radius: 9px;
-  transform: rotate(-5deg);
+  transform: none;
   background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 55%, #F0E5CB 100%);
   border-color: #B5A78C;
   box-shadow: 0 0 0 1px rgba(255,255,255,.9) inset, 0 -2px 0 rgba(0,0,0,.05) inset, 0 3px 0 #C9B992, 0 4px 0 rgba(120,90,40,.35);
@@ -6725,7 +6726,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.147";
+const APP_VERSION = "v5.149";
 
 let myColor = null;
 let myRoomId = null;
@@ -9559,7 +9560,9 @@ function fitGameShell() {
   const availH = Math.max(app.clientHeight || 0, window.innerHeight || 0) - padV;
   const availW = (app.clientWidth || window.innerWidth) - padH;
   const raw = Math.min(availH / natural, availW / naturalW, 1.6);
-  const tooSmall = raw < 0.6;
+  // Se serve ridurre più del 5% si lascia la schermata a grandezza normale
+  // (com'era prima) e la pagina torna scorrevole; si scala solo per piccoli aggiustamenti.
+  const tooSmall = raw < 0.95;
   document.documentElement.classList.toggle("game-scroll", tooSmall);
   const f = tooSmall ? 1 : raw;
   shell.style.transformOrigin = "top center";
