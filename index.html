@@ -162,6 +162,21 @@ body:has(.game-shell) #app { max-width: none; }
 }
 /* Schermi troppo bassi (es. telefono in orizzontale): zoom minimo 0.6 non basta,
    si torna alla pagina scorrevole normale invece di tagliare il contenuto. */
+/* Modalità compatta (aggiunta da fitGameShell solo se la schermata non ci sta):
+   emoji + sveglia + chiamata sulla stessa riga, chat più bassa. */
+.game-shell.compact #chat-wrap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.game-shell.compact .chat-fab-row { grid-column: 1 / -1; margin-bottom: 0; }
+.game-shell.compact .reaction-bar, .game-shell.compact .nudge-row { display: contents; }
+.game-shell.compact .reaction-btn { padding: 6px 0; }
+.game-shell.compact .nudge-btn { margin: 0; padding: 6px 0; font-size: 1.05rem; line-height: 1; }
+.game-shell.compact .nudge-label { display: none; }
+.game-shell.compact .nudge-call { flex: none; }
+.game-shell.compact .chat-preview { padding-top: 6px; padding-bottom: 6px; }
+.game-shell.compact .top-actions-row { margin-bottom: 6px; }
+.game-shell.compact .room-team-row { margin-bottom: 6px; }
+.game-shell.compact #board-wrap { margin-bottom: 6px; }
+.game-shell.compact #board-players-bottom { margin-top: 6px; }
+.game-shell.compact #hand-wrap { margin-bottom: 6px; }
 html.game-scroll:has(.game-shell), html.game-scroll:has(.game-shell) body { overflow: auto; height: auto; overscroll-behavior: auto; }
 html.game-scroll body:has(.game-shell) { position: static; width: auto; }
 html.game-scroll body:has(.game-shell) #app { height: auto; min-height: 100dvh; overflow: visible; padding-top: calc(26px + env(safe-area-inset-top)); padding-bottom: 20px; }
@@ -6726,7 +6741,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.149";
+const APP_VERSION = "v5.151";
 
 let myColor = null;
 let myRoomId = null;
@@ -9549,17 +9564,24 @@ function fitGameShell() {
   const app = $("#app");
   if (!shell || !app) return;
   shell.style.transform = "";
+  shell.classList.remove("compact");
   const cs = getComputedStyle(app);
   const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
   const padH = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-  const natural = shell.offsetHeight;
+  let natural = shell.offsetHeight;
   const naturalW = shell.offsetWidth;
   if (!natural || !naturalW) return;
   // Altezza/larghezza reali disponibili (scalo con transform: non cambia il
   // layout, quindi le misure restano affidabili anche su iOS).
   const availH = Math.max(app.clientHeight || 0, window.innerHeight || 0) - padV;
   const availW = (app.clientWidth || window.innerWidth) - padH;
-  const raw = Math.min(availH / natural, availW / naturalW, 1.6);
+  let raw = Math.min(availH / natural, availW / naturalW, 1.6);
+  if (raw < 0.95) {
+    // Prova la modalità compatta (riga emoji unica) prima di scalare/scorrere.
+    shell.classList.add("compact");
+    natural = shell.offsetHeight;
+    raw = Math.min(availH / natural, availW / naturalW, 1.6);
+  }
   // Se serve ridurre più del 5% si lascia la schermata a grandezza normale
   // (com'era prima) e la pagina torna scorrevole; si scala solo per piccoli aggiustamenti.
   const tooSmall = raw < 0.95;
@@ -13407,8 +13429,7 @@ function renderChatFab(messages) {
     el(
       "div",
       { class: "nudge-row" },
-      el("button", { class: "nudge-btn", onclick: sendNudge }, "👋 Sveglia chi deve giocare"),
-      el("button", { class: "nudge-btn nudge-call", disabled: true, title: "Non disponibile per ora" }, "📞 Chiamata")
+      el("button", { class: "nudge-btn", title: "Sveglia chi deve giocare", onclick: sendNudge }, "👋", el("span", { class: "nudge-label" }, " Sveglia chi deve giocare"))
     )
   );
 }
