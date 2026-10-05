@@ -1301,10 +1301,14 @@ html.fx3d .center-discard .card-btn.center-card { transform: none; }
 /* Bollino iniziale = stesso del banner turno (.turn-av): colore pieno del
    giocatore, anello bianco, ombra. */
 .center-discard .initial-badge {
-  width: 22px !important; height: 22px !important; font-size: .72rem !important;
-  bottom: -7px !important; left: -12px !important;
+  /* Timbro impresso sulla carta: bollino a colore pieno con anello interno
+     tratteggiato, leggermente incavato (ombra interna), senza ombra esterna. */
+  width: 22px !important; height: 22px !important; font-size: .7rem !important;
+  bottom: 5px !important; left: 5px !important;
   border: 0 !important; background-image: none;
-  box-shadow: 0 0 0 2px rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.3) !important;
+  opacity: .93; transform: rotate(-8deg);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.55), inset 0 0 0 3px rgba(0,0,0,.12), inset 0 2px 3px rgba(0,0,0,.28) !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,.25);
 }
 .center-discard .initial-badge { background-color: var(--sw, #888); }
 .center-discard .initial-badge.swatch-yellow { color: #3B2A0E; }
@@ -6817,7 +6821,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.158";
+const APP_VERSION = "v5.160";
 
 let myColor = null;
 let myRoomId = null;
