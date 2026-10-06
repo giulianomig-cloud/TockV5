@@ -3901,7 +3901,7 @@ function sevenAllSplitsOfTotal(indices, total) {
 // legale di applicare `total` passi sulle pedine in gioco di `targetColor`?
 // Non richiede che finiscano tutte a casa — usata per verificare se il
 // COMPAGNO può davvero assorbire i passi avanzati di un 7 altrui.
-function sevenSplitValidatesFromSnapshot(pawnsSnapshot, targetColor, lappedFn, total) {
+function sevenSplitValidatesFromSnapshot(pawnsSnapshot, targetColor, lappedFn, total, lappedState) {
   const inPlay = pawnsSnapshot[targetColor].map((p, i) => i).filter((i) => pawnsSnapshot[targetColor][i] !== -1);
   if (inPlay.length === 0 || total <= 0) return false;
   for (const dist of sevenAllSplitsOfTotal(inPlay, total)) {
@@ -3911,7 +3911,7 @@ function sevenSplitValidatesFromSnapshot(pawnsSnapshot, targetColor, lappedFn, t
       for (const { pawnIndex, steps } of perm) {
         const pos = scratch[targetColor][pawnIndex];
         if (pos === undefined || pos === -1) { ok = false; break; }
-        const path = sevenSinglePawnPath({ pawns: scratch }, targetColor, pos, steps, true, lappedFn(pawnIndex));
+        const path = sevenSinglePawnPath({ pawns: scratch, lapped: lappedState }, targetColor, pos, steps, true, lappedFn(pawnIndex));
         if (!path) { ok = false; break; }
         landSevenPortion(scratch, targetColor, pawnIndex, path);
       }
@@ -3937,7 +3937,7 @@ function sevenHasAnyLeftoverToPartner(state, color) {
     for (const ownDist of sevenAllSplitsOfTotal(ownInPlay, ownTotal)) {
       const ownResult = sevenValidateOwnPortions(state, color, ownDist);
       if (!ownResult || !ownResult.allHome) continue;
-      if (sevenSplitValidatesFromSnapshot(ownResult.pawns, partner, (i) => hasLapped(state, partner, i), leftover)) {
+      if (sevenSplitValidatesFromSnapshot(ownResult.pawns, partner, (i) => hasLapped(state, partner, i), leftover, state.lapped)) {
         return true;
       }
     }
@@ -4021,7 +4021,7 @@ function sevenValidateOwnPortions(state, color, ownDistribution) {
     for (const { pawnIndex, steps } of perm) {
       const pos = scratch[color][pawnIndex];
       if (pos === undefined || pos === -1) { ok = false; break; }
-      const path = sevenSinglePawnPath({ pawns: scratch }, color, pos, steps, true, hasLapped(state, color, pawnIndex));
+      const path = sevenSinglePawnPath({ pawns: scratch, lapped: state.lapped }, color, pos, steps, true, hasLapped(state, color, pawnIndex));
       if (!path) { ok = false; break; }
       landSevenPortion(scratch, color, pawnIndex, path);
       order.push({ color, pawnIndex });
@@ -4078,7 +4078,7 @@ function sevenValidateDistribution(state, color, distribution) {
     for (const { pawnIndex, steps } of perm) {
       const pos = scratch[partner][pawnIndex];
       if (pos === undefined || pos === -1) { ok = false; break; }
-      const path = sevenSinglePawnPath({ pawns: scratch }, partner, pos, steps, true, hasLapped(state, partner, pawnIndex));
+      const path = sevenSinglePawnPath({ pawns: scratch, lapped: state.lapped }, partner, pos, steps, true, hasLapped(state, partner, pawnIndex));
       if (!path) { ok = false; break; }
       landSevenPortion(scratch, partner, pawnIndex, path);
       order.push({ color: partner, pawnIndex });
@@ -6858,7 +6858,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.166";
+const APP_VERSION = "v5.167";
 
 let myColor = null;
 let myRoomId = null;
