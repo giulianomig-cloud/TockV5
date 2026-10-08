@@ -2297,6 +2297,21 @@ html[data-skin="arcade"] .win-hop { animation-timing-function: steps(5, end); }
 .win-award em { font-style: normal; color: var(--muted); }
 .win-banner h2 { margin: 0 0 4px; font-size: 1.3rem; }
 .win-names { margin: 0 0 20px; font-size: 0.82rem; font-weight: 600; color: var(--muted-3); }
+
+/* Banner vittoria in stile Arcade (v5.23) */
+html[data-skin="arcade"] .win-banner-backdrop { background: rgba(7,2,26,.88); font-family: "Courier New", ui-monospace, monospace; }
+html[data-skin="arcade"] .win-banner { background: #0b0430; color: #d9f7ff; border: 3px solid #ff2bd6; border-radius: 4px; box-shadow: 0 0 22px rgba(255,43,214,.75), inset 0 0 24px rgba(255,43,214,.25); animation-timing-function: steps(6, end); }
+html[data-skin="arcade"] .win-banner * { font-family: inherit; border-radius: 2px; }
+html[data-skin="arcade"] .win-trophy { background: #ffe23c; border-radius: 2px; box-shadow: 0 0 16px rgba(255,226,60,.8); }
+html[data-skin="arcade"] .win-eyebrow { color: #00f0ff; letter-spacing: .2em; text-shadow: 0 0 8px rgba(0,240,255,.8); }
+html[data-skin="arcade"] .win-banner h2 { color: #ffe23c; text-transform: uppercase; letter-spacing: .06em; text-shadow: 0 0 10px rgba(255,226,60,.8); }
+html[data-skin="arcade"] .win-names, html[data-skin="arcade"] .win-banner .muted { color: #b8aef0; }
+html[data-skin="arcade"] .win-award { background: #12063a; border: 1px solid #00f0ff; color: #d9f7ff; }
+html[data-skin="arcade"] .win-award em { color: #b8aef0; }
+html[data-skin="arcade"] .win-banner button.primary { background: #00f0ff; color: #07021a; border: 2px solid #00f0ff; border-radius: 2px; text-transform: uppercase; letter-spacing: .08em; font-weight: 900; box-shadow: 0 0 14px rgba(0,240,255,.7); }
+html[data-skin="arcade"] .win-banner .text-link-btn { color: #ff2bd6; text-transform: uppercase; letter-spacing: .06em; }
+
+html[data-skin="arcade"] .confetti-piece { border-radius: 0 !important; box-shadow: 0 0 6px currentColor; }
 @keyframes winPop {
   0% { transform: scale(0.6); opacity: 0; }
   70% { transform: scale(1.06); opacity: 1; }
@@ -7166,6 +7181,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
       if (hp) {
         setTimeout(() => {
           try { playSound("homeDing"); } catch (e) {}
+          try { if (typeof myColor !== "undefined" && myColor && TEAM_OF[hc] === TEAM_OF[myColor]) vibrate(40); } catch (e) {}
           fxSparks(svg, hp.x, hp.y, [fxCol(hc), fxGold(), "#fff"], 14, board.cellRadiusMm * 2.6, 760, 2.6);
           fxRing(svg, hp.x, hp.y, board.cellRadiusMm * 0.6, board.cellRadiusMm * 2.2, fxGold(), 640, 4);
           COLORS.filter((c) => TEAM_OF[c] === TEAM_OF[hc]).forEach((c) => (pawns[c] || []).forEach((pp, ii) => {
@@ -7333,7 +7349,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.22";
+const APP_VERSION = "v5.25";
 
 let myColor = null;
 let myRoomId = null;
@@ -10527,9 +10543,40 @@ const soundTracker = { roomId: null, turnColor: null, captureId: null, swapId: n
 // la supporta affatto): il controllo `navigator.vibrate` e il try/catch
 // fanno sì che, dove manca, semplicemente non succeda nulla invece di
 // rompere il resto.
-function vibrate(pattern) {
+// Interruttore "Vibrazione" nelle impostazioni (acceso di default).
+let hapticOn = true;
+try { hapticOn = localStorage.getItem("tock-haptic") !== "0"; } catch (e) {}
+function setHaptic(on) {
+  hapticOn = on;
+  try { localStorage.setItem("tock-haptic", on ? "1" : "0"); } catch (e) {}
+  if (on) vibrate(60); // prova subito
+}
+function toggleHaptic() { setHaptic(!hapticOn); }
+// iPhone: navigator.vibrate non esiste. Trucco: un interruttore nascosto
+// (<input type=checkbox switch>) che, cliccato, fa dare al telefono un colpetto
+// tattile. Non garantito in tutte le versioni di iOS / nell'app installata.
+let _hapticLabel = null;
+function iosTap() {
   try {
-    if (navigator.vibrate) navigator.vibrate(pattern);
+    if (!_hapticLabel) {
+      const lab = document.createElement("label");
+      lab.setAttribute("aria-hidden", "true");
+      lab.style.cssText = "position:fixed;left:-100px;top:-100px;width:1px;height:1px;opacity:0;pointer-events:none;";
+      const inp = document.createElement("input");
+      inp.type = "checkbox"; inp.setAttribute("switch", ""); inp.tabIndex = -1;
+      lab.appendChild(inp); document.body.appendChild(lab);
+      _hapticLabel = lab;
+    }
+    _hapticLabel.click();
+  } catch (e) {}
+}
+function vibrate(pattern) {
+  if (!hapticOn) return;
+  try {
+    if (navigator.vibrate) { navigator.vibrate(pattern); return; }
+    // niente vibrazione nel browser: un colpetto per ogni "pausa" del pattern
+    const taps = Array.isArray(pattern) ? Math.ceil(pattern.length / 2) : 1;
+    for (let i = 0; i < Math.min(taps, 3); i++) setTimeout(iosTap, i * 140);
   } catch (e) {}
 }
 
@@ -10612,13 +10659,11 @@ function maybePlaySounds(state) {
         const doSound = () => {
           if (friendly) {
             playSound("oops");
-            vibrate([40, 30, 40, 30, 80]);
           } else if (cap.color === myColor) {
             playSound("captureLost");
             vibrate([50, 40, 90]);
           } else {
             playSound("captureMade");
-            vibrate(60);
           }
         };
         if (impactMs > 0) setTimeout(doSound, impactMs); else doSound();
@@ -10650,7 +10695,6 @@ function maybePlaySounds(state) {
     if (!soundTracker.finished) {
       soundTracker.finished = true;
       if (state.winnerTeam) playSound("victory");
-      vibrate([80, 60, 80, 60, 160]); // pattern più lungo e distinto: fine partita
       stopTitleFlash();
     }
   } else {
@@ -13704,7 +13748,10 @@ function openSettingsPanel(keepScroll) {
     settingsCard("Stile grafico", [
       ["", "🎴", "Classico"], ["wood", "🪵", "Legno pregiato"], ["night", "🌙", "Notte da casinò"], ["bright", "✨", "Moderno luminoso"], ["arcade", "👾", "Arcade retro"],
     ].map(([k, ic, lab]) => settingsRow(ic, lab, el("span", { class: "set-radio" + ((document.documentElement.getAttribute("data-skin") || "") === k ? " on" : "") }), () => { applySkin(k); openSettingsPanel(true); }))),
-    settingsCard("Suoni", [settingsRow("🔊", "Effetti sonori", settingsToggle(!soundMuted, toggleSoundMuted))]),
+    settingsCard("Suoni", [
+      settingsRow("🔊", "Effetti sonori", settingsToggle(!soundMuted, toggleSoundMuted)),
+      settingsRow("📳", "Vibrazione (turno, pedina mangiata, casa)", settingsToggle(hapticOn, toggleHaptic)),
+    ]),
     settingsCard("Regole", [
       settingsRow("📖", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); }),
       settingsRow("🎓", "Impara a giocare (tutorial)", null, () => { closePicker(); openTutorial(); }),
@@ -14592,7 +14639,7 @@ function showReactionsFrom(state) {
   fresh.slice(-3).forEach((m, i) => {
     if (m.text === NUDGE_TEXT && !state.winnerTeam) shakeTurnBanner();
     if (m.text === NUDGE_TEXT && m.color !== myColor && state.turnColor === myColor && !state.winnerTeam) {
-      try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+      vibrate([200, 100, 200]);
       showToast("👋 " + playerName(state, m.color) + " ti sveglia: tocca a te!");
     }
     setTimeout(() => {
@@ -15141,8 +15188,8 @@ async function startNewGame() {
 }
 
 function launchConfetti(winnerColors) {
-  const hexOf = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" };
-  const colors = winnerColors.map((c) => hexOf[c]).concat(["#C99A3A", "#ffffff"]);
+  const hexOf = isArcade() ? ARCADE_NEON : { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" };
+  const colors = winnerColors.map((c) => hexOf[c]).concat(isArcade() ? ["#ff2bd6", "#00f0ff"] : ["#C99A3A", "#ffffff"]);
   const layer = document.createElement("div");
   layer.className = "confetti-layer";
   document.body.appendChild(layer);
