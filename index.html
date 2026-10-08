@@ -7333,7 +7333,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.2";
+const APP_VERSION = "v5.22";
 
 let myColor = null;
 let myRoomId = null;
@@ -10440,8 +10440,8 @@ const SOUND_RECIPES = {
   captureBonk: () => { tone(200, 0, 220, "sine", 0.65, 55); noiseBurst(0, 30, 0.5, 3000, 3000); },
   // discesa morbida (niente suono aspro)
   captureLost: () => { tone(330, 0, 350, "triangle", 0.35, 150); tone(247, 0.12, 350, "triangle", 0.28, 110); },
-  // fruscio che sale + due note che si scambiano
-  jackPlayed: () => { noiseBurst(0, 250, 0.9, 500, 3500); tone(600, 0.1, 220, "sine", 0.3, 900); tone(900, 0.2, 220, "sine", 0.3, 600); tone(1200, 0.34, 300, "sine", 0.15, 0, BELL); },
+  // "vwip": un glissando che sale veloce e poi scende
+  jackPlayed: () => { tone(280, 0, 130, "sine", 0.34, 1250); tone(1250, 0.12, 170, "sine", 0.34, 380); tone(560, 0, 130, "triangle", 0.08, 2500); },
   chatMessage: () => { beep(880, 0, 60, "sine", 0.28); },
   // schiocco di carta + colpetto sordo, due volte
   cardSwap: () => { noiseBurst(0, 70, 1, 2500, 4500); tone(180, 0.04, 80, "sine", 0.25, 90); noiseBurst(0.2, 70, 1, 2500, 4500); tone(180, 0.24, 80, "sine", 0.25, 90); },
@@ -10490,7 +10490,7 @@ const SOUND_RECIPES_8BIT = {
   captureMade: () => { beep(988, 0, 70, "square", 0.17); beep(1319, 0.07, 260, "square", 0.17); },
   captureLost: () => { [440, 370, 311, 262].forEach((f, i) => beep(f, i * 0.09, 120, "square", 0.17)); },
   captureBonk: () => { tone(140, 0, 160, "square", 0.3, 45); noiseBurst(0, 60, 0.6, 400, 400); },
-  jackPlayed: () => { [600, 900, 600, 900, 1200].forEach((f, i) => beep(f, i * 0.06, 60, "square", 0.15)); },
+  jackPlayed: () => { [300, 500, 800, 1200, 1200, 900, 600, 400].forEach((f, i) => beep(f, i * 0.035, 40, "square", 0.15)); },
   cardSwap: () => { noiseBurst(0, 40, 0.8, 3500, 3500); beep(1500, 0.03, 40, "square", 0.1); noiseBurst(0.2, 40, 0.8, 3500, 3500); beep(1800, 0.23, 40, "square", 0.1); },
   deal: () => { beep(1200, 0, 30, "square", 0.12); },
   chatMessage: () => { beep(1568, 0, 60, "square", 0.12); },
@@ -12901,7 +12901,9 @@ function renderCenterDiscard(state) {
       _jackOv.seenId = sw.id; _jackOv.shownId = sw.id; _jackOv.until = Date.now() + JACK_OV_MS;
     }
   }
-  const showJack = !replayViewPawns && sw && sw.id && _jackOv.shownId === sw.id && Date.now() < _jackOv.until && /^J-/.test(card);
+  // Le due pedine sopra la carta centrale per il Jack sono state tolte (richiesta): lo scambio
+  // si vede già dall'animazione sul tabellone. Riattivabile rimettendo la condizione originale.
+  const showJack = false;
   if (showJack) {
     clearTimeout(_jackOv.timer);
     _jackOv.timer = setTimeout(() => { const o = document.querySelector(".jack-overlay"); if (o) o.remove(); }, Math.max(50, _jackOv.until - Date.now()));
