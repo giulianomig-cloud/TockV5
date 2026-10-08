@@ -6642,7 +6642,7 @@ function animateCaptureOut(el, svg, board, color, fromXY) {
     el.remove();
     return;
   }
-  const T_POP = 160, T_FLY = 520, T_LAND = 180;
+  const T_POP = 220, T_FLY = 800, T_LAND = 280;
   const total = T_POP + T_FLY + T_LAND;
   const t0 = performance.now();
   const dist = Math.hypot(baseCell.x - fromXY.x, baseCell.y - fromXY.y);
@@ -6681,8 +6681,8 @@ function animateCaptureOut(el, svg, board, color, fromXY) {
           const pulse = () => {
             st++;
             ring.setAttribute("r", R * (0.7 + st * 0.2));
-            ring.setAttribute("opacity", String(Math.max(0, 0.9 - st * 0.18)));
-            if (st < 5) setTimeout(pulse, 50); else ring.remove();
+            ring.setAttribute("opacity", String(Math.max(0, 0.9 - st * 0.13)));
+            if (st < 7) setTimeout(pulse, 70); else ring.remove();
           };
           pulse();
         }
@@ -6701,6 +6701,7 @@ function resetPawnAnimState() {
   _pawnAnimState.lastSwapId = null; // null = "unknown yet", avoids replaying an old swap on (re)join
   _pawnAnimState.lastCaptureId = null;
   _pawnAnimState.lastHomeEntryId = null;
+  _pawnAnimState.lastSevenId = null;
   _pawnAnimState.primed = false; // true dopo la prima renderPawns: vedi commento lì sotto
 }
 
@@ -6916,7 +6917,7 @@ function cellForColor(board, color, pos) {
 // finché la pedina non è visibilmente arrivata in casa, invece di farlo
 // comparire subito sopra la mossa finale ancora in corso (segnalato: "fai
 // vedere prima l'entrata e poi il banner, adesso copre la mossa finale").
-function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
+function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, lastSeven) {
   // Replay in corso (frecce in alto): si disegna la posizione di quel momento,
   // senza eventi "freschi" da animare — vedi enterReplayAt.
   if (replayViewPawns) {
@@ -6924,6 +6925,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
     lastSwap = null;
     lastCapture = null;
     lastHomeEntry = null;
+    lastSeven = null;
   }
   const ns = "http://www.w3.org/2000/svg";
   const R = board.cellRadiusMm;
@@ -6969,6 +6971,32 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
       animDurationMs = Math.max(animDurationMs, 20 + 9 * 60); // vedi flashHomeEntry
     }
   }
+  // 7: le porzioni si muovono UNA DOPO L'ALTRA (in ordine), non tutte insieme,
+  // così si vede quanti passi ha fatto ciascuna pedina; le mangiate lungo il
+  // percorso partono quando la pedina che mangia ci passa sopra.
+  let freshSeven = false;
+  if (lastSeven && lastSeven.id && lastSeven.id !== _pawnAnimState.lastSevenId) {
+    _pawnAnimState.lastSevenId = lastSeven.id;
+    freshSeven = isFreshEvent && Array.isArray(lastSeven.portions) && lastSeven.portions.length >= 1;
+  }
+  const sevenStart = {}; // "color-idx" -> ritardo di partenza (ms)
+  if (freshSeven) {
+    let acc = 0;
+    for (const po of lastSeven.portions) {
+      sevenStart[po.color + "-" + po.pawnIndex] = acc;
+      acc += (po.path ? po.path.length : 0) * stepMs + 120;
+    }
+  }
+  const sevenCaptureDelay = (cell) => {
+    if (!freshSeven) return 0;
+    let acc = 0;
+    for (const po of lastSeven.portions) {
+      const i = po.path ? po.path.indexOf(cell) : -1;
+      if (i >= 0) return acc + (i + 1) * stepMs;
+      acc += (po.path ? po.path.length : 0) * stepMs + 120;
+    }
+    return 0;
+  };
   _pawnAnimState.primed = true;
 
   const seen = new Set();
@@ -6993,11 +7021,20 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
         const existing = _pawnAnimState.els[key];
         if (existing) {
           delete _pawnAnimState.els[key];
-          if (freshCapture && lastCapture.color === color && lastCapture.pawnIndex === pawnIndex) {
-            const prevCapPos = _pawnAnimState.positions[key];
+          const prevCapPos0 = _pawnAnimState.positions[key];
+          const isTheLast = freshCapture && lastCapture.color === color && lastCapture.pawnIndex === pawnIndex;
+          // il 7 può mangiare più pedine: anche le altre fanno il volo alla base
+          const isSevenExtra = freshCapture && freshSeven && !isTheLast && prevCapPos0 !== undefined && prevCapPos0 !== -1 && prevCapPos0 < 1000;
+          if (isTheLast || isSevenExtra) {
+            const prevCapPos = prevCapPos0;
             const fromXY = prevCapPos !== undefined && prevCapPos !== -1 ? cellForColor(board, color, prevCapPos) : null;
-            animateCaptureOut(existing, svg, board, color, fromXY);
-            animDurationMs = Math.max(animDurationMs, 880);
+            const dly = sevenCaptureDelay(prevCapPos);
+            const run = () => {
+              if (isSevenExtra) { try { flashCapture(svg, board, color, prevCapPos); } catch (e) {} }
+              animateCaptureOut(existing, svg, board, color, fromXY);
+            };
+            if (dly > 0) setTimeout(run, dly); else run();
+            animDurationMs = Math.max(animDurationMs, dly + 1320);
           } else {
             existing.remove();
           }
@@ -7046,8 +7083,10 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
       } else {
         const path = pathForAnimation(color, prevPos, pos);
         if (path && path.length > 0) {
-          animateAlongPath(outer, board, path, color, stepMs, gen);
-          animDurationMs = Math.max(animDurationMs, path.length * stepMs);
+          const sd = sevenStart[key] || 0;
+          if (sd > 0) setTimeout(() => animateAlongPath(outer, board, path, color, stepMs, gen), sd);
+          else animateAlongPath(outer, board, path, color, stepMs, gen);
+          animDurationMs = Math.max(animDurationMs, sd + path.length * stepMs);
         } else {
           outer.setAttribute("transform", `translate(${target.x},${target.y})`);
         }
@@ -7081,7 +7120,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.180";
+const APP_VERSION = "v5.182";
 
 let myColor = null;
 let myRoomId = null;
@@ -9943,7 +9982,7 @@ function rebuildBoardForTheme() {
   const wrap = $("#board-wrap");
   if (!wrap || !boardSvg || !currentState) return;
   boardSvg = buildBoardSVG(wrap, BOARD);
-  renderPawns(boardSvg, BOARD, currentState.pawns, currentState.lastSwap, currentState.lastCapture, currentState.lastHomeEntry);
+  renderPawns(boardSvg, BOARD, currentState.pawns, currentState.lastSwap, currentState.lastCapture, currentState.lastHomeEntry, currentState.lastSeven);
   // buildBoardSVG svuota #board-wrap (containerEl.innerHTML = "") per
   // ridisegnare l'SVG da capo con la palette del tema: questo cancella
   // anche la carta scartata al centro del tabellone (.center-discard), che
@@ -11852,7 +11891,7 @@ function onStateChange(state) {
   recordMoveHistoryIfFresh(state);
   renderDealerDrawScreen(state);
   renderStartControls(state);
-  const pawnAnimMs = renderPawns(boardSvg, BOARD, state.pawns, state.lastSwap, state.lastCapture, state.lastHomeEntry);
+  const pawnAnimMs = renderPawns(boardSvg, BOARD, state.pawns, state.lastSwap, state.lastCapture, state.lastHomeEntry, state.lastSeven);
   noteBotBusy(state, pawnAnimMs);
   renderTurnIndicator(state);
   renderCenterDiscard(state);
@@ -13227,7 +13266,7 @@ function exitReplay() {
   replayViewCard = null;
   replayNoteText = "";
   if (!currentState || !boardSvg) return;
-  renderPawns(boardSvg, BOARD, currentState.pawns, currentState.lastSwap, currentState.lastCapture, currentState.lastHomeEntry);
+  renderPawns(boardSvg, BOARD, currentState.pawns, currentState.lastSwap, currentState.lastCapture, currentState.lastHomeEntry, currentState.lastSeven);
   renderCenterDiscard(currentState);
   renderTurnIndicator(currentState);
 }
