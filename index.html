@@ -1312,6 +1312,40 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
 }
 .center-discard .jack-chip.a { left: -21px; }
 .center-discard .jack-chip.b { right: -21px; }
+.rule-body { white-space: pre-line; }
+/* ---- Tutorial ---- */
+.tut-overlay { position: fixed; inset: 0; z-index: 6000; background: var(--cream); color: var(--ink); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 18px); }
+.tut-wrap { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.tut-head { display: flex; align-items: center; gap: 10px; }
+.tut-head h2 { margin: 0; font-size: 1.15rem; flex: 1; }
+.tut-x { border: 1px solid var(--panel-border); background: var(--panel); color: var(--ink); border-radius: 999px; width: 38px; height: 38px; font-size: 1.1rem; cursor: pointer; }
+.tut-sub { margin: -6px 0 2px; color: var(--muted-2); font-size: .85rem; }
+.tut-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--panel-border); background: var(--panel); color: var(--ink); cursor: pointer; font: inherit; }
+.tut-row:hover { border-color: var(--gold); }
+.tut-ico { font-size: 1.5rem; width: 38px; text-align: center; flex: none; }
+.tut-row-t { font-weight: 800; font-size: .95rem; }
+.tut-row-d { color: var(--muted-2); font-size: .78rem; margin-top: 2px; }
+.tut-check { margin-left: auto; color: var(--green); font-weight: 900; font-size: 1.1rem; }
+.tut-board { width: 100%; }
+.tut-bubble { background: var(--panel); border: 1px solid var(--panel-border); border-left: 5px solid var(--gold); border-radius: 14px; padding: 12px 14px; font-size: .92rem; line-height: 1.4; min-height: 64px; white-space: pre-line; }
+.tut-bubble.ok { border-left-color: var(--green); }
+.tut-bubble.no { border-left-color: var(--red); }
+.tut-hand { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 96px; }
+.tut-hand .card-btn { cursor: pointer; }
+.tut-hand .card-btn.tut-target { animation: tutPulse 1.1s ease-in-out infinite; box-shadow: 0 0 0 3px var(--gold), 0 6px 14px rgba(201,154,58,.55); }
+@keyframes tutPulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.tut-burn { animation: tutBurn .6s ease-in forwards; }
+@keyframes tutBurn { to { opacity: 0; transform: translateY(-14px) scale(.8); filter: grayscale(1) brightness(.6); } }
+.tut-chips { display: flex; flex-direction: column; gap: 8px; }
+.tut-chip { padding: 11px 14px; border-radius: 14px; border: 1.5px solid var(--gold); background: var(--panel); color: var(--ink); font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+.tut-chip small { display: block; font-weight: 500; color: var(--muted-2); margin-top: 2px; }
+.tut-foot { display: flex; gap: 8px; }
+.tut-foot button { flex: 1; padding: 12px; border-radius: 14px; border: 1px solid var(--panel-border); background: var(--panel); color: var(--ink); font: inherit; font-weight: 800; cursor: pointer; }
+.tut-foot button.primary { background: var(--gold-metallic); color: var(--ink-on-gold); border-color: var(--gold-deep); }
+html[data-skin="arcade"] .tut-overlay { background: #07021a; color: #e9e4ff; }
+html[data-skin="arcade"] .tut-bubble, html[data-skin="arcade"] .tut-row, html[data-skin="arcade"] .tut-chip, html[data-skin="arcade"] .tut-foot button, html[data-skin="arcade"] .tut-x { background: #120a3a; color: #e9e4ff; border-color: #00f0ff; border-radius: 4px; }
+html[data-skin="arcade"] .tut-row-d, html[data-skin="arcade"] .tut-sub, html[data-skin="arcade"] .tut-chip small { color: #b8aef0; }
 .center-discard .jack-overlay-arrow { font: 900 12px/1 system-ui, sans-serif; color: #2b2b2b; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; }
 @keyframes jackOvIn { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .center-discard .jack-overlay { animation: none; } }
@@ -7299,7 +7333,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.190";
+const APP_VERSION = "v5.2";
 
 let myColor = null;
 let myRoomId = null;
@@ -7428,6 +7462,12 @@ function renderLobby() {
         "button",
         { class: "leaderboard-open-btn", onclick: renderLeaderboardScreen },
         el("span", {}, "🏆 Classifica generale"),
+        el("span", { class: "leaderboard-open-arrow" }, "›")
+      ),
+      el(
+        "button",
+        { class: "leaderboard-open-btn", style: "margin-top:8px;", onclick: openTutorial },
+        el("span", {}, "🎓 Impara a giocare"),
         el("span", { class: "leaderboard-open-arrow" }, "›")
       ),
       el(
@@ -13382,32 +13422,36 @@ function describeError(e) {
 // Jack/7, quindi lo stile è coerente col resto dell'app.
 const RULES_SECTIONS = [
   {
-    title: "Squadre e obiettivo",
-    body: "Quattro giocatori, due squadre fisse sedute alternate: Rosso + Giallo contro Verde + Blu. Vince la prima squadra che porta TUTTE E 8 le proprie pedine (le 4 di ciascun compagno) nelle rispettive caselle-casa.",
+    title: "Obiettivo",
+    body: "Si gioca in quattro, a coppie: Rosso + Giallo contro Verde + Blu. Vince la coppia che per prima porta tutte e 8 le pedine (le 4 di ciascun compagno) nelle proprie caselle-casa.",
   },
   {
-    title: "Le carte e lo scambio iniziale",
-    body: "Si gioca con un mazzo di carte francesi da 52. La prima mano di ogni giro ne dà 5 a testa (poi 4, finché il mazzo non si esaurisce e si rimescola tutto). Prima di iniziare a giocare, ogni giocatore sceglie alla cieca una carta da passare al proprio compagno — nessuno vede cosa riceverà finché tutti e 4 non hanno scelto.",
+    title: "Le carte e lo scambio",
+    body: "Si usa un mazzo francese da 52 carte. Ogni giocatore riceve 5 carte nella prima mano di ogni giro di mazzo, poi 4. Quando il mazzo finisce si rimescola e il mazziere passa a chi è alla sua sinistra.\nPrima di giocare ogni giocatore sceglie alla cieca una carta da dare al compagno. Nessuno vede cosa riceve finché tutti e quattro non hanno scelto.",
+  },
+  {
+    title: "Il turno",
+    body: "Si gioca in senso orario. Ogni turno si gioca una sola carta. Il mazziere gioca per ultimo e comincia chi lo segue. Le carte nuove si danno solo quando tutti hanno finito la mano.",
   },
   {
     title: "Cosa fa ogni carta",
-    body: "A = fa entrare una pedina in gioco (oppure vale 1 casella avanti se le hai già tutte in gioco). K = entra in gioco (oppure vale 13 avanti). Q = 12 avanti. J = scambia di posto due pedine qualsiasi sul percorso, anche avversarie (non quelle protette sulla propria base o già in casa). 7 = si può giocare intero su una pedina o dividerlo tra più pedine proprie; se una parte del 7 manda in casa tutte le tue pedine, i passi rimasti possono continuare sulle pedine del tuo compagno. 4 = 4 caselle INDIETRO. Le altre (2,3,5,6,8,9,10) = avanti del valore indicato.",
+    body: "• Asso e Re: fanno entrare una pedina in gioco. Se hai già tutte le pedine in gioco, l'Asso vale 1 e il Re vale 13.\n• Regina: 12 caselle avanti.\n• 2, 3, 5, 6, 8, 9, 10: avanti del numero indicato.\n• 4: quattro caselle indietro. Una pedina ferma sulla base che gioca il 4 arriva diretta sulla propria casella \"-4\", senza fare il giro.\n• 7: si gioca intero su una pedina oppure si divide tra le tue pedine in gioco. Con il 7 non sei bloccato: mangi ogni pedina che incontri lungo il percorso. Se una parte del 7 manda in casa tutte le tue pedine, i passi rimasti continuano sulle pedine del compagno.\n• Jack: scambia di posto due pedine qualsiasi sul percorso, anche tue, del compagno o avversarie. Non vale per le pedine già in casa né per quella appena entrata e ancora ferma sulla base. Serve almeno una tua pedina sul percorso e due pedine in totale.",
   },
   {
-    title: "Mangiare e casella base",
-    body: "Se atterri esattamente sulla casella di una pedina avversaria, quella torna alla base. Una pedina appena entrata sulla propria base è protetta e non può essere mangiata finché resta lì.",
+    title: "Entrare e mangiare",
+    body: "• Una pedina appena entrata è protetta sulla base e non si può mangiare finché non si muove. Se hai già una tua pedina sulla base e giochi un altro Asso o Re, la nuova entra e mangia quella.\n• Ti muovi del valore esatto della carta. Non puoi passare sopra un'altra pedina, di nessun colore: se la strada è occupata la mossa non si può fare, a meno che il numero esatto non ti faccia atterrare sopra la pedina.\n• Se atterri su una pedina la mangi sempre, anche quella del compagno o una tua. La pedina mangiata torna alla base e rientra con un Asso o un Re.",
   },
   {
     title: "Le caselle-casa",
-    body: "Le 4 caselle-casa finali sono private per ogni colore: solo le proprie pedine possono entrarci, e la mossa che ci porta è sempre facoltativa (si può anche scegliere di continuare a girare sul percorso condiviso).",
+    body: "Sono sicure e private: solo le tue pedine possono entrarci, e nessuno le può mangiare. Per entrare serve il numero esatto, ma è sempre facoltativo: puoi decidere di continuare a girare. Una sola carta può chiudere il giro ed entrare in casa nello stesso movimento. Se una casella-casa è occupata non puoi superarla, quindi il 7 serve spesso a sbloccare la situazione.",
   },
   {
-    title: "Quando sei già tutto a casa",
-    body: "Se tutte le tue 4 pedine sono già in casa, quando tocca a te giochi comunque le tue carte, ma muovi le pedine del tuo compagno al posto delle tue.",
+    title: "Bruciare una carta",
+    body: "Scegli tu quale carta giocare. Se la carta che giochi non ha nessuna mossa legale, viene bruciata e il turno passa. Non sei obbligato a giocare una carta che ha mosse, e non puoi bruciare una carta che ne ha.",
   },
   {
-    title: "Nessuna mossa possibile",
-    body: "Se con nessuna carta in mano hai una mossa legale, ne bruci una (a scelta) e il turno passa, senza muovere nulla.",
+    title: "Quando hai finito",
+    body: "Se tutte le tue 4 pedine sono in casa, continui a giocare le tue carte muovendo le pedine del compagno.",
   },
 ];
 
@@ -13659,7 +13703,10 @@ function openSettingsPanel(keepScroll) {
       ["", "🎴", "Classico"], ["wood", "🪵", "Legno pregiato"], ["night", "🌙", "Notte da casinò"], ["bright", "✨", "Moderno luminoso"], ["arcade", "👾", "Arcade retro"],
     ].map(([k, ic, lab]) => settingsRow(ic, lab, el("span", { class: "set-radio" + ((document.documentElement.getAttribute("data-skin") || "") === k ? " on" : "") }), () => { applySkin(k); openSettingsPanel(true); }))),
     settingsCard("Suoni", [settingsRow("🔊", "Effetti sonori", settingsToggle(!soundMuted, toggleSoundMuted))]),
-    settingsCard("Regole", [settingsRow("📖", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); })]),
+    settingsCard("Regole", [
+      settingsRow("📖", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); }),
+      settingsRow("🎓", "Impara a giocare (tutorial)", null, () => { closePicker(); openTutorial(); }),
+    ]),
     settingsCard("Partita", [
       settingsRow("🔗", "Condividi il link della stanza", null, () => { closePicker(); shareInviteLink(myRoomId); }),
     ]),
@@ -13698,6 +13745,259 @@ function openRulesPanel() {
       el("button", { class: "secondary", onclick: closePicker, style: "width:100%;margin-top:4px;" }, "Chiudi")
     )
   );
+}
+
+// ============================================================
+// Tutorial "Impara a giocare": lezioni guidate sul tabellone vero, con lo
+// stesso motore di gioco ma in locale (niente stanza, niente Firebase).
+// Tutte le lezioni sono sempre selezionabili, in qualsiasi ordine.
+// ============================================================
+const TUT_KEY = "tock-tut-done";
+function tutDone() { try { return JSON.parse(localStorage.getItem(TUT_KEY) || "[]"); } catch (e) { return []; } }
+function tutMarkDone(id) { try { const d = tutDone(); if (d.indexOf(id) < 0) { d.push(id); localStorage.setItem(TUT_KEY, JSON.stringify(d)); } } catch (e) {} }
+
+function tutMakeState(pawns, hand, lapped) {
+  const names = { red: "Tu", green: "Verde", yellow: "Il tuo compagno", blue: "Blu" };
+  const players = {};
+  COLORS.forEach((c) => { players[c] = { name: names[c], token: "tut-" + c, playerId: "tut-" + c }; });
+  const st = newGameState(players, "manual");
+  st.phase = "playing"; st.turnColor = "red"; st.dealerColor = "blue";
+  COLORS.forEach((c) => { st.pawns[c] = [-1, -1, -1, -1]; st.hands[c] = []; });
+  Object.keys(pawns || {}).forEach((c) => { st.pawns[c] = pawns[c].slice(); });
+  st.hands.red = hand.slice();
+  (lapped || []).forEach((l) => setLapped(st, l[0], l[1], true));
+  st.playedThisCycle = [];
+  return st;
+}
+
+const TUT_LESSONS = [
+  {
+    id: "obiettivo", icon: "🎯", title: "Obiettivo e coppie", desc: "Chi gioca con chi e come si vince",
+    info: true,
+    make: () => tutMakeState({ red: [1000, 1001, 1002, -1], yellow: [1000, 1001, -1, -1], green: [-1, -1, -1, -1], blue: [-1, -1, -1, -1] }, []),
+    text: "Si gioca in quattro, a coppie: Rosso + Giallo contro Verde + Blu. Tu sei il Rosso e il tuo compagno è il Giallo.\n\nVince la coppia che per prima porta tutte e 8 le pedine (le 4 tue e le 4 del compagno) nelle caselle-casa, al centro: nell'immagine ne vedi già alcune arrivate.",
+    done: "Ottimo. Passa alla lezione che vuoi: puoi farle in qualsiasi ordine.",
+  },
+  {
+    id: "entrare", icon: "🅰️", title: "Far uscire una pedina", desc: "Asso e Re portano una pedina in gioco",
+    make: () => tutMakeState({}, ["5-clubs", "A-hearts"]),
+    card: "A-hearts",
+    text: "Tutte le tue pedine sono ancora in base. Solo un Asso o un Re ne fa uscire una.\n\nTocca l'Asso.",
+    wrong: { "5-clubs": "Il 5 muove una pedina già in gioco, e tu non ne hai ancora. Serve l'Asso." },
+    choices: () => [{ ok: true, move: { type: "enter", pawnIndex: 0 } }],
+    done: "Fatto! La pedina è sulla tua base ed è protetta: nessuno la può mangiare finché non si muove. Se hai già una pedina sulla base e giochi un altro Asso o Re, la nuova entra e mangia quella.",
+  },
+  {
+    id: "mangiare", icon: "💥", title: "Muovere e mangiare", desc: "Atterrare esatti su una pedina",
+    make: () => tutMakeState({ red: [10, -1, -1, -1], green: [15, -1, -1, -1] }, ["9-hearts", "5-clubs"]),
+    card: "5-clubs",
+    text: "Ti muovi del valore esatto della carta. La pedina verde è a 5 caselle dalla tua.\n\nTocca il 5: ci atterri sopra e la mangi.",
+    wrong: { "9-hearts": "Il 9 è una mossa valida, ma ti porta oltre la pedina verde. Prova con il 5." },
+    choices: () => [{ ok: true, move: { type: "move", pawnIndex: 0, path: [11, 12, 13, 14, 15] } }],
+    done: "Mangiata! Torna alla sua base e dovrà aspettare un Asso o un Re. Si mangia sempre, anche i compagni e le tue pedine (qui non ti fa guadagnare nulla, quindi attenzione).",
+  },
+  {
+    id: "quattro", icon: "4️⃣", title: "Il 4 va indietro", desc: "La scorciatoia verso casa",
+    make: () => tutMakeState({ red: [0, -1, -1, -1] }, ["8-clubs", "4-spades"]),
+    card: "4-spades",
+    text: "Il 4 è l'unica carta che va indietro. Dalla base, 4 passi indietro ti portano sulla casella \"-4\", a un passo dall'entrata in casa: una scorciatoia che evita il giro intero.\n\nTocca il 4.",
+    wrong: { "8-clubs": "L'8 ti manderebbe avanti per tutto il giro. Per la scorciatoia serve il 4." },
+    choices: () => [{ ok: true, move: { type: "move", pawnIndex: 0, path: [63, 62, 61, 60] } }],
+    done: "Sei sulla \"-4\". Da qui con il numero giusto entri nelle caselle-casa. Nella prossima lezione lo vedi.",
+  },
+  {
+    id: "casa", icon: "🏠", title: "Entrare in casa", desc: "Il numero esatto, sempre facoltativo",
+    make: () => tutMakeState({ red: [60, -1, -1, -1] }, ["2-hearts", "6-clubs"], [["red", 0]]),
+    card: "6-clubs",
+    text: "La tua pedina ha fatto il giro ed è sulla \"-4\". Con il 6 puoi entrare in casa, nella seconda casella. Le caselle-casa sono sicure: nessuno le può mangiare.\n\nTocca il 6 e scegli. Entrare è sempre facoltativo.",
+    wrong: { "2-hearts": "Con il 2 non arrivi in casa. Prova con il 6." },
+    choices: (s) => legalMovesForCard(s, "red", "6-clubs").map((o) => {
+      const home = o.path[o.path.length - 1] >= 1000;
+      return {
+        ok: true, move: o,
+        label: home ? "Entra in casa" : "Continua a girare",
+        sub: home ? "la pedina è al sicuro per sempre" : "resti sul percorso, anche se potresti entrare",
+        done: home ? "Dentro! Da qui la pedina non si muove più e nessuno la può mangiare. Per vincere servono tutte e 8." : "Hai scelto di continuare a girare: va bene, entrare in casa è sempre facoltativo. Potresti farlo per mangiare qualcuno più avanti.",
+      };
+    }),
+    done: "",
+  },
+  {
+    id: "sette", icon: "7️⃣", title: "Il 7 diviso", desc: "Più mangiate con una carta sola",
+    make: () => tutMakeState({ red: [10, 30, -1, -1], green: [13, 34, -1, -1] }, ["7-diamonds", "3-clubs"]),
+    card: "7-diamonds",
+    text: "Il 7 si può giocare intero su una pedina, oppure dividere tra le tue pedine. Con il 7 non sei bloccato: mangi ogni pedina che incontri sul percorso.\n\nHai due pedine verdi davanti: una a 3 caselle dalla tua prima pedina, una a 4 dalla seconda. Tocca il 7 e scegli come giocarlo.",
+    wrong: { "3-clubs": "Il 3 mangerebbe una sola pedina. Prova con il 7." },
+    choices: () => [
+      { ok: false, label: "Tutto sulla prima pedina (7)", sub: "mangia una sola pedina verde", hint: "Funziona, ma mangi una sola pedina. Prova a dividere il 7: 3 + 4." },
+      { ok: true, label: "Dividi: 3 sulla prima, 4 sulla seconda", sub: "mangia due pedine verdi", move: { type: "seven", distribution: [{ pawnIndex: 0, steps: 3 }, { pawnIndex: 1, steps: 4 }] } },
+      { ok: false, label: "Tutto sulla seconda pedina (7)", sub: "mangia una sola pedina verde", hint: "Funziona, ma mangi una sola pedina. Prova a dividere il 7: 3 + 4." },
+    ],
+    done: "Due mangiate con una carta sola! Il 7 è la carta più potente: serve anche a sbloccare una casella-casa occupata e a far continuare i passi rimasti sulle pedine del compagno.",
+  },
+  {
+    id: "jack", icon: "🃏", title: "Il Jack", desc: "Scambiare due pedine di posto",
+    make: () => tutMakeState({ red: [5, -1, -1, -1], green: [58, -1, -1, -1], yellow: [40, -1, -1, -1] }, ["J-hearts", "2-clubs"]),
+    card: "J-hearts",
+    text: "Il Jack non muove: scambia di posto due pedine qualsiasi sul percorso, anche avversarie. Non vale per le pedine in casa né per quella appena entrata dalla base.\n\nLa tua pedina è appena partita; la pedina verde è quasi arrivata all'entrata della tua casa. Tocca il Jack e scegli lo scambio più utile.",
+    wrong: { "2-clubs": "Il 2 è una mossa normale. Per questa lezione prova il Jack." },
+    choices: () => [
+      { ok: true, label: "La tua pedina ↔ la verde", sub: "arrivi quasi a casa, il verde riparte da capo", move: { type: "jack", a: { color: "red", pawnIndex: 0 }, b: { color: "green", pawnIndex: 0 } } },
+      { ok: false, label: "La verde ↔ la gialla (del tuo compagno)", sub: "non cambia nulla per te", hint: "Si può fare, ma non ti aiuta: scegli lo scambio che avvicina la tua pedina a casa." },
+      { ok: false, label: "La tua pedina ↔ quella gialla (compagno)", sub: "non è un buon affare", hint: "Si può fare, ma lo scambio più utile è con la pedina verde, che è molto più avanti." },
+    ],
+    done: "Scambio fatto: la tua pedina ha saltato quasi tutto il giro. Il Jack è la carta più strategica: usalo anche per mandare indietro un avversario.",
+  },
+  {
+    id: "bruciare", icon: "🔥", title: "Bruciare una carta", desc: "Quando una carta non ha mosse",
+    make: () => tutMakeState({ red: [10, -1, -1, -1], green: [15, -1, -1, -1] }, ["2-clubs", "Q-spades"]),
+    card: "Q-spades",
+    text: "La Regina farebbe 12 passi, ma sul percorso c'è la pedina verde e non puoi passarci sopra: questa carta non ha nessuna mossa legale.\n\nScegli tu quale carta giocare. Tocca la Regina: la bruci e il turno passa.",
+    wrong: { "2-clubs": "Il 2 si può giocare, ma qui vogliamo vedere come si brucia: tocca la Regina." },
+    choices: () => [{ ok: true, burn: true }],
+    done: "Bruciata. Ricorda: puoi bruciare solo una carta che non ha nessuna mossa legale. Se ne ha, la devi giocare, oppure scegliere un'altra carta.",
+  },
+  {
+    id: "scambio", icon: "🤝", title: "Lo scambio con il compagno", desc: "Passargli una carta alla cieca",
+    make: () => tutMakeState({}, ["K-clubs", "J-spades", "7-hearts", "5-diamonds", "9-clubs"]),
+    anyCard: true,
+    text: "All'inizio di ogni mano scegli alla cieca una carta da dare al compagno, e ne ricevi una da lui.\n\nTocca la carta che daresti al tuo compagno.",
+    done: "Consiglio: dai al compagno le carte che a lui servono più che a te. Un Asso o un Re se ha pedine ancora in base, un Jack o un 7 se tu non hai modo di usarli.",
+  },
+];
+
+let _tut = null;
+function tutEnsureRoot() {
+  let root = document.getElementById("tut-overlay");
+  if (!root) { root = el("div", { id: "tut-overlay", class: "tut-overlay" }); document.body.appendChild(root); }
+  return root;
+}
+function openTutorial() { showTutorialList(); }
+function closeTutorial() {
+  const root = document.getElementById("tut-overlay");
+  if (root) root.remove();
+  _tut = null;
+  // Se c'è una partita sotto, ridisegna il suo tabellone.
+  try { if (document.querySelector("#board-wrap #board-svg") && typeof rebuildBoardForTheme === "function") { resetPawnAnimState(); rebuildBoardForTheme(); } } catch (e) {}
+}
+function showTutorialList() {
+  const root = tutEnsureRoot();
+  _tut = null;
+  const done = tutDone();
+  root.innerHTML = "";
+  root.appendChild(el("div", { class: "tut-wrap" },
+    el("div", { class: "tut-head", }, el("h2", {}, "🎓 Impara a giocare"), el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, "✕")),
+    el("p", { class: "tut-sub" }, "Scegli la lezione che vuoi, nell'ordine che preferisci. Giochi sul vero tabellone: niente stanze, niente fretta."),
+    TUT_LESSONS.map((l, i) => el("button", { class: "tut-row", onclick: () => openTutorialLesson(i) },
+      el("span", { class: "tut-ico" }, l.icon),
+      el("span", {}, el("div", { class: "tut-row-t" }, l.title), el("div", { class: "tut-row-d" }, l.desc)),
+      done.indexOf(l.id) >= 0 ? el("span", { class: "tut-check" }, "✓") : ""
+    ))
+  ));
+  root.scrollTop = 0;
+}
+
+function openTutorialLesson(idx) {
+  const lesson = TUT_LESSONS[idx];
+  const root = tutEnsureRoot();
+  const T = {
+    idx, lesson, s: lesson.make(), busy: false, finished: false,
+    anim: { positions: {}, els: {}, lastSwapId: null, lastCaptureId: null, lastHomeEntryId: null, lastSevenId: null, primed: false },
+  };
+  _tut = T;
+  const holder = el("div", { class: "tut-board" });
+  T.bubble = el("div", { class: "tut-bubble" }, lesson.text);
+  T.handEl = el("div", { class: "tut-hand" });
+  T.chipsEl = el("div", { class: "tut-chips" });
+  T.footEl = el("div", { class: "tut-foot" });
+  root.innerHTML = "";
+  root.appendChild(el("div", { class: "tut-wrap" },
+    el("div", { class: "tut-head" },
+      el("button", { class: "tut-x", onclick: showTutorialList, "aria-label": "Elenco lezioni" }, "‹"),
+      el("h2", {}, lesson.icon + " " + lesson.title),
+      el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, "✕")),
+    holder, T.bubble, T.handEl, T.chipsEl, T.footEl));
+  root.scrollTop = 0;
+  T.svg = buildBoardSVG(holder, BOARD);
+  T.svg.setAttribute("id", "tut-board-svg");
+  tutRenderPawns(T);
+  tutRenderHand(T);
+  tutRenderFoot(T);
+  if (lesson.info) { T.finished = true; tutMarkDone(lesson.id); tutRenderFoot(T); }
+}
+
+// renderPawns usa lo stato di animazione globale della partita: lo si
+// scambia con quello del tutorial solo per la durata della chiamata, così
+// una partita eventualmente aperta sotto non viene toccata.
+function tutRenderPawns(T) {
+  const game = Object.assign({}, _pawnAnimState);
+  Object.assign(_pawnAnimState, T.anim);
+  let ms = 0;
+  try { ms = renderPawns(T.svg, BOARD, T.s.pawns, T.s.lastSwap, T.s.lastCapture, T.s.lastHomeEntry, T.s.lastSeven); } finally {
+    Object.assign(T.anim, _pawnAnimState);
+    Object.assign(_pawnAnimState, game);
+  }
+  return ms;
+}
+function tutSay(T, text, kind) { T.bubble.textContent = text; T.bubble.className = "tut-bubble" + (kind ? " " + kind : ""); }
+function tutRenderHand(T) {
+  T.handEl.innerHTML = "";
+  if (T.lesson.info) return;
+  T.s.hands.red.forEach((card) => {
+    const b = buildCardButton(card, true, () => tutOnCard(T, card, b), false);
+    if (card === T.lesson.card || T.lesson.anyCard) b.classList.add("tut-target");
+    T.handEl.appendChild(b);
+  });
+}
+function tutRenderFoot(T) {
+  T.footEl.innerHTML = "";
+  if (!T.lesson.info) T.footEl.appendChild(el("button", { onclick: () => openTutorialLesson(T.idx) }, "↺ Ricomincia"));
+  if (T.finished) {
+    const last = T.idx >= TUT_LESSONS.length - 1;
+    T.footEl.appendChild(el("button", { class: "primary", onclick: () => (last ? showTutorialList() : openTutorialLesson(T.idx + 1)) }, last ? "Fine ✓" : "Prossima ›"));
+  }
+  if (T.lesson.info && !T.finished) T.footEl.appendChild(el("button", { class: "primary", onclick: () => { T.finished = true; tutRenderFoot(T); } }, "Avanti"));
+}
+function tutFinish(T, text) {
+  T.finished = true; T.busy = false;
+  tutMarkDone(T.lesson.id);
+  tutSay(T, text || T.lesson.done, "ok");
+  tutRenderFoot(T);
+}
+function tutOnCard(T, card, btn) {
+  if (T.busy || T.finished) return;
+  const L = T.lesson;
+  try { playSound("cardFlick"); } catch (e) {}
+  if (L.anyCard) { T.handEl.querySelectorAll(".card-btn").forEach((b) => b.classList.remove("tut-target")); return tutFinish(T); }
+  if (card !== L.card) { tutSay(T, (L.wrong && L.wrong[card]) || "Per questa lezione usa la carta evidenziata.", "no"); return; }
+  const ch = L.choices(T.s);
+  T.chipsEl.innerHTML = "";
+  if (ch.length === 1) return tutApply(T, card, btn, ch[0]);
+  tutSay(T, "Scegli come giocarla:");
+  ch.forEach((c) => {
+    T.chipsEl.appendChild(el("button", { class: "tut-chip", onclick: () => tutPick(T, card, btn, c) }, c.label, el("small", {}, c.sub || "")));
+  });
+}
+function tutPick(T, card, btn, c) {
+  if (T.busy || T.finished) return;
+  if (!c.ok) { tutSay(T, c.hint || "Prova un'altra scelta.", "no"); return; }
+  T.chipsEl.innerHTML = "";
+  tutApply(T, card, btn, c);
+}
+function tutApply(T, card, btn, c) {
+  T.busy = true;
+  T.chipsEl.innerHTML = "";
+  if (c.burn) {
+    if (btn) btn.classList.add("tut-burn");
+    try { playSound("burn"); } catch (e) {}
+    burnOneCard(T.s, "red", card);
+    setTimeout(() => { tutRenderHand(T); tutFinish(T, c.done); }, 700);
+    return;
+  }
+  applyMove(T.s, "red", card, c.move);
+  tutRenderHand(T);
+  const ms = tutRenderPawns(T);
+  setTimeout(() => tutFinish(T, c.done), Math.min(2800, (ms || 0) + 350));
 }
 
 // Più pedine possono giocare la stessa carta: stesso stile "chip con
