@@ -1299,10 +1299,20 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
 .center-discard .jack-overlay {
   position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 2;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.88); border-radius: 6px; pointer-events: none;
+  pointer-events: none;
   animation: jackOvIn .35s ease-out both;
 }
-.center-discard .jack-overlay-arrow { font: 700 8px/1 system-ui, sans-serif; color: #333; }
+/* Le due pedine stanno a cavallo dei bordi laterali della carta, a metà
+   altezza: la carta resta intera e nitida (nessun velo sopra). */
+.center-discard .jack-chip {
+  position: absolute; top: 50%; width: 31px; height: 31px; margin-top: -15.5px;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; border: 3px solid var(--c, rgba(0,0,0,.25)); border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,.4);
+}
+.center-discard .jack-chip.a { left: -21px; }
+.center-discard .jack-chip.b { right: -21px; }
+.center-discard .jack-overlay-arrow { font: 900 12px/1 system-ui, sans-serif; color: #2b2b2b; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; }
 @keyframes jackOvIn { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .center-discard .jack-overlay { animation: none; } }
 @media (max-width: 380px) { .center-discard .card-btn.center-card { zoom: 0.64; } }
@@ -2240,6 +2250,11 @@ html[data-skin="bright"]:not([data-theme="dark"]) .reaction-bar .reaction-btn:ac
   font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted-3); margin-bottom: 6px;
 }
+.win-pawns { display: flex; align-items: flex-end; justify-content: center; gap: 5px; margin: 2px 0 10px; height: 44px; }
+.win-hop { display: inline-block; animation: winHop 1.05s cubic-bezier(.3,.7,.4,1) infinite; transform-origin: 50% 100%; }
+@keyframes winHop { 0%, 100% { transform: translateY(0) scale(1.12, .88); } 35% { transform: translateY(-16px) scale(.94, 1.08); } 60% { transform: translateY(-16px) scale(.94, 1.08); } 85% { transform: translateY(0) scale(1.1, .9); } }
+html[data-skin="arcade"] .win-hop { animation-timing-function: steps(5, end); }
+@media (prefers-reduced-motion: reduce) { .win-hop { animation: none; } }
 .win-team-dots { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
 .win-team-dots span { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
 .win-awards { margin: 0 0 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; }
@@ -2538,7 +2553,7 @@ html[data-skin="arcade"] .card-btn { background: #0f0630 !important; border: 2px
 html[data-skin="arcade"] .card-btn.suit-red { border-color: #ff3c6e !important; color: #ff3c6e !important; box-shadow: 0 0 10px rgba(255,60,110,.65), inset 0 0 10px rgba(255,60,110,.18) !important; }
 html[data-skin="arcade"] .card-btn * { color: inherit !important; }
 html[data-skin="arcade"] .card-btn svg * { fill: currentColor !important; }
-html[data-skin="arcade"] .center-discard .jack-overlay { background: rgba(7,2,26,.9); }
+html[data-skin="arcade"] .center-discard .jack-chip { background: rgba(7,2,26,.94); }
 html[data-skin="arcade"] .center-discard .jack-overlay-arrow { color: #00f0ff; }
 html[data-skin="arcade"] .status-bar-shield { background: transparent !important; backdrop-filter: none !important; }
 html[data-skin="arcade"] .pawn-visual { filter: drop-shadow(0 0 4px var(--neon, #fff)); }
@@ -6917,6 +6932,135 @@ function cellForColor(board, color, pos) {
 // finché la pedina non è visibilmente arrivata in casa, invece di farlo
 // comparire subito sopra la mossa finale ancora in corso (segnalato: "fai
 // vedere prima l'entrata e poi il banner, adesso copre la mossa finale").
+// ---- Effetti generici sul tabellone (anelli, scintille, "oops", scossa) ----
+// Colori degli effetti: nel tema Arcade neon, altrimenti i colori normali.
+function fxCol(color) { return isArcade() ? (ARCADE_NEON[color] || "#fff") : BASE_COL[color]; }
+function fxGold() { return isArcade() ? "#ffe23c" : "#D9B65C"; }
+// Arcade: animazioni "a scatti" (pochi fotogrammi, come i vecchi giochi).
+function fxQ(k) { return isArcade() ? Math.min(1, Math.ceil(k * 7) / 7) : k; }
+function fxRing(svg, x, y, r0, r1, color, ms, width) {
+  const arc = isArcade();
+  const ring = arc
+    ? ns_el("rect", { x: x - r0, y: y - r0, width: r0 * 2, height: r0 * 2, fill: "none", stroke: color, "stroke-width": (width || 4) * 0.9, opacity: 0.95 })
+    : ns_el("circle", { cx: x, cy: y, r: r0, fill: "none", stroke: color, "stroke-width": width || 4, opacity: 0.95 });
+  if (arc) ring.style.filter = `drop-shadow(0 0 3px ${color})`;
+  svg.appendChild(ring);
+  const t0 = performance.now();
+  const f = (now) => {
+    const k = Math.min(1, (now - t0) / ms), q = fxQ(k);
+    const r = r0 + (r1 - r0) * q;
+    if (arc) { ring.setAttribute("x", x - r); ring.setAttribute("y", y - r); ring.setAttribute("width", r * 2); ring.setAttribute("height", r * 2); }
+    else ring.setAttribute("r", r);
+    ring.setAttribute("opacity", String(0.95 * (1 - q)));
+    if (k < 1) requestAnimationFrame(f); else ring.remove();
+  };
+  requestAnimationFrame(f);
+}
+function fxSparks(svg, x, y, colors, n, dist, ms, size) {
+  const parts = [];
+  for (let i = 0; i < n; i++) {
+    const ang = (Math.PI * 2 * i) / n + Math.random() * 0.5;
+    const d = dist * (0.65 + Math.random() * 0.5);
+    const rr = size * (0.6 + Math.random() * 0.6);
+    const c = isArcade()
+      ? ns_el("rect", { x: x - rr * 1.2, y: y - rr * 1.2, width: rr * 2.4, height: rr * 2.4, fill: colors[i % colors.length], opacity: 1 })
+      : ns_el("circle", { cx: x, cy: y, r: rr, fill: colors[i % colors.length], opacity: 1 });
+    if (isArcade()) c.style.filter = `drop-shadow(0 0 2px ${colors[i % colors.length]})`;
+    svg.appendChild(c);
+    parts.push({ c, dx: Math.cos(ang) * d, dy: Math.sin(ang) * d });
+  }
+  const t0 = performance.now();
+  const f = (now) => {
+    const k0 = Math.min(1, (now - t0) / ms), k = fxQ(k0);
+    const e = 1 - (1 - k) * (1 - k);
+    const arc = isArcade();
+    parts.forEach((q) => {
+      const px = x + q.dx * e, py = y + q.dy * e + 10 * k * k * dist / 20;
+      if (arc) { const w = +q.c.getAttribute("width"); q.c.setAttribute("x", px - w / 2); q.c.setAttribute("y", py - w / 2); }
+      else { q.c.setAttribute("cx", px); q.c.setAttribute("cy", py); }
+      q.c.setAttribute("opacity", String(1 - k));
+    });
+    if (k0 < 1) requestAnimationFrame(f); else parts.forEach((q) => q.c.remove());
+  };
+  requestAnimationFrame(f);
+}
+// Fumetto "Oops!" che sale e svanisce sopra la casella.
+function fxOops(svg, board, x, y) {
+  const R = board.cellRadiusMm;
+  const arc = isArcade();
+  const t = ns_el("text", { x, y: y - R, "text-anchor": "middle", "font-size": R * (arc ? 1.1 : 1.25), "font-weight": 900, fill: arc ? "#ff2bd6" : "#D9363E", stroke: arc ? "#07021a" : "#fff", "stroke-width": R * 0.28, "paint-order": "stroke", "font-family": arc ? "Courier New, monospace" : "system-ui, sans-serif" });
+  if (arc) t.style.filter = "drop-shadow(0 0 3px #ff2bd6)";
+  t.textContent = arc ? "OOPS!" : "Oops!";
+  svg.appendChild(t);
+  const t0 = performance.now();
+  const f = (now) => {
+    const k0 = Math.min(1, (now - t0) / 1100), k = isArcade() ? Math.ceil(k0 * 9) / 9 : k0;
+    const pop = k < 0.15 ? 0.6 + (k / 0.15) * 0.6 : 1.2 - Math.min(0.2, (k - 0.15) * 0.4);
+    t.setAttribute("transform", `translate(${x},${y - R - k * R * 1.6}) scale(${pop}) translate(${-x},${-(y - R)})`);
+    t.setAttribute("opacity", String(k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3));
+    if (k0 < 1) requestAnimationFrame(f); else t.remove();
+  };
+  requestAnimationFrame(f);
+}
+function fxShakeBoard() {
+  try {
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const w = document.getElementById("board-wrap");
+    if (w && w.animate) w.animate([{ transform: "translateX(0)" }, { transform: "translateX(-5px) rotate(-.4deg)" }, { transform: "translateX(5px) rotate(.4deg)" }, { transform: "translateX(-3px)" }, { transform: "translateX(2px)" }, { transform: "translateX(0)" }], { duration: 380, easing: isArcade() ? "steps(6, end)" : "ease-out" });
+  } catch (e) {}
+}
+// Pedina che esce dalla base: spunta con un saltello e un anello.
+function animatePawnEnter(outer, svg, board, color, target, gen) {
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) return;
+  try { playSound("pawnOut"); } catch (e) {}
+  fxRing(svg, target.x, target.y, board.cellRadiusMm * 0.5, board.cellRadiusMm * 1.7, fxCol(color), 480, 4);
+  fxSparks(svg, target.x, target.y, [fxCol(color), "#fff"], 8, board.cellRadiusMm * 1.5, 520, 2.2);
+  const T = 430, t0 = performance.now(), lift = board.cellRadiusMm * 1.6;
+  const f = (now) => {
+    if (outer.__animGen !== gen) return;
+    const k0 = Math.min(1, (now - t0) / T), k = fxQ(k0);
+    const arc = Math.sin(k * Math.PI);
+    const sc = k < 0.7 ? 0.25 + 1.0 * (k / 0.7) : 1.25 - 0.25 * ((k - 0.7) / 0.3);
+    outer.setAttribute("transform", `translate(${target.x},${target.y - arc * lift}) scale(${sc})`);
+    outer.setAttribute("opacity", String(Math.min(1, k * 4)));
+    if (k0 < 1) requestAnimationFrame(f);
+    else { outer.setAttribute("transform", `translate(${target.x},${target.y})`); outer.removeAttribute("opacity"); }
+  };
+  outer.setAttribute("opacity", "0");
+  requestAnimationFrame(f);
+}
+
+// Dopo quanti ms la pedina che mangia ARRIVA sulla casella della mangiata:
+// la pedina mangiata (e il suono) devono partire a quel punto, non appena
+// arriva lo stato — altrimenti vola via mentre l'altra sta ancora camminando
+// e non si capisce chi ha mangiato chi. Va chiamata PRIMA di aggiornare
+// _pawnAnimState.positions (cioè prima del ciclo di renderPawns).
+function captureImpactDelayMs(pawns, cap, seven) {
+  if (!cap || cap.atPos == null || !pawns) return 0;
+  const stepMs = 170;
+  if (seven && Array.isArray(seven.portions) && Math.abs((seven.ts || 0) - (cap.ts || 0)) < 1500) {
+    let acc = 0;
+    for (const po of seven.portions) {
+      const i = po.path ? po.path.indexOf(cap.atPos) : -1;
+      if (i >= 0) return acc + (i + 1) * stepMs;
+      acc += (po.path ? po.path.length : 0) * stepMs + 120;
+    }
+    return 0;
+  }
+  for (const color of Object.keys(pawns)) {
+    for (let i = 0; i < pawns[color].length; i++) {
+      const prev = _pawnAnimState.positions[color + "-" + i];
+      const pos = pawns[color][i];
+      if (prev == null || prev === -1 || pos === -1 || prev === pos) continue;
+      const path = pathForAnimation(color, prev, pos);
+      const k = path ? path.indexOf(cap.atPos) : -1;
+      if (k >= 0) return (k + 1) * stepMs;
+    }
+  }
+  return 0;
+}
+
 function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, lastSeven) {
   // Replay in corso (frecce in alto): si disegna la posizione di quel momento,
   // senza eventi "freschi" da animare — vedi enterReplayAt.
@@ -6957,11 +7101,19 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
     }
   }
   let freshCapture = false;
+  let capDelay = 0;
   if (lastCapture && lastCapture.id && lastCapture.id !== _pawnAnimState.lastCaptureId) {
     _pawnAnimState.lastCaptureId = lastCapture.id;
     if (isFreshEvent) {
       freshCapture = true;
-      flashCapture(svg, board, lastCapture.color, lastCapture.atPos);
+      capDelay = captureImpactDelayMs(pawns, lastCapture, lastSeven);
+      if (capDelay > 0) setTimeout(() => flashCapture(svg, board, lastCapture.color, lastCapture.atPos), capDelay);
+      else flashCapture(svg, board, lastCapture.color, lastCapture.atPos);
+      // Mangiato un compagno (o una propria pedina): "Oops!" + scossa.
+      if (lastCapture.by && TEAM_OF[lastCapture.by] === TEAM_OF[lastCapture.color]) {
+        const cp = cellForColor(board, lastCapture.color, lastCapture.atPos);
+        if (cp) setTimeout(() => { fxOops(svg, board, cp.x, cp.y); fxShakeBoard(); }, capDelay + 80);
+      }
     }
   }
   if (lastHomeEntry && lastHomeEntry.id && lastHomeEntry.id !== _pawnAnimState.lastHomeEntryId) {
@@ -6969,6 +7121,28 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
     if (isFreshEvent) {
       flashHomeEntry(svg, board, lastHomeEntry.color, lastHomeEntry.pos - 1000);
       animDurationMs = Math.max(animDurationMs, 20 + 9 * 60); // vedi flashHomeEntry
+      // Festa: scintille nel colore della pedina + bagliore dorato sulle
+      // pedine della coppia già in casa + campanello. Parte quando la
+      // pedina ha finito di camminare fino alla casa.
+      const hc = lastHomeEntry.color, hi = lastHomeEntry.pos - 1000;
+      const hp = board.homePaths[hc] && board.homePaths[hc][hi];
+      const prevHomePos = _pawnAnimState.positions[hc + "-" + lastHomeEntry.pawnIndex];
+      const hPath = prevHomePos != null && prevHomePos !== -1 ? pathForAnimation(hc, prevHomePos, lastHomeEntry.pos) : null;
+      const walkMs = Math.min(1500, Math.max(0, (hPath ? hPath.length : 3) * stepMs));
+      if (hp) {
+        setTimeout(() => {
+          try { playSound("homeDing"); } catch (e) {}
+          fxSparks(svg, hp.x, hp.y, [fxCol(hc), fxGold(), "#fff"], 14, board.cellRadiusMm * 2.6, 760, 2.6);
+          fxRing(svg, hp.x, hp.y, board.cellRadiusMm * 0.6, board.cellRadiusMm * 2.2, fxGold(), 640, 4);
+          COLORS.filter((c) => TEAM_OF[c] === TEAM_OF[hc]).forEach((c) => (pawns[c] || []).forEach((pp, ii) => {
+            if (pp >= 1000 && !(c === hc && pp - 1000 === hi)) {
+              const q = board.homePaths[c][pp - 1000];
+              if (q) fxRing(svg, q.x, q.y, board.cellRadiusMm * 0.7, board.cellRadiusMm * 1.5, fxGold(), 700, 3);
+            }
+          }));
+        }, Math.min(walkMs, 900));
+        animDurationMs = Math.max(animDurationMs, Math.min(walkMs, 900) + 800);
+      }
     }
   }
   // 7: le porzioni si muovono UNA DOPO L'ALTRA (in ordine), non tutte insieme,
@@ -7028,7 +7202,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
           if (isTheLast || isSevenExtra) {
             const prevCapPos = prevCapPos0;
             const fromXY = prevCapPos !== undefined && prevCapPos !== -1 ? cellForColor(board, color, prevCapPos) : null;
-            const dly = sevenCaptureDelay(prevCapPos);
+            const dly = isTheLast ? capDelay : sevenCaptureDelay(prevCapPos);
             const run = () => {
               if (isSevenExtra) { try { flashCapture(svg, board, color, prevCapPos); } catch (e) {} }
               animateCaptureOut(existing, svg, board, color, fromXY);
@@ -7058,6 +7232,11 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
         svg.appendChild(outer);
         _pawnAnimState.els[key] = outer;
         _pawnAnimState.positions[key] = pos;
+        if (isFreshEvent && !replayViewPawns && pos === BOARD.baseIndex[color]) {
+          const g0 = (outer.__animGen || 0) + 1; outer.__animGen = g0;
+          animatePawnEnter(outer, svg, board, color, target, g0);
+          animDurationMs = Math.max(animDurationMs, 460);
+        }
         return;
       }
 
@@ -7120,7 +7299,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.182";
+const APP_VERSION = "v5.190";
 
 let myColor = null;
 let myRoomId = null;
@@ -10230,6 +10409,14 @@ const SOUND_RECIPES = {
   deal: () => { noiseBurst(0, 50, 1, 3000, 5000); tone(200, 0, 50, "sine", 0.2, 100); },
   // arpeggio brillante di vittoria
   victory: () => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.11, 800, "sine", 0.25, 0, BELL)); tone(1568, 0.6, 1200, "sine", 0.14, 0, BELL); },
+  // pedina che esce dalla base: "pop" in salita + fruscio
+  pawnOut: () => { tone(320, 0, 140, "sine", 0.45, 760); noiseBurst(0, 60, 0.4, 1500, 4000); },
+  // pedina in casa: tre note di campanello che salgono
+  homeDing: () => { tone(784, 0, 420, "sine", 0.3, 0, BELL); tone(1047, 0.09, 460, "sine", 0.3, 0, BELL); tone(1319, 0.18, 700, "sine", 0.3, 0, BELL); },
+  // mangiato un compagno (o te stesso): "oops" che scende, un po' buffo
+  oops: () => { tone(520, 0, 130, "triangle", 0.4, 360); tone(390, 0.14, 150, "triangle", 0.4, 260); tone(260, 0.3, 320, "triangle", 0.4, 140); },
+  // carta che scatta sul tavolo
+  cardFlick: () => { noiseBurst(0, 55, 0.8, 2500, 5000); tone(210, 0.02, 60, "sine", 0.22, 120); },
   // scoppiettio del fuoco (carta bruciata)
   burn: () => { noiseBurst(0, 500, 0.5, 300, 1500); for (let k = 0; k < 14; k++) noiseBurst(0.1 + Math.random() * 0.9, 12, 0.9, 4000, 4000); },
 };
@@ -10255,6 +10442,10 @@ setInterval(() => {
 // Suoni 8 bit (solo con lo stile Arcade retro): onde quadre e triangolari,
 // arpeggi veloci e rumore corto, come le vecchie sale giochi.
 const SOUND_RECIPES_8BIT = {
+  pawnOut: () => { [330, 440, 660].forEach((f, i) => beep(f, i * 0.05, 60, "square", 0.16)); },
+  homeDing: () => { [784, 988, 1175, 1568].forEach((f, i) => beep(f, i * 0.07, 110, "square", 0.16)); },
+  oops: () => { [520, 392, 294, 196].forEach((f, i) => beep(f, i * 0.09, 100, "square", 0.17)); },
+  cardFlick: () => { beep(900, 0, 35, "square", 0.14); beep(600, 0.04, 35, "square", 0.12); },
   turnStart: () => { [523, 659, 784].forEach((f, i) => beep(f, i * 0.07, 80, "square", 0.16)); },
   captureMade: () => { beep(988, 0, 70, "square", 0.17); beep(1319, 0.07, 260, "square", 0.17); },
   captureLost: () => { [440, 370, 311, 262].forEach((f, i) => beep(f, i * 0.09, 120, "square", 0.17)); },
@@ -10361,6 +10552,8 @@ function maybePlaySounds(state) {
   }
 
   const cap = state.lastCapture;
+  // Nessuna mangiata ancora: baseline 0, così la PRIMA mangiata della partita fa suono
+  if (!cap && soundTracker.captureId === null) soundTracker.captureId = 0;
   if (cap && cap.id) {
     if (soundTracker.captureId === null) {
       soundTracker.captureId = cap.id;
@@ -10371,13 +10564,24 @@ function maybePlaySounds(state) {
         // cap.color è il colore della pedina MANGIATA: se è la tua, senti il
         // thud "uh-oh" (captureLost); altrimenti il "gulp" soddisfatto
         // (captureMade) — anche se a mangiare è stato il compagno, non tu.
-        if (cap.color === myColor) {
-          playSound("captureLost");
-          vibrate([50, 40, 90]);
-        } else {
-          playSound("captureMade");
-          vibrate(60);
-        }
+        // il suono parte quando la pedina che mangia ARRIVA sulla casella
+        // (stesso istante dell'animazione della mangiata), non appena
+        // arriva lo stato.
+        const impactMs = captureImpactDelayMs(state.pawns, cap, state.lastSeven);
+        const friendly = cap.by && TEAM_OF[cap.by] === TEAM_OF[cap.color];
+        const doSound = () => {
+          if (friendly) {
+            playSound("oops");
+            vibrate([40, 30, 40, 30, 80]);
+          } else if (cap.color === myColor) {
+            playSound("captureLost");
+            vibrate([50, 40, 90]);
+          } else {
+            playSound("captureMade");
+            vibrate(60);
+          }
+        };
+        if (impactMs > 0) setTimeout(doSound, impactMs); else doSound();
       }
     }
   }
@@ -10391,6 +10595,7 @@ function maybePlaySounds(state) {
   }
 
   const swap = state.lastSwap;
+  if (!swap && soundTracker.swapId === null) soundTracker.swapId = 0;
   if (swap && swap.id) {
     if (soundTracker.swapId === null) {
       soundTracker.swapId = swap.id;
@@ -10445,6 +10650,7 @@ let botActionTimer = null;
 // Jack, 7 spezzati e catene di mosse dei bot si riescono a seguire.
 let _botBusyUntil = 0;
 let _busySevenId = 0;
+let _busySwapId = 0;
 let _busyPrimed = false;
 function noteBotBusy(state, pawnAnimMs) {
   let ms = pawnAnimMs || 0;
@@ -10455,6 +10661,14 @@ function noteBotBusy(state, pawnAnimMs) {
       const parts = sv.portions || [];
       ms = Math.max(ms, parts.reduce((t, p) => t + ((p.path || []).length * 130 + 220), 400));
     }
+  }
+  // Jack: l'animazione dello scambio (arco + anelli) dura ~1,4s; il bot
+  // successivo non deve muovere finché non è finita, anche se renderPawns
+  // ne stima meno (es. pedine già nella posizione finale).
+  const sw = state.lastSwap;
+  if (sw && sw.id && sw.id !== _busySwapId) {
+    _busySwapId = sw.id;
+    if (_busyPrimed) ms = Math.max(ms, 1500);
   }
   _busyPrimed = true;
   if (ms > 0) _botBusyUntil = Math.max(_botBusyUntil, Date.now() + ms);
@@ -12162,7 +12376,8 @@ function renderExchangeControls(state) {
   const dealKey = String((state.deck || []).length) + ":" + (state.dealerColor || "");
   const justDealt = _dealAnimKey !== dealKey && Date.now() - (state.turnStartedAt || 0) < 15000;
   _dealAnimKey = dealKey;
-  state.hands[myColor].forEach((card, i) => {
+  _handRenderedAt = Date.now();
+  (state.hands[myColor] || []).filter(Boolean).forEach((card, i) => {
     const btn = already ? buildCardButton(card, false) : buildCardButton(card, true, (e) => { flyGivenCard(e && e.currentTarget); sendExchangeCard(card); });
     if (justDealt) {
       btn.classList.add("deal-card");
@@ -12177,6 +12392,33 @@ function renderExchangeControls(state) {
   applyHandFan();
 }
 let _dealAnimKey = null;
+let _handRenderedAt = 0;
+
+// Rete di sicurezza per "a volte spariscono le carte": se la mano nello
+// stato ha carte ma sullo schermo ce ne sono di meno (render interrotto,
+// timer, ritorno dallo sfondo su iPhone) le ridisegna; e se un'animazione
+// di distribuzione è rimasta a metà (carte a opacità 0) la toglie.
+function ensureHandVisible() {
+  try {
+    const st = currentState;
+    if (!st || !myColor || document.hidden) return;
+    if (st.phase !== "playing" && st.phase !== "exchanging") return;
+    const wrap = document.getElementById("hand-wrap");
+    if (!wrap) return;
+    const expected = (st.hands[myColor] || []).filter(Boolean).length;
+    if (wrap.children.length !== expected) {
+      if (st.phase === "exchanging") renderExchangeControls(st); else renderHand(st);
+      return;
+    }
+    if (Date.now() - _handRenderedAt > 3500) {
+      wrap.querySelectorAll(".card-btn.deal-card, .card-btn.deal-in, .card-btn.received-fly").forEach((b) => b.classList.remove("deal-card", "deal-in", "received-fly"));
+    }
+  } catch (e) {}
+}
+setInterval(ensureHandVisible, 1500);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(ensureHandVisible, 150); });
+window.addEventListener("pageshow", () => setTimeout(ensureHandVisible, 150));
+window.addEventListener("focus", () => setTimeout(ensureHandVisible, 150));
 
 // Animazione carta data: un clone della carta vola verso l'alto (lato
 // compagno) rimpicciolendosi e sfumando; la carta vera sparisce subito
@@ -12526,21 +12768,77 @@ function updateActiveBaseGlow(color) {
 const _jackOv = { seenId: null, shownId: null, until: 0, timer: null };
 const JACK_OV_MS = 4500;
 function buildJackOverlay(swap) {
+  const HEX = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" };
   const ns = "http://www.w3.org/2000/svg";
   const mk = (c, i) => {
     const sv = document.createElementNS(ns, "svg");
     sv.setAttribute("viewBox", "-22 -22 44 44");
-    sv.setAttribute("width", 15); sv.setAttribute("height", 15);
+    sv.setAttribute("width", 25); sv.setAttribute("height", 25);
     sv.style.cssText = "overflow:visible;display:block;flex:none";
     sv.appendChild(buildPawnGroup(c, i, 15));
     return sv;
   };
-  return el("div", { class: "jack-overlay" }, mk(swap.a.color, swap.a.pawnIndex), el("span", { class: "jack-overlay-arrow" }, "⇄"), mk(swap.b.color, swap.b.pawnIndex));
+  // Una "pillola" al centro della carta (solo sul simbolo in filigrana): gli
+  // indici negli angoli (valore e seme del J) restano leggibili.
+  return el("div", { class: "jack-overlay" },
+    el("div", { class: "jack-chip a", style: "--c:" + HEX[swap.a.color] }, mk(swap.a.color, swap.a.pawnIndex)),
+    el("span", { class: "jack-overlay-arrow" }, "⇄"),
+    el("div", { class: "jack-chip b", style: "--c:" + HEX[swap.b.color] }, mk(swap.b.color, swap.b.pawnIndex)));
+}
+
+// Carta giocata: parte dalla mano (se è la mia) o dal lato del giocatore e
+// "scatta" sul mucchio al centro. Solo per una carta NUOVA vista dal vivo
+// (non al primo caricamento, non nel replay). Se il render viene rifatto
+// subito (altro aggiornamento di stato) l'animazione riparte da dove era.
+const _cardFly = { id: null, t0: 0, from: null };
+function flyCenterCard(cdEl, boardWrap, shownCard) {
+  try {
+    if (replayViewPawns || !shownCard || !shownCard.id || !cdEl.animate) return;
+    if (_cardFly.id === null) { _cardFly.id = shownCard.id; return; }
+    const now = Date.now();
+    if (shownCard.id !== _cardFly.id) {
+      _cardFly.id = shownCard.id; _cardFly.t0 = now; _cardFly.from = null;
+      try { playSound("cardFlick"); } catch (e) {}
+    } else if (now - _cardFly.t0 > 420) return;
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const r = cdEl.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    if (!_cardFly.from) {
+      let ox, oy;
+      const bw = boardWrap.getBoundingClientRect();
+      const hw = document.getElementById("hand-wrap");
+      if (shownCard.color === myColor && hw) {
+        const h = hw.getBoundingClientRect(); ox = h.left + h.width / 2; oy = h.top + h.height / 2;
+      } else {
+        const left = shownCard.color === "red" || shownCard.color === "blue";
+        const top = shownCard.color === "red" || shownCard.color === "green";
+        ox = left ? bw.left + 40 : bw.right - 40;
+        oy = top ? bw.top - 30 : bw.bottom + 30;
+      }
+      _cardFly.from = { dx: ox - cx, dy: oy - cy };
+    }
+    const remain = Math.max(60, 400 - (now - _cardFly.t0));
+    const { dx, dy } = _cardFly.from;
+    const k = remain / 400;
+    cdEl.animate(
+      [
+        { translate: `${dx * k}px ${dy * k}px`, scale: String(0.55 + 0.45 * (1 - k)), rotate: `${-14 * k}deg`, opacity: 0.2 + 0.8 * (1 - k) },
+        { translate: "0px 0px", scale: "1.08", rotate: "2deg", opacity: 1, offset: 0.8 },
+        { translate: "0px 0px", scale: "1", rotate: "0deg", opacity: 1 },
+      ],
+      { duration: remain, easing: isArcade() ? "steps(7, end)" : "cubic-bezier(.2,.8,.3,1)" }
+    );
+  } catch (e) {}
 }
 
 function renderCenterDiscard(state) {
   const boardWrap = $("#board-wrap");
   if (!boardWrap) return;
+  if (!state.lastCardPlayed && _cardFly.id === null) _cardFly.id = 0; // baseline: anche la PRIMA carta della partita vola
+  // Nessun Jack ancora: baseline 0 (PRIMA del return sotto, che scatta quando
+  // non c'è ancora nessuna carta giocata), così anche il PRIMO Jack della
+  // partita viene mostrato invece di essere preso per "vecchio".
+  if (!state.lastSwap && _jackOv.seenId === null) _jackOv.seenId = 0;
   const existing = boardWrap.querySelector(".center-discard");
   if (existing) existing.remove();
   const shownCard = replayViewPawns && replayViewCard ? { color: replayViewCard.color, card: replayViewCard.card, burned: false } : state.lastCardPlayed;
@@ -12568,7 +12866,7 @@ function renderCenterDiscard(state) {
     clearTimeout(_jackOv.timer);
     _jackOv.timer = setTimeout(() => { const o = document.querySelector(".jack-overlay"); if (o) o.remove(); }, Math.max(50, _jackOv.until - Date.now()));
   }
-  boardWrap.appendChild(
+  const cdEl =
     el(
       "div",
       { class: "center-discard", title: `${playerName(state, color)} ha ${burned ? "bruciato" : "giocato"}: ${card}` },
@@ -12576,8 +12874,9 @@ function renderCenterDiscard(state) {
       miniCardVisual(card, burned),
       showJack ? buildJackOverlay(sw) : "",
       el("span", { class: "initial-badge swatch-" + color }, initial)
-    )
-  );
+    );
+  boardWrap.appendChild(cdEl);
+  flyCenterCard(cdEl, boardWrap, shownCard);
 }
 
 function miniCardVisual(card, burned) {
@@ -12605,6 +12904,10 @@ function applyHandFan() { /* carte dritte (ventaglio rimosso) */ }
 function renderHand(state) {
   const wrap = $("#hand-wrap");
   if (!wrap) return; // schermata di gioco non presente (es. timer/ritardo dopo essere usciti dal tavolo)
+  // Durante lo scambio le carte le disegna renderExchangeControls: se
+  // renderHand (richiamata anche da un timer, vedi sotto) svuotasse qui
+  // #hand-wrap, la mano spariva fino al prossimo aggiornamento dello stato.
+  if (state.phase === "exchanging") { renderExchangeControls(state); return; }
   wrap.innerHTML = "";
   if (state.phase !== "playing") return;
   const isMyTurn = state.turnColor === myColor;
@@ -12624,7 +12927,8 @@ function renderHand(state) {
   const animKey = receivedCard ? receivedCard : null;
   const playAnim = !!(highlightNow && animKey && _receivedHighlight.animDone !== animKey);
   if (playAnim) { _receivedHighlight.animDone = animKey; try { playSound("cardSwap"); } catch (e) {} }
-  hand.forEach((card, i) => {
+  _handRenderedAt = Date.now();
+  hand.filter(Boolean).forEach((card, i) => {
     const btn = buildCardButton(card, isMyTurn, (e) => onCardClick(card, e), highlightNow && card === receivedCard);
     if (playAnim) {
       if (card === receivedCard) btn.classList.add("received-fly");
@@ -14486,8 +14790,12 @@ function renderWinBanner(state) {
     el("div", { class: "win-eyebrow" }, "Partita finita"),
     el(
       "div",
-      { class: "win-team-dots" },
-      winners.map((c) => el("span", { style: `background:${BASE_COL[c]};` }))
+      { class: "win-pawns" },
+      winners.flatMap((c, wi) => [0, 1, 2, 3].map((i) => {
+        const w = el("span", { class: "win-hop", style: `animation-delay:${(wi * 4 + i) * 0.09}s` });
+        w.appendChild(pipIcon(c, i, 26));
+        return w;
+      }))
     ),
     el("h2", {}, `${TEAM_LABEL[state.winnerTeam]} vincono!`),
     el("p", { class: "win-names" }, `${names} portano tutte le pedine a casa`),
