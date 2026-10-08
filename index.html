@@ -2519,8 +2519,9 @@ html[data-skin="bright"]:not([data-theme="dark"]) .status-bar-shield {background
    ultime nel JS: isArcade() in buildBoardSVG/buildPawnGroup). Anteprima e
    note: docs/temi/. Per toglierlo: rimuovere questo blocco + isArcade(). */
 html[data-skin="arcade"]:has(.game-shell), html[data-skin="arcade"]:has(.game-shell) body { background: #07021a !important; color: #d9f7ff !important; font-family: "Courier New", ui-monospace, monospace !important; }
-html[data-skin="arcade"]:has(.game-shell)::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 99999; background: repeating-linear-gradient(0deg, rgba(0,0,0,.2) 0 1px, transparent 1px 3px); }
-html[data-skin="arcade"]:has(.game-shell)::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 99998; background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0,0,0,.5)); }
+html[data-skin="arcade"]:has(.game-shell)::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 300; background: repeating-linear-gradient(0deg, rgba(0,0,0,.2) 0 1px, transparent 1px 3px); }
+html[data-skin="arcade"]:has(.game-shell)::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 299; background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0,0,0,.5)); }
+html[data-skin="arcade"]:has(.picker-overlay)::before { display: none !important; }
 html[data-skin="arcade"] .game-shell * { border-radius: 2px !important; }
 html[data-skin="arcade"] .icon-btn, html[data-skin="arcade"] .icon-btn-pair, html[data-skin="arcade"] .room-team-row, html[data-skin="arcade"] .chat-preview,
 html[data-skin="arcade"] .nudge-btn, html[data-skin="arcade"] .reaction-btn, html[data-skin="arcade"] .board-player, html[data-skin="arcade"] .turn-line, html[data-skin="arcade"] .chat-fab {
@@ -2545,6 +2546,17 @@ html[data-skin="arcade"] .pawn.pawn-hot .pawn-visual { filter: drop-shadow(0 0 7
 /* pannello Impostazioni e altri fogli */
 html[data-skin="arcade"] .picker-overlay.picker-opaque, html[data-skin="arcade"] .picker-overlay { background: #0b0430 !important; color: #d9f7ff; border-top: 2px solid #ff2bd6; box-shadow: 0 -10px 28px rgba(255,43,214,.45) !important; font-family: "Courier New", ui-monospace, monospace; }
 html[data-skin="arcade"] #picker-wrap { color: #d9f7ff; }
+/* fogli nitidi: niente righe da monitor sopra (z-index sotto il foglio), niente alone sul testo, niente sfocatura */
+html[data-skin="arcade"] .picker-overlay, html[data-skin="arcade"] .picker-overlay * { text-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+/* testi leggibili in TUTTI i fogli (estrazione, regole, chat, scelte Jack/7): variabili di colore chiare */
+html[data-skin="arcade"] .picker-overlay, html[data-skin="arcade"] #picker-wrap {
+  --ink: #d9f7ff; --muted: #9fb8e0; --muted-2: #9fb8e0; --muted-3: #9fb8e0; --panel: #12063a; --panel-border: rgba(0,240,255,.55);
+}
+html[data-skin="arcade"] .picker-overlay h1, html[data-skin="arcade"] .picker-overlay h2, html[data-skin="arcade"] .picker-overlay h3 { color: #00f0ff !important; text-shadow: 0 0 8px rgba(0,240,255,.7); text-transform: uppercase; letter-spacing: .05em; }
+html[data-skin="arcade"] .picker-overlay .muted, html[data-skin="arcade"] .picker-overlay p { color: #c4d6f5 !important; }
+html[data-skin="arcade"] .dealer-slot-label, html[data-skin="arcade"] .dealer-slot.dealer-winner .dealer-slot-label { color: #d9f7ff !important; }
+html[data-skin="arcade"] .dealer-slot.dealer-winner { background: rgba(255,226,60,.12); box-shadow: 0 0 14px rgba(255,226,60,.55); }
+html[data-skin="arcade"] #dealer-draw-banner { background: #ffe23c !important; color: #1a0c3a !important; border-radius: 2px !important; box-shadow: 0 0 14px rgba(255,226,60,.7) !important; text-transform: uppercase; letter-spacing: .04em; }
 html[data-skin="arcade"] .set-card { background: #12063a !important; border: 2px solid #00f0ff !important; border-radius: 2px !important; box-shadow: 0 0 8px rgba(0,240,255,.4); }
 html[data-skin="arcade"] .set-card-title { color: #ff2bd6 !important; }
 html[data-skin="arcade"] .set-row { border-top-color: rgba(0,240,255,.3) !important; }
@@ -5912,7 +5924,28 @@ const BOARD_PALETTES = {
 // ---- Arcade retro (v5.175): caselle quadrate al neon + pedine a pixel ----
 // Attivo solo con data-skin="arcade"; gli altri stili non passano da qui.
 const ARCADE_NEON = { red: "#ff3c6e", green: "#39ff88", blue: "#3cb4ff", yellow: "#ffe23c" };
-const ARCADE_SPRITE = ["0110110", "1111111", "1011101", "1111111", "0111110", "0101010", "1010101"];
+// Quattro "alieni" diversi (uno per pedina 1-4, stesso colore del giocatore) +
+// numero in un riquadro: le pedine dello stesso colore si riconoscono per forma E numero.
+const ARCADE_SPRITES = [
+  ["0010100", "0111110", "1101011", "1111111", "1011101", "0100010", "1000001"], // 1 granchio
+  ["0001000", "0011100", "0111110", "1101011", "1111111", "0101010", "1010101"], // 2 calamaro
+  ["0111110", "1111111", "1011101", "1111111", "0111110", "0101010", "1010101"], // 3 polpo
+  ["1010101", "1111111", "1111111", "1011101", "1111111", "0111110", "0101010"], // 4 corona
+];
+// Disegna sprite+numero dentro il gruppo g, centrato in (0,0), con "px" = lato del pixel.
+function arcadeDrawPawn(g, color, pawnIndex, px, withBadge) {
+  const col = ARCADE_NEON[color];
+  ARCADE_SPRITES[pawnIndex % 4].forEach((row, j) => [...row].forEach((v, i) => {
+    if (v === "1") g.appendChild(ns_el("rect", { x: (i - 3.5) * px, y: (j - 3.5) * px, width: px + 0.1, height: px + 0.1, fill: col }));
+  }));
+  if (withBadge) {
+    const bs = px * 4.3, bx = px * 1.7, by = px * 1.7;
+    g.appendChild(ns_el("rect", { x: bx, y: by, width: bs, height: bs, fill: "#0b0430", stroke: col, "stroke-width": px * 0.45 }));
+    const t = ns_el("text", { x: bx + bs / 2, y: by + bs / 2 + px * 1.25, "text-anchor": "middle", "font-size": px * 3.5, "font-weight": 900, fill: "#ffffff", "font-family": "Courier New, monospace" });
+    t.textContent = String(pawnIndex + 1);
+    g.appendChild(t);
+  }
+}
 function isArcade() { return document.documentElement.getAttribute("data-skin") === "arcade"; }
 
 function buildBoardSVG(containerEl, board) {
@@ -6272,6 +6305,14 @@ function pipIcon(color, pawnIndex, size) {
   svg.setAttribute("width", size);
   svg.setAttribute("height", size);
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+  if (isArcade()) {
+    const g = ns_el("g", { transform: `translate(${size / 2 - size * 0.06},${size / 2 - size * 0.06})` });
+    arcadeDrawPawn(g, color, pawnIndex, size / 10.5, size >= 20);
+    svg.style.overflow = "visible";
+    svg.style.filter = `drop-shadow(0 0 3px ${ARCADE_NEON[color]})`;
+    svg.appendChild(g);
+    return svg;
+  }
   const r = size / 2;
   svg.appendChild(ns_el("circle", { cx: r, cy: r, r, fill: BASE_COL[color] }));
   const pipR = size * 0.09;
@@ -6293,16 +6334,8 @@ function buildPawnGroup(color, pawnIndex, capR) {
   const g = document.createElementNS(ns, "g");
   g.setAttribute("class", "pawn-visual");
   if (isArcade()) {
-    const col = ARCADE_NEON[color];
-    const px = capR * 0.2;
-    ARCADE_SPRITE.forEach((row, j) => [...row].forEach((v, i) => {
-      if (v === "1") g.appendChild(ns_el("rect", { x: (i - 3.5) * px, y: (j - 3.5) * px, width: px + 0.1, height: px + 0.1, fill: col }));
-    }));
-    // numero della pedina: quadratini bianchi a dado sul corpo dell'invader
-    PIP_LAYOUTS[pawnIndex].forEach(([dx, dy]) => {
-      g.appendChild(ns_el("rect", { x: dx * capR * 0.62 - px * 0.6, y: dy * capR * 0.62 + px * 0.2 - px * 0.6, width: px * 1.2, height: px * 1.2, fill: "#ffffff", stroke: "#0b0430", "stroke-width": capR * 0.03, "paint-order": "stroke" }));
-    });
-    g.style.setProperty("--neon", col);
+    arcadeDrawPawn(g, color, pawnIndex, capR * 0.25, true);
+    g.style.setProperty("--neon", ARCADE_NEON[color]);
     return g;
   }
   const outline = capOutlinePath(capR, 28, 0.055);
@@ -7048,7 +7081,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry) {
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.176";
+const APP_VERSION = "v5.180";
 
 let myColor = null;
 let myRoomId = null;
