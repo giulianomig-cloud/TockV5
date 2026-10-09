@@ -7349,7 +7349,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.28";
+const APP_VERSION = "v5.29";
 
 let myColor = null;
 let myRoomId = null;
@@ -10797,6 +10797,10 @@ function maybeAdvanceBotTurn(state) {
   }
 }
 
+function botStateKey(st) {
+  if (!st) return "";
+  try { return st.phase + "|" + st.turnColor + "|" + JSON.stringify(st.pawns) + "|" + Object.keys(st.hands || {}).map((c) => (st.hands[c] || []).length).join(",") + "|" + JSON.stringify(st.pendingExchange || {}); } catch (e) { return ""; }
+}
 function scheduleBotAction(fn) {
   if (botActionTimer) return; // un tentativo è già in programma
   // Pausa "umana" tra una mossa dei bot e la successiva — abbastanza lunga
@@ -10807,8 +10811,29 @@ function scheduleBotAction(fn) {
   // un bot): il bot parte a (fine animazione + 1,5s); senza animazione, 1,5s
   // dopo l'arrivo della mossa.
   const BOT_GAP_MS = 1500;
-  const delay = BOT_GAP_MS;
+  // v5.29: se in stanza ci sono più persone, ogni telefono farebbe muovere i
+  // bot per conto suo e vincerebbe quello più "veloce" (o con una versione
+  // dell'app più vecchia), saltando le pause. Il "pilota" dei bot è il primo
+  // giocatore umano (ordine dei colori); gli altri intervengono solo se il
+  // pilota non muove entro 7s (es. telefono spento).
+  let delay = BOT_GAP_MS;
+  try {
+    const st = (typeof currentState !== "undefined") ? currentState : null;
+    if (st && st.players && myColor) {
+      const driver = COLORS.find((c) => st.players[c] && !st.players[c].isBot);
+      if (driver && driver !== myColor) delay += 7000;
+    }
+  } catch (e) {}
+  const keyAtSchedule = botStateKey(typeof currentState !== "undefined" ? currentState : null);
   const run = () => {
+    // Se nel frattempo la partita è andata avanti (ha mosso un altro telefono),
+    // questo tentativo è vecchio: si ricomincia dallo stato nuovo.
+    const nowKey = botStateKey(typeof currentState !== "undefined" ? currentState : null);
+    if (nowKey !== keyAtSchedule) {
+      botActionTimer = null;
+      try { maybeAdvanceBotTurn(currentState); } catch (e) {}
+      return;
+    }
     // Se il tabellone sta ancora animando la mossa precedente, aspetta la fine + 1,5s.
     const wait = _botBusyUntil + BOT_GAP_MS - Date.now();
     if (wait > 0) { botActionTimer = setTimeout(run, wait); return; }
