@@ -7349,7 +7349,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.25";
+const APP_VERSION = "v5.27";
 
 let myColor = null;
 let myRoomId = null;
@@ -10786,10 +10786,14 @@ function scheduleBotAction(fn) {
   // da poter seguire cosa succede sul tabellone. Era già stata allungata
   // due volte (0,65-1,5s -> 1,7-3,1s -> 2,6-4,6s) ma su richiesta esplicita
   // ora è più corta di prima (1,5-2,5s), per un ritmo più svelto.
-  const delay = 1500 + Math.random() * 1000; // 1,5s – 2,5s
+  // v5.27: pausa FISSA di 1,5s dopo la fine di ogni mossa (di una persona o di
+  // un bot): il bot parte a (fine animazione + 1,5s); senza animazione, 1,5s
+  // dopo l'arrivo della mossa.
+  const BOT_GAP_MS = 1500;
+  const delay = BOT_GAP_MS;
   const run = () => {
-    // Se il tabellone sta ancora animando la mossa precedente, aspetta la fine + 1s.
-    const wait = _botBusyUntil + 1000 - Date.now();
+    // Se il tabellone sta ancora animando la mossa precedente, aspetta la fine + 1,5s.
+    const wait = _botBusyUntil + BOT_GAP_MS - Date.now();
     if (wait > 0) { botActionTimer = setTimeout(run, wait); return; }
     botActionTimer = null;
     fn().catch((e) => console.error("bot:", e));
