@@ -7349,7 +7349,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.27";
+const APP_VERSION = "v5.28";
 
 let myColor = null;
 let myRoomId = null;
@@ -10736,6 +10736,7 @@ let _botBusyUntil = 0;
 let _busySevenId = 0;
 let _busySwapId = 0;
 let _busyPrimed = false;
+let _busySevenSeen = 0, _busySwapSeen = 0, _busyCapSeen = 0, _busyHomeSeen = 0;
 function noteBotBusy(state, pawnAnimMs) {
   let ms = pawnAnimMs || 0;
   const sv = state.lastSeven;
@@ -10754,6 +10755,22 @@ function noteBotBusy(state, pawnAnimMs) {
     _busySwapId = sw.id;
     if (_busyPrimed) ms = Math.max(ms, 1500);
   }
+  // v5.28: dopo le giocate "difficili da seguire" (mangiata, Jack, 7, pedina
+  // che arriva in casa) il bot aspetta 1s in più, così si capisce cosa è
+  // successo prima della mossa dopo. Le mosse semplici restano a 1,5s.
+  const cap = state.lastCapture, home = state.lastHomeEntry;
+  let special = false;
+  if (_busyPrimed) {
+    if (sw && sw.id && _busySwapSeen !== sw.id) special = true;
+    if (sv && sv.id && _busySevenSeen !== sv.id) special = true;
+    if (cap && cap.id && _busyCapSeen !== cap.id) special = true;
+    if (home && home.id && _busyHomeSeen !== home.id) special = true;
+  }
+  if (sv && sv.id) _busySevenSeen = sv.id;
+  if (sw && sw.id) _busySwapSeen = sw.id;
+  if (cap && cap.id) _busyCapSeen = cap.id;
+  if (home && home.id) _busyHomeSeen = home.id;
+  if (special) ms = Math.max(ms, 1) + 1000;
   _busyPrimed = true;
   if (ms > 0) _botBusyUntil = Math.max(_botBusyUntil, Date.now() + ms);
 }
