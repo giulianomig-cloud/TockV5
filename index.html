@@ -2724,6 +2724,26 @@ html.fx3d[data-theme="dark"] .reaction-btn:active, html.fx3d[data-theme="dark"] 
 }
 
 
+
+/* --- v5.32: Rilievo 3D più marcato (pedine, caselle, cornice) ---
+   Una sola luce, in alto a sinistra. Arcade escluso: ha già il suo stile. */
+.pawn-gloss-3d { display: none; }
+html.fx3d[data-skin="arcade"] .board-cell { filter: url(#fx3d-sunk-arcade); }
+html.fx3d:not([data-skin="arcade"]) .pawn-gloss-3d { display: inline; }
+html.fx3d:not([data-skin="arcade"]) .pawn { filter: drop-shadow(2px 4px 1.5px rgba(40,24,4,.6)) drop-shadow(6px 12px 8px rgba(40,24,4,.32)); }
+html.fx3d:not([data-skin="arcade"]) #board-wrap {
+  position: relative;
+  box-shadow: 0 10px 18px -6px rgba(70,45,10,.55) inset, 0 -2px 0 rgba(255,255,255,.55) inset,
+              0 2px 0 rgba(255,255,255,.9), 0 14px 26px -12px rgba(60,38,8,.55);
+}
+html.fx3d:not([data-skin="arcade"]) #board-wrap::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 40%, rgba(40,24,4,0) 60%, rgba(40,24,4,.2) 100%);
+}
+html.fx3d[data-theme="dark"]:not([data-skin="arcade"]) #board-wrap {
+  box-shadow: 0 10px 18px -6px rgba(0,0,0,.7) inset, 0 -1px 0 rgba(255,255,255,.12) inset, 0 1px 0 rgba(255,255,255,.08), 0 14px 26px -12px rgba(0,0,0,.7);
+}
+html.fx3d[data-theme="dark"]:not([data-skin="arcade"]) .pawn { filter: drop-shadow(2px 4px 1.5px rgba(0,0,0,.7)) drop-shadow(6px 12px 8px rgba(0,0,0,.4)); }
 /* --- v5.31: ritocchi grafici (nomi interi, offline, reazioni) --- */
 /* Pallini delle pedine più piccoli nelle pillole: il posto va al nome,
    che prima veniva tagliato già a 6-7 lettere ("Giulia…"). */
@@ -6188,6 +6208,13 @@ function buildBoardSVG(containerEl, board) {
   pawnGloss.appendChild(ns_el("stop", { offset: "0%", "stop-color": "#ffffff", "stop-opacity": "0.55" }));
   pawnGloss.appendChild(ns_el("stop", { offset: "100%", "stop-color": "#ffffff", "stop-opacity": "0" }));
   defs.appendChild(pawnGloss);
+  // v5.32: riflesso più marcato per il "Rilievo 3D" (visibile solo con
+  // html.fx3d, vedi .pawn-gloss-3d): luce da in alto a sinistra.
+  const pawnGloss3d = ns_el("radialGradient", { id: "pawn-gloss-3d", cx: "35%", cy: "30%", r: "55%" });
+  pawnGloss3d.appendChild(ns_el("stop", { offset: "0%", "stop-color": "#ffffff", "stop-opacity": "0.85" }));
+  pawnGloss3d.appendChild(ns_el("stop", { offset: "45%", "stop-color": "#ffffff", "stop-opacity": "0.15" }));
+  pawnGloss3d.appendChild(ns_el("stop", { offset: "100%", "stop-color": "#ffffff", "stop-opacity": "0" }));
+  defs.appendChild(pawnGloss3d);
 
   svg.appendChild(defs);
 
@@ -6508,6 +6535,7 @@ function buildPawnGroup(color, pawnIndex, capR) {
   g.appendChild(ns_el("ellipse", {
     cx: -capR * 0.28, cy: -capR * 0.32, rx: capR * 0.5, ry: capR * 0.34, fill: "url(#pawn-gloss)",
   }));
+  g.appendChild(ns_el("circle", { cx: 0, cy: 0, r: capR * 0.87, fill: "url(#pawn-gloss-3d)", class: "pawn-gloss-3d", "pointer-events": "none" }));
   // dice pips instead of a number: quantity readable at a glance, and no
   // digit to keep legible at small board scale.
   const pipR = capR * 0.135;
@@ -7442,7 +7470,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.31";
+const APP_VERSION = "v5.32";
 
 let myColor = null;
 let myRoomId = null;
@@ -10361,7 +10389,17 @@ function ensureFx3dFilter() {
   svg.setAttribute("width", "0");
   svg.setAttribute("height", "0");
   svg.style.position = "absolute";
-  svg.innerHTML = '<defs><filter id="fx3d-sunk" x="-30%" y="-30%" width="160%" height="160%"><feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer><feOffset in="inv" dx="1.2" dy="3" result="off"/><feGaussianBlur in="off" stdDeviation="2.2" result="bl"/><feComposite in="bl" in2="SourceAlpha" operator="in" result="sh"/><feFlood flood-color="#3a2508" flood-opacity=".65"/><feComposite in2="sh" operator="in" result="shc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shc"/></feMerge></filter></defs>';
+  // v5.32: buchi più profondi (ombra interna in alto a sinistra) con una luce
+  // sul bordo interno in basso a destra, come una casella scavata nel legno.
+  svg.innerHTML = '<defs><filter id="fx3d-sunk" x="-30%" y="-30%" width="160%" height="160%">' +
+    '<feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>' +
+    '<feOffset in="inv" dx="2" dy="4.5" result="off"/><feGaussianBlur in="off" stdDeviation="2.6" result="bl"/>' +
+    '<feComposite in="bl" in2="SourceAlpha" operator="in" result="sh"/><feFlood flood-color="#2a1a04" flood-opacity=".9"/><feComposite in2="sh" operator="in" result="shc"/>' +
+    '<feOffset in="inv" dx="-1" dy="-1.8" result="off2"/><feGaussianBlur in="off2" stdDeviation="1.2" result="bl2"/>' +
+    '<feComposite in="bl2" in2="SourceAlpha" operator="in" result="hl"/><feFlood flood-color="#ffffff" flood-opacity=".85"/><feComposite in2="hl" operator="in" result="hlc"/>' +
+    '<feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shc"/><feMergeNode in="hlc"/></feMerge></filter>' +
+    // Arcade: resta il filtro di prima (più leggero), lo stile neon ha già il suo look.
+    '<filter id="fx3d-sunk-arcade" x="-30%" y="-30%" width="160%" height="160%"><feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer><feOffset in="inv" dx="1.2" dy="3" result="off"/><feGaussianBlur in="off" stdDeviation="2.2" result="bl"/><feComposite in="bl" in2="SourceAlpha" operator="in" result="sh"/><feFlood flood-color="#3a2508" flood-opacity=".65"/><feComposite in2="sh" operator="in" result="shc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shc"/></feMerge></filter></defs>';
   document.body.appendChild(svg);
 }
 function toggleFx3d() {
