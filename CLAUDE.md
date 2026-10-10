@@ -21,8 +21,9 @@
   - `CACHE_VERSION` in `sw.js` (es. `"v5-30"`) — serve a scartare le cache vecchie sui telefoni.
 
 ## Regole da ricordare
-- Si può mangiare anche una propria pedina: con una carta normale arrivandoci sopra,
-  col 7 anche a metà strada (come per gli avversari). Prima di farlo l'app chiede conferma.
+- Tutte le pedine (proprie, del compagno, avversarie) si mangiano con le stesse regole:
+  con una carta normale arrivandoci sopra (senza scavalcare nessuno), col 7 anche a metà strada.
+  Se si mangia una pedina del proprio colore l'app chiede conferma.
 - Le pedine protette (appena entrate sulla propria base) non si mangiano né si scavalcano.
 
 ## Controlli automatici

@@ -148,6 +148,16 @@ test("con una carta normale si può mangiare una propria pedina arrivandoci sopr
   assert.equal(s.pawns.red[1], -1);
 });
 
+test("le pedine del compagno si mangiano con le stesse regole", () => {
+  let s = partita({ red: [5, -1, -1, -1], yellow: [11, -1, -1, -1] });
+  T.applyMove(s, "red", "6-hearts", T.legalMovesForCard(s, "red", "6-hearts")[0]);
+  assert.equal(s.pawns.yellow[0], -1, "carta normale: arrivandoci sopra");
+  s = partita({ red: [5, -1, -1, -1], yellow: [8, -1, -1, -1] });
+  assert.deepEqual(T.legalMovesForCard(s, "red", "6-hearts"), [], "carta normale: non si scavalca");
+  T.applyMove(s, "red", "7-hearts", { type: "seven", distribution: [{ pawnIndex: 0, steps: 7 }] });
+  assert.equal(s.pawns.yellow[0], -1, "col 7: anche a metà strada");
+});
+
 test("la pedina appena entrata sulla propria base è protetta", () => {
   const s = partita({ red: [BASE.green - 3, -1, -1, -1], green: [BASE.green, -1, -1, -1] });
   assert.ok(T.isPawnProtected(s, "green", 0));
