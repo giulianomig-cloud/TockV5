@@ -2567,7 +2567,10 @@ html[data-skin="bright"]:not([data-theme="dark"]) .chat-preview {background:rgba
 html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn {background:linear-gradient(90deg,#FF8A5B,#FFB347)!important;border:0!important;border-radius:20px!important;color:#fff!important;box-shadow:0 12px 22px -8px rgba(255,138,91,.7)!important}
 /* v5.35: testo scuro sull'arancio (il bianco aveva contrasto 2,3, poco leggibile) */
 html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn, html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn * {color:#3A1F0A!important}
-html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn .you-badge-strong {color:#FFE2B8!important}
+/* v5.38: anche tutto ciò che sta DENTRO l'etichetta resta chiaro — il traduttore di Chrome
+   avvolge il testo in <font>, che altrimenti prendeva il colore scuro della regola qui sopra */
+html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn .you-badge-strong,
+html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn .you-badge-strong * {color:#FFE2B8!important}
 html[data-skin="bright"]:not([data-theme="dark"]) .board-player {box-shadow:0 8px 14px -6px rgba(70,60,120,.35)!important}
 html[data-skin="bright"]:not([data-theme="dark"]) .card-btn {border-radius:12px!important;border:0!important;box-shadow:0 14px 22px -8px rgba(70,60,120,.5),0 2px 4px rgba(70,60,120,.15)!important}
 html[data-skin="bright"]:not([data-theme="dark"]) .reaction-btn,
@@ -7598,7 +7601,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.37";
+const APP_VERSION = "v5.38";
 
 let myColor = null;
 let myRoomId = null;
