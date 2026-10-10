@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.37**.
+- Versione attuale: **v5.38**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -56,6 +56,9 @@
   ☀️ 🌙 🧊 · 🃏 Classico, 🪵 Legno, 🎰 Notte, 💎 Luminoso, 🕹️ Arcade · 🔊 📳 · 📜 🎓 · 📤 · 👀 🏷️).
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
+- Alcuni giocatori usano l'app con il **traduttore di Chrome** (es. in spagnolo): avvolge i testi
+  in `<font>`. Regole CSS tipo `.qualcosa * { color: ... }` colpiscono anche quei `<font>`:
+  se un elemento interno ha un colore diverso, dagli la regola anche per i suoi figli (`.x, .x *`).
 - Prima di eliminare un file, controlla che non sia usato in `index.html`, `sw.js` o `manifest.json`.
 - Le conversazioni non si salvano tra una sessione e l'altra: le informazioni importanti
   da ricordare vanno scritte in questo file.
