@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.38**.
+- Versione attuale: **v5.39**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:

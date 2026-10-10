@@ -1971,6 +1971,10 @@ button.secondary.selected {
   flex-shrink: 0;
 }
 .seven-row.has-steps .seven-step-btn { background: var(--panel); }
+/* v5.39: tocchi rapidi registrati tutti (senza il ritardo/zoom del doppio
+   tocco di Safari su iPhone) e tasti spenti riconoscibili. */
+.seven-step-btn, .choice-box button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.seven-step-btn:disabled { opacity: .32; cursor: default; }
 .seven-val {
   min-width: 18px;
   text-align: center;
@@ -6619,6 +6623,10 @@ function pipIcon(color, pawnIndex, size) {
   const svg = document.createElementNS(ns, "svg");
   svg.setAttribute("width", size);
   svg.setAttribute("height", size);
+  // v5.39: mai rimpicciolita dentro una riga flex — prima, se il testo
+  // accanto andava su due righe, l'icona si stringeva e le pedine nei
+  // menu di scelta sembravano di misure diverse (segnalato).
+  svg.style.flexShrink = "0";
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
   if (isArcade()) {
     const g = ns_el("g", { transform: `translate(${size / 2 - size * 0.06},${size / 2 - size * 0.06})` });
@@ -7601,7 +7609,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.38";
+const APP_VERSION = "v5.39";
 
 let myColor = null;
 let myRoomId = null;
@@ -14732,9 +14740,9 @@ function renderSevenSplitter(active, card, ownPawns) {
       { class: "seven-row" + (val > 0 ? " has-steps" : ""), id: "seven-row-" + key },
       pipIcon(p.color, p.pawnIndex, 34),
       el("div", { class: "seven-row-text", id: "seven-row-text-" + key }, sevenRowLabel(p, val)),
-      el("button", { class: "seven-step-btn", onclick: () => adjustSeven(active, card, ownPawns, p.color, p.pawnIndex, -1) }, "−"),
+      el("button", { class: "seven-step-btn", id: "seven-minus-" + key, disabled: val <= 0, "aria-label": "Un passo in meno", onclick: () => adjustSeven(active, card, ownPawns, p.color, p.pawnIndex, -1) }, "−"),
       el("span", { class: "seven-val", id: "seven-val-" + key }, String(val)),
-      el("button", { class: "seven-step-btn", onclick: () => adjustSeven(active, card, ownPawns, p.color, p.pawnIndex, 1) }, "+")
+      el("button", { class: "seven-step-btn", id: "seven-plus-" + key, disabled: remaining <= 0, "aria-label": "Un passo in più", onclick: () => adjustSeven(active, card, ownPawns, p.color, p.pawnIndex, 1) }, "+")
     );
   };
 
@@ -14803,6 +14811,12 @@ function patchSevenSplitterNumbers(total, remaining, keys) {
     const val = sevenAllocation[key] || 0;
     const valEl = document.getElementById("seven-val-" + key);
     if (valEl) valEl.textContent = String(val);
+    // v5.39: "−" spento a zero, "+" spento quando i 7 passi sono già tutti
+    // assegnati — prima restavano uguali e il tocco sembrava non funzionare.
+    const minusEl = document.getElementById("seven-minus-" + key);
+    if (minusEl) minusEl.disabled = val <= 0;
+    const plusEl = document.getElementById("seven-plus-" + key);
+    if (plusEl) plusEl.disabled = remaining <= 0;
     const rowEl = document.getElementById("seven-row-" + key);
     if (rowEl) rowEl.classList.toggle("has-steps", val > 0);
     const sep = key.indexOf(":");
