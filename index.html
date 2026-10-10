@@ -2724,6 +2724,26 @@ html.fx3d[data-theme="dark"] .reaction-btn:active, html.fx3d[data-theme="dark"] 
 }
 
 
+
+/* --- v5.32: Rilievo 3D più marcato (pedine, caselle, cornice) ---
+   Una sola luce, in alto a sinistra. Arcade escluso: ha già il suo stile. */
+.pawn-gloss-3d { display: none; }
+html.fx3d[data-skin="arcade"] .board-cell { filter: url(#fx3d-sunk-arcade); }
+html.fx3d:not([data-skin="arcade"]) .pawn-gloss-3d { display: inline; }
+html.fx3d:not([data-skin="arcade"]) .pawn { filter: drop-shadow(2px 4px 1.5px rgba(40,24,4,.6)) drop-shadow(6px 12px 8px rgba(40,24,4,.32)); }
+html.fx3d:not([data-skin="arcade"]) #board-wrap {
+  position: relative;
+  box-shadow: 0 10px 18px -6px rgba(70,45,10,.55) inset, 0 -2px 0 rgba(255,255,255,.55) inset,
+              0 2px 0 rgba(255,255,255,.9), 0 14px 26px -12px rgba(60,38,8,.55);
+}
+html.fx3d:not([data-skin="arcade"]) #board-wrap::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 40%, rgba(40,24,4,0) 60%, rgba(40,24,4,.2) 100%);
+}
+html.fx3d[data-theme="dark"]:not([data-skin="arcade"]) #board-wrap {
+  box-shadow: 0 10px 18px -6px rgba(0,0,0,.7) inset, 0 -1px 0 rgba(255,255,255,.12) inset, 0 1px 0 rgba(255,255,255,.08), 0 14px 26px -12px rgba(0,0,0,.7);
+}
+html.fx3d[data-theme="dark"]:not([data-skin="arcade"]) .pawn { filter: drop-shadow(2px 4px 1.5px rgba(0,0,0,.7)) drop-shadow(6px 12px 8px rgba(0,0,0,.4)); }
 /* --- v5.31: ritocchi grafici (nomi interi, offline, reazioni) --- */
 /* Pallini delle pedine più piccoli nelle pillole: il posto va al nome,
    che prima veniva tagliato già a 6-7 lettere ("Giulia…"). */
@@ -5263,6 +5283,88 @@ async function unpairHumans(code, idA) {
     });
 }
 
+// v5.33: l'organizzatore toglie un iscritto (persona o bot). Come per
+// removeBotFromTournament non tocca tavoli/round già generati (se la persona
+// era a un tavolo del round in corso, l'organizzatore può rigenerarli) né la
+// classifica già accumulata. Nel formato "tutti con tutti" a torneo avviato
+// il suo posto (posizione in `ordine`, che decide lo schema degli 8 posti)
+// passa a un bot automatico, altrimenti gli abbinamenti dei round futuri
+// salterebbero. Il compagno resta iscritto senza coppia; se il compagno era
+// un bot dato apposta a questa persona, viene tolto anche lui.
+async function removePlayerFromTournament(code, playerId) {
+  const myToken = getOrCreateOrganizerToken(code);
+  let blockedReason = null;
+  const result = await tournamentsRef()
+    .child(code)
+    .transaction((cur) => {
+      blockedReason = null;
+      if (!cur || !cur.iscritti || !cur.iscritti[playerId]) return cur;
+      if (cur.organizerToken !== myToken) { blockedReason = "notOrganizer"; return; }
+      if (!Array.isArray(cur.ordine)) cur.ordine = [];
+      const partnerId = cur.iscritti[playerId].coppiaConId;
+      delete cur.iscritti[playerId];
+      const idx = cur.ordine.indexOf(playerId);
+      if (cur.formato === "rotante_8" && cur.stato !== "iscrizioni" && idx >= 0) {
+        const usedNames = Object.values(cur.iscritti).map((p) => p.nome);
+        const botId = "bot-auto-" + Math.random().toString(36).slice(2, 10);
+        cur.iscritti[botId] = { nome: pickBotName(usedNames), isBot: true, botLevel: "hard", presente_stasera: false, coppiaConId: null };
+        cur.ordine[idx] = botId;
+      } else {
+        cur.ordine = cur.ordine.filter((id) => id !== playerId);
+      }
+      const partner = partnerId && cur.iscritti[partnerId];
+      if (partner && partner.coppiaConId === playerId) {
+        if (partner.isBot && cur.formato === "coppie_fisse") {
+          delete cur.iscritti[partnerId];
+          cur.ordine = cur.ordine.filter((id) => id !== partnerId);
+        } else {
+          partner.coppiaConId = null;
+        }
+      }
+      return cur;
+    });
+  if (blockedReason) return { ok: false, reason: blockedReason };
+  return result.committed ? { ok: true } : { ok: false, reason: "error" };
+}
+
+// v5.33: l'organizzatore passa il ruolo a un altro iscritto. Il ruolo è
+// legato al DISPOSITIVO (organizerToken, vedi getOrCreateOrganizerToken),
+// e non sappiamo il token del telefono dell'altro: si scrive quindi
+// "passa:<playerId>" nello stesso campo (nessun campo nuovo: le regole
+// Firebase rifiutano campi extra), e il telefono di quella persona, appena
+// apre la pagina del torneo, lo sostituisce con il proprio token (vedi
+// claimPassedOrganizer). Da subito chi lo passa non è più organizzatore;
+// se l'altro non lo apre mai, si può sempre riprendere con "Diventa
+// organizzatore da questo dispositivo".
+const PASS_ORGANIZER_PREFIX = "passa:";
+async function passOrganizer(code, playerId) {
+  const myToken = getOrCreateOrganizerToken(code);
+  let blockedReason = null;
+  const result = await tournamentsRef()
+    .child(code)
+    .transaction((cur) => {
+      blockedReason = null;
+      if (!cur) { blockedReason = "notFound"; return cur; }
+      if (cur.organizerToken !== myToken) { blockedReason = "notOrganizer"; return; }
+      const p = cur.iscritti && cur.iscritti[playerId];
+      if (!p || p.isBot) { blockedReason = "notFound"; return; }
+      cur.organizerToken = PASS_ORGANIZER_PREFIX + playerId;
+      return cur;
+    });
+  if (blockedReason) return { ok: false, reason: blockedReason };
+  return result.committed ? { ok: true } : { ok: false, reason: "error" };
+}
+
+// Il telefono della persona a cui è stato passato il ruolo lo prende.
+async function claimPassedOrganizer(code, playerId) {
+  const myToken = getOrCreateOrganizerToken(code);
+  const result = await tournamentsRef()
+    .child(code)
+    .child("organizerToken")
+    .transaction((cur) => (cur === PASS_ORGANIZER_PREFIX + playerId ? myToken : undefined));
+  return !!result.committed;
+}
+
 async function loadTournament(code) {
   const snap = await tournamentsRef().child(code).get();
   return snap.val();
@@ -6188,6 +6290,13 @@ function buildBoardSVG(containerEl, board) {
   pawnGloss.appendChild(ns_el("stop", { offset: "0%", "stop-color": "#ffffff", "stop-opacity": "0.55" }));
   pawnGloss.appendChild(ns_el("stop", { offset: "100%", "stop-color": "#ffffff", "stop-opacity": "0" }));
   defs.appendChild(pawnGloss);
+  // v5.32: riflesso più marcato per il "Rilievo 3D" (visibile solo con
+  // html.fx3d, vedi .pawn-gloss-3d): luce da in alto a sinistra.
+  const pawnGloss3d = ns_el("radialGradient", { id: "pawn-gloss-3d", cx: "35%", cy: "30%", r: "55%" });
+  pawnGloss3d.appendChild(ns_el("stop", { offset: "0%", "stop-color": "#ffffff", "stop-opacity": "0.85" }));
+  pawnGloss3d.appendChild(ns_el("stop", { offset: "45%", "stop-color": "#ffffff", "stop-opacity": "0.15" }));
+  pawnGloss3d.appendChild(ns_el("stop", { offset: "100%", "stop-color": "#ffffff", "stop-opacity": "0" }));
+  defs.appendChild(pawnGloss3d);
 
   svg.appendChild(defs);
 
@@ -6508,6 +6617,7 @@ function buildPawnGroup(color, pawnIndex, capR) {
   g.appendChild(ns_el("ellipse", {
     cx: -capR * 0.28, cy: -capR * 0.32, rx: capR * 0.5, ry: capR * 0.34, fill: "url(#pawn-gloss)",
   }));
+  g.appendChild(ns_el("circle", { cx: 0, cy: 0, r: capR * 0.87, fill: "url(#pawn-gloss-3d)", class: "pawn-gloss-3d", "pointer-events": "none" }));
   // dice pips instead of a number: quantity readable at a glance, and no
   // digit to keep legible at small board scale.
   const pipR = capR * 0.135;
@@ -7442,7 +7552,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.31";
+const APP_VERSION = "v5.33";
 
 let myColor = null;
 let myRoomId = null;
@@ -7956,6 +8066,20 @@ function renderTournamentLobby(code) {
       return;
     }
     const isOrganizer = t.organizerToken === getOrCreateOrganizerToken(code);
+    // v5.33: organizzazione passata a un iscritto (vedi passOrganizer): se
+    // sono io, il mio telefono prende il ruolo.
+    const passedTo = typeof t.organizerToken === "string" && t.organizerToken.indexOf(PASS_ORGANIZER_PREFIX) === 0
+      ? t.organizerToken.slice(PASS_ORGANIZER_PREFIX.length) : null;
+    // Rimandato a dopo il disegno della pagina: la scrittura fa ripartire
+    // subito questo stesso ascolto, che altrimenti verrebbe ridisegnato a
+    // metà con i dati vecchi.
+    if (passedTo && myPlayerId && passedTo === myPlayerId) {
+      const me = myPlayerId;
+      setTimeout(() => {
+        claimPassedOrganizer(code, me).then((ok) => { if (ok) showToast("👑 Ora sei tu l'organizzatore di questo torneo."); }).catch(() => {});
+      }, 0);
+    }
+    const passedToName = passedTo && t.iscritti && t.iscritti[passedTo] ? t.iscritti[passedTo].nome : null;
     const iscritti = Object.entries(t.iscritti || {}).map(([id, p]) => ({ id, ...p }));
     const currentRound = t.roundCorrente || 0;
     const currentTables = currentRound > 0 && t.rounds ? (t.rounds[currentRound] && t.rounds[currentRound].tables) || {} : {};
@@ -7967,7 +8091,8 @@ function renderTournamentLobby(code) {
       el("p", { class: "muted" },
         (t.formato === "rotante_8" ? "Tutti con tutti (max 8)" : "Coppie fisse") +
         " · " + (t.stato === "concluso" ? "Concluso" : t.stato === "in_corso" ? `In corso · round ${currentRound}` : "Iscrizioni aperte") +
-        (isOrganizer ? " · sei l'organizzatore" : ""))
+        (isOrganizer ? " · sei l'organizzatore" : "") +
+        (passedTo && passedTo !== myPlayerId ? ` · organizzazione passata a ${passedToName || "un iscritto"} (diventa attiva quando apre il torneo)` : ""))
     );
     // Prima di avviarlo, in "Tutti con tutti" è utile vedere subito quanti
     // posti mancano sugli 8 dello schema fisso — è lì sotto, nella lista
@@ -8085,6 +8210,27 @@ function renderTournamentLobby(code) {
       }
     }
     if (isOrganizer) {
+      // v5.33: passa l'organizzazione a un altro iscritto (solo persone).
+      const altri = iscritti.filter((p) => !p.isBot && p.id !== myPlayerId);
+      if (altri.length > 0 && t.stato !== "concluso") {
+        body.appendChild(el("p", { class: "step-label" }, "Passa l'organizzazione"));
+        body.appendChild(
+          el(
+            "div",
+            { style: "display:flex; gap:6px; align-items:center;" },
+            el(
+              "select",
+              { id: "pass-organizer-select", style: "flex:1; padding:6px 8px; border-radius:10px; border:1.5px solid var(--panel-border); background:var(--panel); color:var(--ink);" },
+              altri.map((u) => el("option", { value: u.id }, u.nome))
+            ),
+            el("button", { class: "bot-btn", onclick: () => handlePassOrganizer(code, document.getElementById("pass-organizer-select").value, t) }, "👑 Passa")
+          )
+        );
+        body.appendChild(
+          el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" },
+            "Diventa organizzatore appena apre la pagina del torneo dal suo telefono. Da quel momento tu non lo sei più.")
+        );
+      }
       body.appendChild(
         el(
           "div",
@@ -8154,6 +8300,14 @@ function renderTournamentLobby(code) {
                         "button",
                         { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleUnpairHumans(code, p.id) },
                         "✕ Sciogli"
+                      )
+                    : "",
+                  // v5.33: togliere un iscritto in carne e ossa (i bot hanno già il loro ✕).
+                  isOrganizer && !p.isBot && t.stato !== "concluso"
+                    ? el(
+                        "button",
+                        { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleRemovePlayer(code, p.id, p.nome, t) },
+                        "✕ Togli"
                       )
                     : "",
                   // Un iscritto umano senza compagno, in un torneo a coppie
@@ -8362,6 +8516,34 @@ async function handleDeleteTournament(code) {
   showToast("Torneo eliminato.");
   tournamentsRef().child(code).off();
   renderLobby();
+}
+
+// v5.33: togliere un iscritto / passare l'organizzazione (vedi
+// removePlayerFromTournament / passOrganizer).
+async function handleRemovePlayer(code, playerId, nome, t) {
+  const rotanteAvviato = t.formato === "rotante_8" && t.stato !== "iscrizioni";
+  const msg = `Togliere ${nome} dal torneo?` +
+    (rotanteAvviato ? " Il suo posto passa a un bot." : "") +
+    (t.roundCorrente > 0 ? " Se è a un tavolo del round in corso, puoi rigenerare i tavoli." : "");
+  if (!confirm(msg)) return;
+  const result = await removePlayerFromTournament(code, playerId);
+  if (!result.ok) {
+    if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può togliere un iscritto.");
+    return showToast("Non riesco a togliere l'iscritto, riprova.");
+  }
+  showToast(`${nome} non è più iscritto.`);
+}
+
+async function handlePassOrganizer(code, playerId, t) {
+  const p = t.iscritti && t.iscritti[playerId];
+  if (!p) return;
+  if (!confirm(`Passare l'organizzazione del torneo a ${p.nome}? Da subito tu non potrai più gestirlo (finché non te la ripassa).`)) return;
+  const result = await passOrganizer(code, playerId);
+  if (!result.ok) {
+    if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può passare il ruolo.");
+    return showToast("Non riesco a passare l'organizzazione, riprova.");
+  }
+  showToast(`👑 Organizzazione passata a ${p.nome}.`);
 }
 
 // Chi non risulta organizzatore da questo dispositivo può "reclamare" il
@@ -10361,7 +10543,17 @@ function ensureFx3dFilter() {
   svg.setAttribute("width", "0");
   svg.setAttribute("height", "0");
   svg.style.position = "absolute";
-  svg.innerHTML = '<defs><filter id="fx3d-sunk" x="-30%" y="-30%" width="160%" height="160%"><feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer><feOffset in="inv" dx="1.2" dy="3" result="off"/><feGaussianBlur in="off" stdDeviation="2.2" result="bl"/><feComposite in="bl" in2="SourceAlpha" operator="in" result="sh"/><feFlood flood-color="#3a2508" flood-opacity=".65"/><feComposite in2="sh" operator="in" result="shc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shc"/></feMerge></filter></defs>';
+  // v5.32: buchi più profondi (ombra interna in alto a sinistra) con una luce
+  // sul bordo interno in basso a destra, come una casella scavata nel legno.
+  svg.innerHTML = '<defs><filter id="fx3d-sunk" x="-30%" y="-30%" width="160%" height="160%">' +
+    '<feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>' +
+    '<feOffset in="inv" dx="2" dy="4.5" result="off"/><feGaussianBlur in="off" stdDeviation="2.6" result="bl"/>' +
+    '<feComposite in="bl" in2="SourceAlpha" operator="in" result="sh"/><feFlood flood-color="#2a1a04" flood-opacity=".9"/><feComposite in2="sh" operator="in" result="shc"/>' +
+    '<feOffset in="inv" dx="-1" dy="-1.8" result="off2"/><feGaussianBlur in="off2" stdDeviation="1.2" result="bl2"/>' +
+    '<feComposite in="bl2" in2="SourceAlpha" operator="in" result="hl"/><feFlood flood-color="#ffffff" flood-opacity=".85"/><feComposite in2="hl" operator="in" result="hlc"/>' +
+    '<feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shc"/><feMergeNode in="hlc"/></feMerge></filter>' +
+    // Arcade: resta il filtro di prima (più leggero), lo stile neon ha già il suo look.
+    '<filter id="fx3d-sunk-arcade" x="-30%" y="-30%" width="160%" height="160%"><feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer><feOffset in="inv" dx="1.2" dy="3" result="off"/><feGaussianBlur in="off" stdDeviation="2.2" result="bl"/><feComposite in="bl" in2="SourceAlpha" operator="in" result="sh"/><feFlood flood-color="#3a2508" flood-opacity=".65"/><feComposite in2="sh" operator="in" result="shc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shc"/></feMerge></filter></defs>';
   document.body.appendChild(svg);
 }
 function toggleFx3d() {
