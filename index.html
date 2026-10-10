@@ -2565,17 +2565,18 @@ html[data-skin="bright"]:not([data-theme="dark"]) #board-wrap>svg {border-radius
 html[data-skin="bright"]:not([data-theme="dark"]) .room-team-row,
 html[data-skin="bright"]:not([data-theme="dark"]) .chat-preview {background:rgba(255,255,255,.75)!important;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.9)!important;border-radius:20px!important;box-shadow:0 10px 20px -10px rgba(70,60,120,.35)!important}
 html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn {background:linear-gradient(90deg,#FF8A5B,#FFB347)!important;border:0!important;border-radius:20px!important;color:#fff!important;box-shadow:0 12px 22px -8px rgba(255,138,91,.7)!important}
-html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn * {color:#fff!important}
-html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn .turn-badge,
-html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn [class*=tocca] {color:#fff!important}
+/* v5.35: testo scuro sull'arancio (il bianco aveva contrasto 2,3, poco leggibile) */
+html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn, html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn * {color:#3A1F0A!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .turn-line.my-turn .you-badge-strong {color:#FFE2B8!important}
 html[data-skin="bright"]:not([data-theme="dark"]) .board-player {box-shadow:0 8px 14px -6px rgba(70,60,120,.35)!important}
 html[data-skin="bright"]:not([data-theme="dark"]) .card-btn {border-radius:12px!important;border:0!important;box-shadow:0 14px 22px -8px rgba(70,60,120,.5),0 2px 4px rgba(70,60,120,.15)!important}
 html[data-skin="bright"]:not([data-theme="dark"]) .reaction-btn,
 html[data-skin="bright"]:not([data-theme="dark"]) .icon-btn,
 html[data-skin="bright"]:not([data-theme="dark"]) .icon-btn-pair {background:rgba(255,255,255,.85)!important;border:0!important;border-radius:16px!important;box-shadow:0 8px 14px -6px rgba(70,60,120,.35)!important}
-html[data-skin="bright"]:not([data-theme="dark"]) .chat-fab {background:linear-gradient(135deg,#7C5CFF,#B06BFF)!important;box-shadow:0 12px 20px -6px rgba(124,92,255,.65)!important;color:#fff}
+/* v5.35: chat arancio come la barra del turno (prima viola: unico colore fuori tono) */
+html[data-skin="bright"]:not([data-theme="dark"]) .chat-fab {background:linear-gradient(135deg,#FF8A5B,#FFB347)!important;box-shadow:0 12px 20px -6px rgba(255,138,91,.65)!important;color:#fff}
 html[data-skin="bright"]:not([data-theme="dark"]) .chat-fab svg {stroke:#fff!important}
-html[data-skin="bright"]:not([data-theme="dark"]) .nudge-btn {border-radius:16px!important;border:1px solid rgba(124,92,255,.35)!important;color:#6A4FD8!important;background:rgba(255,255,255,.6)!important}
+html[data-skin="bright"]:not([data-theme="dark"]) .nudge-btn {border-radius:16px!important;border:1px solid rgba(255,138,91,.45)!important;color:#B4521E!important;background:rgba(255,255,255,.6)!important}
 html[data-skin="bright"]:not([data-theme="dark"]) .status-bar-shield {background:transparent!important;backdrop-filter:none!important}
 
 /* ===== Arcade retro (html[data-skin="arcade"]) — v5.175 =====
@@ -7597,7 +7598,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.34";
+const APP_VERSION = "v5.35";
 
 let myColor = null;
 let myRoomId = null;
