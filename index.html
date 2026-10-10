@@ -12846,17 +12846,9 @@ function dealerBadge(handsLeft) {
   );
 }
 
-// Four small dots per player, uno per pedina, con 3 stati distinti (chiesto:
-// "indica però solo le pedine che sono fuori" — cioè la pedina in gioco sul
-// tabellone deve risaltare più delle altre due condizioni):
-//  - base  (pos === -1): ancora in casa, non ancora entrata — solo contorno,
-//    quasi trasparente, non deve attirare l'occhio.
-//  - fuori (0 <= pos < 1000): in gioco sul tabellone — piena, con un piccolo
-//    effetto lucido (gradiente radiale) per risaltare, è lo stato da mettere
-//    in evidenza.
-//  - casa  (pos >= 1000): arrivata — piena ma smorzata (opacità ridotta) e
-//    con un puntino bianco al centro, così resta distinguibile da "fuori"
-//    pur non confondendosi con "base".
+// Pallini accanto al nome di ogni giocatore: uno per ogni pedina non ancora
+// entrata in gioco (vedi sotto). Prima c'erano sempre 4 pallini con 3 stati
+// (base/fuori/casa), poco leggibili così piccoli.
 function miniPawnsRow(pawnPositions, color) {
   const hex = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" }[color];
   const darkHex = { red: "#B8434B", green: "#29765A", yellow: "#B3801E", blue: "#2A6B98" }[color];
@@ -12884,46 +12876,22 @@ function miniPawnsRow(pawnPositions, color) {
   });
   defs.appendChild(grad);
   svg.appendChild(defs);
-  // Ordinate per stato (fuori/in casa prima, in base — le più spente —
-  // sempre in fondo) invece che per indice pedina: senza questo le pedine
-  // piene e vuote saltavano fuori mischiate in ordine diverso riga per riga
-  // (segnalato: "non così sparso"), rendendo scomodo confrontare a colpo
-  // d'occhio quante ne ha in gioco ciascun giocatore. Sort stabile: a
-  // parità di stato, l'ordine tra loro resta quello originale.
-  const ordered = pawnPositions
-    .map((pos, i) => ({ pos, i }))
-    .sort((a, b) => (a.pos === -1 ? 1 : 0) - (b.pos === -1 ? 1 : 0));
-  ordered.forEach(({ pos }, i) => {
-    const cx = 12 + i * 25;
-    const inBase = pos === -1;
-    const home = pos >= 1000;
-    const out = !inBase && !home;
+  // v5.31: i pallini indicano SOLO quante pedine non sono ancora in gioco
+  // (ferme alla partenza, pos === -1) — chiesto: le pedine sul tabellone e
+  // quelle a casa si vedono già sul tabellone. Quattro posti fissi (la
+  // pillola non cambia larghezza), riempiti dal lato del nome.
+  const notInPlay = pawnPositions.filter((pos) => pos === -1).length;
+  svg.setAttribute("aria-label", `${notInPlay} pedine non ancora in gioco`);
+  for (let i = 0; i < notInPlay; i++) {
     const c = document.createElementNS(ns, "circle");
-    c.setAttribute("cx", cx);
+    c.setAttribute("cx", 12 + i * 25);
     c.setAttribute("cy", 11);
     c.setAttribute("r", 8);
-    if (out) {
-      c.setAttribute("fill", `url(#${gradId})`);
-    } else if (home) {
-      c.setAttribute("fill", hex);
-      c.setAttribute("fill-opacity", "0.55");
-    } else {
-      c.setAttribute("fill", "none");
-      c.setAttribute("fill-opacity", "0.32");
-    }
+    c.setAttribute("fill", `url(#${gradId})`);
     c.setAttribute("stroke", hex);
     c.setAttribute("stroke-width", 2.2);
-    c.setAttribute("stroke-opacity", inBase ? "0.32" : "1");
     svg.appendChild(c);
-    if (home) {
-      const dot = document.createElementNS(ns, "circle");
-      dot.setAttribute("cx", cx);
-      dot.setAttribute("cy", 11);
-      dot.setAttribute("r", 2.6);
-      dot.setAttribute("fill", "#ffffff");
-      svg.appendChild(dot);
-    }
-  });
+  }
   return svg;
 }
 
