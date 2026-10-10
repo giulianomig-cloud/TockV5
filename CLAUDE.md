@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.30**.
+- Versione attuale: **v5.31**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -21,8 +21,9 @@
   - `CACHE_VERSION` in `sw.js` (es. `"v5-30"`) — serve a scartare le cache vecchie sui telefoni.
 
 ## Regole da ricordare
-- Si può mangiare anche una propria pedina: con una carta normale arrivandoci sopra,
-  col 7 anche a metà strada (come per gli avversari). Prima di farlo l'app chiede conferma.
+- Tutte le pedine (proprie, del compagno, avversarie) si mangiano con le stesse regole:
+  con una carta normale arrivandoci sopra (senza scavalcare nessuno), col 7 anche a metà strada.
+  Se si mangia una pedina del proprio colore l'app chiede conferma.
 - Le pedine protette (appena entrate sulla propria base) non si mangiano né si scavalcano.
 
 ## Controlli automatici
@@ -37,6 +38,10 @@
   giocatore vede un avviso non chiudibile e non fa muovere i bot.
 
 ## Come lavorare
+- **Non fare modifiche che l'utente non ha chiesto.** Per le proposte (soprattutto grafiche)
+  prepara prima delle anteprime "prima/dopo" (screenshot) e aspetta il suo ok.
+- Scelte grafiche già decise: le carte in mano restano come sono; i numeri accanto alle
+  pedine solo nello stile Arcade.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
 - Prima di eliminare un file, controlla che non sia usato in `index.html`, `sw.js` o `manifest.json`.

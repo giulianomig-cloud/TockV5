@@ -2723,6 +2723,23 @@ html.fx3d[data-theme="dark"] .reaction-btn:active, html.fx3d[data-theme="dark"] 
   box-shadow: 0 3px 6px rgba(0,0,0,.6) inset, 0 1px 0 rgba(255,255,255,.08);
 }
 
+
+/* --- v5.31: ritocchi grafici (nomi interi, offline, reazioni) --- */
+/* Pallini delle pedine più piccoli nelle pillole: il posto va al nome,
+   che prima veniva tagliato già a 6-7 lettere ("Giulia…"). */
+.board-player .mini-pawns { width: 32px; height: 8px; min-width: 0; }
+html[data-skin="arcade"] .board-player { gap: 6px; }
+html[data-skin="arcade"] .board-player-name { font-size: .66rem; letter-spacing: .03em; }
+/* Quando tocca a te nella barra c'è solo il nome: più grande. */
+.turn-line.my-turn .turn-name { font-size: 1.2rem; }
+/* Giocatore non connesso: pallino grigio al posto del ⚠️. */
+.status-offline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: #9A948C; box-shadow: 0 0 0 2px var(--panel, #fff); }
+html[data-skin="arcade"] .status-offline-dot { background: #6c6c80; box-shadow: none; border-radius: 0 !important; }
+/* Pulsante delle reazioni accanto alla chat (stessi colori dei pulsanti
+   reazione di ogni stile grafico, ma tondo come la chat). */
+.chat-fab-row .reaction-btn.reaction-fab { flex: 0 0 auto; width: 44px; height: 44px; padding: 0; border-radius: 50%; font-size: 1.35rem; display: flex; align-items: center; justify-content: center; }
+.chat-fab-row .reaction-fab.open { font-size: 1rem; font-weight: 800; }
+#chat-wrap .reaction-bar { margin-top: 0; animation: lmIn .15s ease-out; }
 </style>
 </head>
 <body>
@@ -6299,10 +6316,34 @@ function buildBoardSVG(containerEl, board) {
   for (const color of board.order) {
     board.homePaths[color].forEach((p, hIdx) => {
       const g = specialCell(p.x, p.y, R, BASE_COL[color], color);
+      // v5.31: caselle-casa riempite col colore della squadra (non solo il
+      // bordo), così il percorso verso casa si riconosce a colpo d'occhio.
+      // Un cerchio colorato semitrasparente SOPRA la casella normale, che
+      // resta piena sotto e copre le linee di collegamento.
+      if (!isArcade()) {
+        g.appendChild(ns_el("circle", { cx: p.x, cy: p.y, r: R - CELL_BORDER_WIDTH / 2, fill: BASE_COL[color], opacity: 0.42 }));
+      }
       g.setAttribute("data-home", color + ":" + hIdx);
       g.setAttribute("class", "board-cell");
       svg.appendChild(g);
     });
+  }
+
+  // v5.31: freccia del verso di marcia tra la casella di partenza di ogni
+  // colore e quella successiva.
+  for (const color of board.order) {
+    const from = board.loopCells[board.baseIndex[color]];
+    const to = board.loopCells[(board.baseIndex[color] + 1) % board.loopCells.length];
+    const dx = to.x - from.x, dy = to.y - from.y, len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len;
+    const mx = (from.x + to.x) / 2, my = (from.y + to.y) / 2, k = R * 0.42;
+    const pts = [
+      [mx + ux * k, my + uy * k],
+      [mx - ux * k - uy * k, my - uy * k + ux * k],
+      [mx - ux * k + uy * k, my - uy * k - ux * k],
+    ].map(([x, y]) => x.toFixed(2) + "," + y.toFixed(2)).join(" ");
+    const fill = isArcade() ? ARCADE_NEON[color] : BASE_COL[color];
+    svg.appendChild(ns_el("polygon", { points: pts, fill, stroke: isArcade() ? "none" : "#fff", "stroke-width": 1.2, "stroke-linejoin": "round", class: "start-arrow" }));
   }
 
   containerEl.innerHTML = "";
@@ -7401,7 +7442,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.30";
+const APP_VERSION = "v5.31";
 
 let myColor = null;
 let myRoomId = null;
@@ -12710,8 +12751,10 @@ function renderPlayerStatus(state) {
       { class: "board-player-extras" }
     );
     // Avviso "non connesso": fuori dalla pillola, accanto ad essa (come il mazziere).
+    // v5.31: un pallino grigio (stile "offline" delle chat) al posto del ⚠️,
+    // che sembrava un errore.
     const warn = !isBotSeat && state.players[c] && !isOnline
-      ? el("span", { class: "status-offline-warning", title: `${colorLabel(c)} non è connesso in questo momento` }, "⚠️")
+      ? el("span", { class: "status-offline-dot", title: `${colorLabel(c)} non è connesso in questo momento`, "aria-label": `${colorLabel(c)} non connesso` })
       : null;
     // Dall'esterno (bordo schermo) verso l'interno (centro/tabellone):
     // nome, pedine, poi le altre info (mazziere/disconnesso) — chiesto.
@@ -12803,17 +12846,9 @@ function dealerBadge(handsLeft) {
   );
 }
 
-// Four small dots per player, uno per pedina, con 3 stati distinti (chiesto:
-// "indica però solo le pedine che sono fuori" — cioè la pedina in gioco sul
-// tabellone deve risaltare più delle altre due condizioni):
-//  - base  (pos === -1): ancora in casa, non ancora entrata — solo contorno,
-//    quasi trasparente, non deve attirare l'occhio.
-//  - fuori (0 <= pos < 1000): in gioco sul tabellone — piena, con un piccolo
-//    effetto lucido (gradiente radiale) per risaltare, è lo stato da mettere
-//    in evidenza.
-//  - casa  (pos >= 1000): arrivata — piena ma smorzata (opacità ridotta) e
-//    con un puntino bianco al centro, così resta distinguibile da "fuori"
-//    pur non confondendosi con "base".
+// Pallini accanto al nome di ogni giocatore: uno per ogni pedina non ancora
+// entrata in gioco (vedi sotto). Prima c'erano sempre 4 pallini con 3 stati
+// (base/fuori/casa), poco leggibili così piccoli.
 function miniPawnsRow(pawnPositions, color) {
   const hex = { red: "#D9636B", green: "#3FA77E", yellow: "#E3AC33", blue: "#3E8FCB" }[color];
   const darkHex = { red: "#B8434B", green: "#29765A", yellow: "#B3801E", blue: "#2A6B98" }[color];
@@ -12841,46 +12876,24 @@ function miniPawnsRow(pawnPositions, color) {
   });
   defs.appendChild(grad);
   svg.appendChild(defs);
-  // Ordinate per stato (fuori/in casa prima, in base — le più spente —
-  // sempre in fondo) invece che per indice pedina: senza questo le pedine
-  // piene e vuote saltavano fuori mischiate in ordine diverso riga per riga
-  // (segnalato: "non così sparso"), rendendo scomodo confrontare a colpo
-  // d'occhio quante ne ha in gioco ciascun giocatore. Sort stabile: a
-  // parità di stato, l'ordine tra loro resta quello originale.
-  const ordered = pawnPositions
-    .map((pos, i) => ({ pos, i }))
-    .sort((a, b) => (a.pos === -1 ? 1 : 0) - (b.pos === -1 ? 1 : 0));
-  ordered.forEach(({ pos }, i) => {
-    const cx = 12 + i * 25;
-    const inBase = pos === -1;
-    const home = pos >= 1000;
-    const out = !inBase && !home;
+  // v5.31: i pallini indicano SOLO quante pedine non sono ancora in gioco
+  // (ferme alla partenza, pos === -1) — chiesto: le pedine sul tabellone e
+  // quelle a casa si vedono già sul tabellone. Quattro posti fissi (la
+  // pillola non cambia larghezza), riempiti partendo dal lato della pillola
+  // opposto al nome (per chi sta a destra l'SVG è specchiato, quindi vale
+  // per tutti allo stesso modo).
+  const notInPlay = pawnPositions.filter((pos) => pos === -1).length;
+  svg.setAttribute("aria-label", `${notInPlay} pedine non ancora in gioco`);
+  for (let i = 0; i < notInPlay; i++) {
     const c = document.createElementNS(ns, "circle");
-    c.setAttribute("cx", cx);
+    c.setAttribute("cx", 12 + (3 - i) * 25);
     c.setAttribute("cy", 11);
     c.setAttribute("r", 8);
-    if (out) {
-      c.setAttribute("fill", `url(#${gradId})`);
-    } else if (home) {
-      c.setAttribute("fill", hex);
-      c.setAttribute("fill-opacity", "0.55");
-    } else {
-      c.setAttribute("fill", "none");
-      c.setAttribute("fill-opacity", "0.32");
-    }
+    c.setAttribute("fill", `url(#${gradId})`);
     c.setAttribute("stroke", hex);
     c.setAttribute("stroke-width", 2.2);
-    c.setAttribute("stroke-opacity", inBase ? "0.32" : "1");
     svg.appendChild(c);
-    if (home) {
-      const dot = document.createElementNS(ns, "circle");
-      dot.setAttribute("cx", cx);
-      dot.setAttribute("cy", 11);
-      dot.setAttribute("r", 2.6);
-      dot.setAttribute("fill", "#ffffff");
-      svg.appendChild(dot);
-    }
-  });
+  }
   return svg;
 }
 
@@ -12921,7 +12934,10 @@ function renderTurnIndicator(state) {
     { class: "turn-line" + (isMyTurn ? " my-turn" : "") },
     el("span", { class: "swatch swatch-" + state.turnColor }),
     el("span", { class: "turn-av swatch-" + state.turnColor }, (playerName(state, state.turnColor) || "?").trim().charAt(0).toUpperCase()),
-    el("strong", {}, ` Turno di ${playerName(state, state.turnColor)}`),
+    // v5.31: quando tocca a te c'è già "▶ Tocca a te" accanto, quindi basta
+    // il nome (più grande): con "Turno di" davanti i nomi lunghi venivano
+    // tagliati ("Turno di Giulia…", in Arcade spariva del tutto).
+    el("strong", { class: "turn-name" }, isMyTurn ? playerName(state, state.turnColor) : ` Turno di ${playerName(state, state.turnColor)}`),
     isMyTurn
       ? el(
           "span",
@@ -14622,6 +14638,7 @@ async function confirmSeven(active, card) {
 let chatPickerOpen = false;
 let chatSeenCount = 0; // messaggi già visti (badge = solo quelli arrivati dopo)
 let _chatFabRenderKey = null; // evita di ridisegnare il bottone ad ogni giro se non serve
+let reactionsOpen = false; // riga delle reazioni aperta dal pulsante 😀 (v5.31)
 
 function renderChat(state) {
   const messages = state.chat || [];
@@ -14644,7 +14661,7 @@ function renderChatFab(messages) {
   const wrap = $("#chat-wrap");
   if (!wrap) return; // schermata di gioco non presente (es. timer/ritardo dopo essere usciti dal tavolo)
   const unread = chatPickerOpen ? 0 : Math.max(0, messages.length - chatSeenCount);
-  const key = messages.length + ":" + chatPickerOpen;
+  const key = messages.length + ":" + chatPickerOpen + ":" + reactionsOpen;
   if (_chatFabRenderKey === key) return;
   _chatFabRenderKey = key;
   wrap.innerHTML = "";
@@ -14680,16 +14697,34 @@ function renderChatFab(messages) {
         { class: "chat-fab", "aria-label": "Apri la chat", onclick: openChatPicker },
         chatBubbleIconSvg(),
         unread > 0 ? el("span", { class: "chat-fab-badge" }, unread > 99 ? "99+" : String(unread)) : ""
+      ),
+      // v5.31: le reazioni non occupano più una riga fissa sotto le carte:
+      // si aprono da questo pulsante e si richiudono dopo averne mandata una.
+      el(
+        "button",
+        {
+          class: "reaction-btn reaction-fab" + (reactionsOpen ? " open" : ""),
+          "aria-label": reactionsOpen ? "Chiudi le reazioni" : "Reazioni",
+          "aria-expanded": reactionsOpen ? "true" : "false",
+          onclick: () => { reactionsOpen = !reactionsOpen; _chatFabRenderKey = null; renderChatFab(currentState.chat || []); },
+        },
+        reactionsOpen ? "✕" : "😀"
       )
     )
   );
-  wrap.appendChild(
-    el(
-      "div",
-      { class: "reaction-bar" },
-      REACTIONS.map((r) => el("button", { class: "reaction-btn", "aria-label": "Reazione " + r, onclick: () => sendReaction(r) }, r))
-    )
-  );
+  if (reactionsOpen) {
+    wrap.appendChild(
+      el(
+        "div",
+        { class: "reaction-bar" },
+        REACTIONS.map((r) => el("button", {
+          class: "reaction-btn",
+          "aria-label": "Reazione " + r,
+          onclick: () => { reactionsOpen = false; _chatFabRenderKey = null; renderChatFab(currentState.chat || []); sendReaction(r); },
+        }, r))
+      )
+    );
+  }
   wrap.appendChild(
     el(
       "div",
