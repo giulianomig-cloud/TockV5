@@ -155,7 +155,10 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 /* Telefono in orizzontale: non si gioca, si chiede di ruotare. */
 @media (orientation: landscape) and (max-height: 500px) {
   body:has(.game-shell)::before {
-    content: "📱 Ruota il telefono in verticale per giocare";
+    content: "Ruota il telefono in verticale per giocare";
+    padding-top: 90px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B8892E' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='7' y='2' width='10' height='20' rx='2'/%3E%3Cpath d='M11 18h2'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important; background-position: center calc(50% - 40px) !important; background-size: 44px !important;
     position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center;
     text-align: center; padding: 24px; background: var(--cream); color: var(--ink);
     font-weight: 800; font-size: 1.15rem; line-height: 1.4;
@@ -635,7 +638,8 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
   border-radius: 14px;
 }
 .dealer-slot.dealer-winner::before {
-  content: "👑"; position: absolute; top: -16px; font-size: 18px; left: 50%; transform: translateX(-50%);
+  content: ""; position: absolute; top: -18px; width: 20px; height: 20px; left: 50%; transform: translateX(-50%);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B8892E' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l4 4 5-7 5 7 4-4-2 11H5z'/%3E%3C/svg%3E") no-repeat center / contain;
 }
 /* La carta qui riusa .card-btn (stessa di quelle in mano), ma la formula
    "larghezza / 5" di .card-btn è pensata per una fila di 5 carte in mano
@@ -2751,6 +2755,20 @@ html.fx3d[data-theme="dark"]:not([data-skin="arcade"]) .pawn { filter: drop-shad
 .dir-arrows line, .dir-arrows path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 :root[data-theme="dark"] .dir-arrows, html[data-skin="wood"] .dir-arrows, html[data-skin="night"] .dir-arrows { color: #E2BF63; }
 html[data-skin="arcade"] .dir-arrows { color: #22e4ff; }
+
+/* --- v5.36: icone a linea dell'interfaccia (vedi UI_ICONS / ico()) --- */
+.ui-ico { display: inline-flex; width: 1.15em; height: 1.15em; vertical-align: -0.2em; color: #B8892E; flex-shrink: 0; }
+.ui-ico svg { width: 100%; height: 100%; display: block; }
+:root[data-theme="dark"] .ui-ico { color: #D9B65C; }
+/* Dove il fondo è colorato o il testo ha già un colore suo, l'icona prende il colore del testo. */
+.primary .ui-ico, .danger .ui-ico, button.primary .ui-ico, .turn-line .ui-ico, .toast .ui-ico, #toast-wrap .ui-ico,
+.conn-lost .ui-ico, .chat-fab .ui-ico, .bot-btn-remove .ui-ico, .set-close .ui-ico, .tut-x .ui-ico, .a2hs-close .ui-ico,
+.version-banner-dismiss .ui-ico, .exchange-dot-check .ui-ico, .jack-overlay-arrow .ui-ico, .reaction-fab.open .ui-ico,
+.table-status .ui-ico, html[data-skin="arcade"] .ui-ico { color: inherit; }
+.set-ico .ui-ico, .tut-ico .ui-ico, .win-award-ico .ui-ico { width: 22px; height: 22px; vertical-align: middle; }
+.set-ico { display: inline-flex; align-items: center; justify-content: center; }
+.theme-toggle-btn .ui-ico, .reaction-fab .ui-ico { width: 22px; height: 22px; }
+.nudge-btn .ui-ico { width: 1.25em; height: 1.25em; }
 /* --- v5.31: ritocchi grafici (nomi interi, offline, reazioni) --- */
 /* Pallini delle pedine più piccoli nelle pillole: il posto va al nome,
    che prima veniva tagliato già a 6-7 lettere ("Giulia…"). */
@@ -7598,7 +7616,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.35";
+const APP_VERSION = "v5.36";
 
 let myColor = null;
 let myRoomId = null;
@@ -7630,6 +7648,86 @@ let draftAnimShown = { pairDraw: false }; // evita di rifare l'animazione ad ogn
 let draftPairRenderToken = 0;
 
 const $ = (sel) => document.querySelector(sel);
+
+// ---------------- Icone dell'interfaccia (v5.36) ----------------
+// Icone a linea, tutte nello stesso stile (tratto 1.9, estremi arrotondati),
+// al posto delle emoji usate come icone: le emoji cambiano aspetto da un
+// telefono all'altro, queste si vedono uguali ovunque. Colore: oro (vedi
+// .ui-ico nel CSS), oppure quello del testo intorno dove serve (pulsanti
+// pieni, avvisi, Arcade). Le emoji di CONTENUTO restano emoji: semi delle
+// carte, chat e frasi dei bot, reazioni, fuoco della carta bruciata.
+const UI_ICONS = {
+  trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>',
+  cap: '<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>',
+  speaker: '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
+  chart: '<path d="M4 20V11M10 20V4M16 20v-7M2 20h20"/>',
+  medal: '<path d="M7 3l3 6M17 3l-3 6"/><circle cx="12" cy="15" r="6"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.6A5 5 0 0 1 21.5 20"/>',
+  rotate: '<path d="M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.2L3 16M3 21v-5h5"/>',
+  palette: '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.5-.8 1.5-1.5 0-.9-.7-1.3-.7-2.2 0-.8.7-1.3 1.6-1.3H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/>',
+  dice: '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="16" cy="16" r="1.1"/>',
+  bot: '<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M2 13v3M22 13v3"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.1"/><circle cx="15" cy="14" r="1.1"/>',
+  swords: '<path d="M4 4l12 12M20 4 8 16M14 18l4-4M6 14l4 4M3 21l3-3M21 21l-3-3"/>',
+  star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/>',
+  undo: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/>',
+  crown: '<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',
+  trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  handshake: '<path d="M3 11l5-5 4 2 4-2 5 5-7 7-2-1-2 1z"/><path d="M12 8l-3 3 2 2 3-3"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+  bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/>',
+  alert: '<path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h.01"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>',
+  cube: '<path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+  hourglass: '<path d="M6 3h12M6 21h12M7 3c0 6 10 6 10 9s-10 3-10 9M17 3c0 6-10 6-10 9s10 3 10 9"/>',
+  cards: '<rect x="3" y="6" width="12" height="15" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v13"/>',
+  card: '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M12 8l3 4-3 4-3-4z"/>',
+  party: '<path d="M4 20l4-12 8 8z"/><path d="M14 4v2M18 6l-1.5 1.5M20 10h-2M12 8l1-1"/>',
+  swap: '<path d="M4 8h15l-3-3M20 16H5l3 3"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  rewind: '<path d="M11 7l-6 5 6 5zM19 7l-6 5 6 5z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  tree: '<path d="M12 2 5 12h4l-3 5h12l-3-5h4z"/><path d="M12 17v5"/>',
+  chip: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
+  sparkles: '<path d="M11 3l1.8 5.2L18 10l-5.2 1.8L11 17l-1.8-5.2L4 10l5.2-1.8z"/><path d="M19 15v4M17 17h4"/>',
+  gamepad: '<rect x="2" y="7" width="20" height="10" rx="5"/><path d="M6 12h4M8 10v4"/><circle cx="15.5" cy="11" r=".8"/><circle cx="17.5" cy="13" r=".8"/>',
+  vibrate: '<rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4 9v6M20 9v6"/>',
+  book: '<path d="M4 5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h8M8 11h6"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  ace: '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9.5 16l2.5-7 2.5 7M10.4 13.5h3.2"/>',
+  burst: '<path d="M12 2l2 6 6-2-4 5 6 3-7 1 1 7-4-5-4 5 1-7-7-1 6-3-4-5 6 2z"/>',
+  home: '<path d="M3 11l9-8 9 8M5 9.5V21h14V9.5M10 21v-6h4v6"/>',
+  flame: '<path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4.5 2-7 1.5 1 2.5 2.5 2.5 4 1-2 1.5-5 1.5-8z"/>',
+  smile: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/>',
+  wave: '<path d="M7 11V6a1.5 1.5 0 0 1 3 0v5M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L4 14a1.5 1.5 0 0 1 2.5-1.6L7 13"/>',
+  chat: '<path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 21l2-5.3A8.5 8.5 0 1 1 21 11.5z"/>',
+  scroll: '<path d="M8 3h11v15a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2h11v2a3 3 0 0 0 3 3"/><path d="M8 3a3 3 0 0 0-3 3v10M11 8h5M11 12h5"/>',
+  leaf: '<path d="M5 21c0-10 6-16 16-16 0 10-6 16-16 16zM5 21l9-9"/>',
+  four: '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M13 16V8l-4 5.5h6"/>',
+  seven: '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9.5 8h5l-3 8"/>',
+  repeat: '<path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/>',
+  phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+};
+// Icona come <span class="ui-ico"> con l'SVG dentro, da usare come figlio di el().
+function ico(name, extraClass) {
+  const span = document.createElement("span");
+  span.className = "ui-ico" + (extraClass ? " " + extraClass : "");
+  span.setAttribute("aria-hidden", "true");
+  span.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + (UI_ICONS[name] || "") + "</svg>";
+  return span;
+}
+// Avvisi (toast) che iniziano con un'emoji-icona: emoji -> icona a linea.
+const TOAST_ICON_OF = { "👑": "crown", "⚔️": "swords", "📞": "phone", "👋": "wave", "🤖": "bot", "🏆": "trophy" };
+function toastContent(message) {
+  for (const [e, name] of Object.entries(TOAST_ICON_OF)) {
+    if (typeof message === "string" && message.indexOf(e + " ") === 0) return [ico(name), " " + message.slice(e.length + 1)];
+  }
+  return [message];
+}
 
 function el(tag, props, ...children) {
   const e = document.createElement(tag);
@@ -7726,13 +7824,13 @@ function renderLobby() {
       el(
         "button",
         { class: "leaderboard-open-btn", onclick: renderLeaderboardScreen },
-        el("span", {}, "🏆 Classifica generale"),
+        el("span", {}, ico("trophy"), " Classifica generale"),
         el("span", { class: "leaderboard-open-arrow" }, "›")
       ),
       el(
         "button",
         { class: "leaderboard-open-btn", style: "margin-top:8px;", onclick: openTutorial },
-        el("span", {}, "🎓 Impara a giocare"),
+        el("span", {}, ico("cap"), " Impara a giocare"),
         el("span", { class: "leaderboard-open-arrow" }, "›")
       ),
       el(
@@ -7753,7 +7851,7 @@ function renderLobby() {
         el(
           "div",
           { style: "display:flex; align-items:center; gap:8px;" },
-          el("button", { class: "sound-test-btn", onclick: testSound }, "🔊 Test suono"),
+          el("button", { class: "sound-test-btn", onclick: testSound }, ico("speaker"), " Test suono"),
           themeToggleButton(),
           fx3dToggleButton()
         ),
@@ -7790,7 +7888,7 @@ async function fillActiveTournamentsList() {
   }
   list.forEach((t) => {
     const n = Object.keys(t.iscritti || {}).length;
-    const statusLabel = t.stato === "concluso" ? "🏆 Concluso" : t.stato === "in_corso" ? "In corso" : "Iscrizioni aperte";
+    const statusLabel = t.stato === "concluso" ? [ico("trophy"), " Concluso"] : t.stato === "in_corso" ? "In corso" : "Iscrizioni aperte";
     wrap.appendChild(
       el(
         "button",
@@ -7851,13 +7949,13 @@ async function renderLeaderboardScreen() {
       "div",
       { class: "lobby-card" },
       el("div", { class: "app-logo" }, el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" })),
-      el("h2", { style: "margin:0 0 2px;" }, "🏆 Classifica generale"),
+      el("h2", { style: "margin:0 0 2px;" }, ico("trophy"), " Classifica generale"),
       el("p", { class: "muted lb-desc" }, "Vittorie totali per giocatore, in tutte le stanze."),
       listWrap,
-      el("h2", { style: "margin:20px 0 2px;" }, "📊 Media vittorie"),
+      el("h2", { style: "margin:20px 0 2px;" }, ico("chart"), " Media vittorie"),
       el("p", { class: "muted lb-desc" }, "Percentuale di partite vinte sulle giocate. Conta solo le partite giocate da quando esiste questa classifica."),
       avgListWrap,
-      el("h2", { style: "margin:20px 0 2px;" }, "🥇 Tornei vinti"),
+      el("h2", { style: "margin:20px 0 2px;" }, ico("medal"), " Tornei vinti"),
       el("p", { class: "muted lb-desc" }, "Quanti tornei ha vinto ciascun giocatore (non le singole partite)."),
       tourneyListWrap,
       el("button", { class: "primary", style: "margin-top:12px;", onclick: renderLobby }, "Torna alla home")
@@ -7960,13 +8058,13 @@ function renderTournamentCreateScreen() {
   formatBtns.coppie_fisse = el(
     "button",
     { class: "mode-btn mode-btn-selected", onclick: () => selectFormato("coppie_fisse") },
-    el("div", { class: "mt" }, "👥 Coppie fisse"),
+    el("div", { class: "mt" }, ico("users"), " Coppie fisse"),
     el("div", { class: "ms" }, "Ci si iscrive già in coppia. Ogni coppia affronta ogni altra coppia — nessun limite di coppie.")
   );
   formatBtns.rotante_8 = el(
     "button",
     { class: "mode-btn", onclick: () => selectFormato("rotante_8") },
-    el("div", { class: "mt" }, "🔄 Tutti con tutti"),
+    el("div", { class: "mt" }, ico("rotate"), " Tutti con tutti"),
     el("div", { class: "ms" }, "Ci si iscrive da soli: il compagno cambia ogni round. Limitato a 8 iscritti.")
   );
   root.appendChild(
@@ -8097,7 +8195,7 @@ function renderTournamentLobby(code) {
     el(
       "div",
       { class: "lobby-card" },
-      el("h1", {}, "🏆 " + code),
+      el("h1", {}, ico("trophy"), " " + code),
       el("div", { id: "torneo-lobby-body" }, el("p", { class: "muted" }, "Carico…"))
     )
   );
@@ -8184,7 +8282,9 @@ function renderTournamentLobby(code) {
           "div",
           { class: "win-team-banner", style: "background:#F3EBD8; border:1.5px solid var(--gold); border-radius:14px; padding:12px 14px; margin-bottom:14px;" },
           el("p", { style: "margin:0; font-weight:800;" },
-            t.vincitore ? `🏆 Vince ${t.vincitore.isBot ? "🤖 " : ""}${t.vincitore.nome}!${t.decisoDa === "catture" ? " (differenza catture)" : t.decisoDa === "spareggio" ? " (dopo lo spareggio)" : t.decisoDa === "sorteggio" ? " (🎲 deciso a sorte)" : ""}` : "🏆 Torneo concluso"),
+            t.vincitore
+              ? [ico("trophy"), " Vince ", t.vincitore.isBot ? [ico("bot"), " "] : "", `${t.vincitore.nome}!${t.decisoDa === "catture" ? " (differenza catture)" : t.decisoDa === "spareggio" ? " (dopo lo spareggio)" : t.decisoDa === "sorteggio" ? " (deciso a sorte)" : ""}`]
+              : [ico("trophy"), " Torneo concluso"]),
           el("p", { class: "muted", style: "margin:4px 0 0; font-size:0.85rem;" }, "Tutti gli incontri sono stati giocati.")
         )
       );
@@ -8198,14 +8298,14 @@ function renderTournamentLobby(code) {
           { class: "leaderboard-list" },
           Object.values(currentTables).map((tb) => {
             const mine = tb.giocatori.some((g) => g.playerId === myPlayerId);
-            const label = tb.giocatori.map((g) => g.nome + (g.bot ? " 🤖" : "")).join(" · ");
+            const label = tb.giocatori.map((g, i) => [i ? " · " : "", g.nome, g.bot ? [" ", ico("bot")] : ""]);
             return el(
               "div",
               { class: "leaderboard-row" },
               el("span", { class: "leaderboard-name" }, label),
               el("span", { class: "table-status muted", "data-room": tb.roomCode, "data-allbots": tb.giocatori.every((g) => g.bot) ? "1" : "0", style: "font-size:0.78rem;white-space:nowrap;" }),
               mine
-                ? el("button", { class: "sound-test-btn", onclick: () => joinTournamentTable(tb.roomCode) }, "▶️ Il tuo tavolo")
+                ? el("button", { class: "sound-test-btn", onclick: () => joinTournamentTable(tb.roomCode) }, "▶ Il tuo tavolo")
                 : ""
             );
           })
@@ -8216,17 +8316,17 @@ function renderTournamentLobby(code) {
     if (t.spareggio && t.spareggio.giocatori) {
       const sp = t.spareggio;
       const mineSp = sp.giocatori.some((g) => g.playerId === myPlayerId);
-      body.appendChild(el("p", { class: "step-label" }, "⚔️ Spareggio (decide il vincitore)"));
+      body.appendChild(el("p", { class: "step-label" }, ico("swords"), " Spareggio (decide il vincitore)"));
       body.appendChild(
         el("div", { class: "leaderboard-list" },
           el("div", { class: "leaderboard-row" },
-            el("span", { class: "leaderboard-name" }, sp.giocatori.map((g) => g.nome + (g.bot ? " 🤖" : "") + (sp.tied.indexOf(g.playerId) >= 0 ? " ⭐" : "")).join(" · ")),
+            el("span", { class: "leaderboard-name" }, sp.giocatori.map((g, i) => [i ? " · " : "", g.nome, g.bot ? [" ", ico("bot")] : "", sp.tied.indexOf(g.playerId) >= 0 ? [" ", ico("star")] : ""])),
             el("span", { class: "table-status muted", "data-room": sp.roomCode, "data-allbots": sp.giocatori.every((g) => g.bot) ? "1" : "0", style: "font-size:0.78rem;white-space:nowrap;" }),
-            mineSp ? el("button", { class: "sound-test-btn", onclick: () => joinTournamentTable(sp.roomCode) }, "▶️ Il tuo tavolo") : ""
+            mineSp ? el("button", { class: "sound-test-btn", onclick: () => joinTournamentTable(sp.roomCode) }, "▶ Il tuo tavolo") : ""
           )
         )
       );
-      body.appendChild(el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" }, "⭐ = i giocatori a pari punti. Vince il torneo chi tra i due vince lo spareggio; i compagni non contano."));
+      body.appendChild(el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" }, " = i giocatori a pari punti. Vince il torneo chi tra i due vince lo spareggio; i compagni non contano."));
     }
 
     if (isOrganizer && t.stato !== "concluso") {
@@ -8246,7 +8346,7 @@ function renderTournamentLobby(code) {
           el(
             "div",
             { class: "sound-test-row", style: "margin-top:8px;" },
-            el("button", { class: "sound-test-btn", style: "flex:1;", onclick: () => handleRigeneraRound(code) }, "↻ Rigenera tavoli round corrente")
+            el("button", { class: "sound-test-btn", style: "flex:1;", onclick: () => handleRigeneraRound(code) }, ico("refresh"), " Rigenera tavoli round corrente")
           )
         );
         body.appendChild(
@@ -8269,7 +8369,7 @@ function renderTournamentLobby(code) {
               { id: "pass-organizer-select", style: "flex:1; padding:6px 8px; border-radius:10px; border:1.5px solid var(--panel-border); background:var(--panel); color:var(--ink);" },
               altri.map((u) => el("option", { value: u.id }, u.nome))
             ),
-            el("button", { class: "bot-btn", onclick: () => handlePassOrganizer(code, document.getElementById("pass-organizer-select").value, t) }, "👑 Passa")
+            el("button", { class: "bot-btn", onclick: () => handlePassOrganizer(code, document.getElementById("pass-organizer-select").value, t) }, ico("crown"), " Passa")
           )
         );
         body.appendChild(
@@ -8281,7 +8381,7 @@ function renderTournamentLobby(code) {
         el(
           "div",
           { class: "sound-test-row", style: "margin-top:12px;" },
-          el("button", { class: "danger", style: "flex:1;", onclick: () => handleDeleteTournament(code) }, "🗑️ Elimina torneo")
+          el("button", { class: "danger", style: "flex:1;", onclick: () => handleDeleteTournament(code) }, ico("trash"), " Elimina torneo")
         )
       );
     }
@@ -8301,7 +8401,7 @@ function renderTournamentLobby(code) {
               "div",
               { class: "leaderboard-row" },
               el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
-              el("span", { class: "leaderboard-name" }, (p.isBot ? "🤖 " : "") + p.nome),
+              el("span", { class: "leaderboard-name" }, p.isBot ? ico("bot") : "", (p.isBot ? " " : "") + p.nome),
               el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie") + " · " + (p.diff > 0 ? "+" : "") + p.diff + " catt.")
             )
           )
@@ -8332,20 +8432,20 @@ function renderTournamentLobby(code) {
                 return el(
                   "div",
                   { class: "leaderboard-row", style: senzaCoppia && isOrganizer ? "flex-wrap:wrap;" : "" },
-                  el("span", { class: "leaderboard-name" }, (p.isBot ? "🤖 " : "") + p.nome + (p.id === myPlayerId ? " (tu)" : "")),
+                  el("span", { class: "leaderboard-name" }, p.isBot ? ico("bot") : "", (p.isBot ? " " : "") + p.nome + (p.id === myPlayerId ? " (tu)" : "")),
                   partnerRec ? el("span", { class: "leaderboard-wins" }, "con " + partnerRec.nome) : "",
                   isOrganizer && p.isBot && t.stato !== "concluso"
                     ? el(
                         "button",
                         { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleRemoveBotFromTournament(code, p.id) },
-                        "✕"
+                        ico("x")
                       )
                     : "",
                   isOrganizer && partnerIsHuman && t.stato !== "concluso"
                     ? el(
                         "button",
                         { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleUnpairHumans(code, p.id) },
-                        "✕ Sciogli"
+                        ico("x"), " Sciogli"
                       )
                     : "",
                   // v5.33: togliere un iscritto in carne e ossa (i bot hanno già il loro ✕).
@@ -8353,7 +8453,7 @@ function renderTournamentLobby(code) {
                     ? el(
                         "button",
                         { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleRemovePlayer(code, p.id, p.nome, t) },
-                        "✕ Togli"
+                        ico("x"), " Togli"
                       )
                     : "",
                   // Un iscritto umano senza compagno, in un torneo a coppie
@@ -8374,11 +8474,11 @@ function renderTournamentLobby(code) {
                                 { id: selectId, style: "flex:1; padding:6px 8px; border-radius:10px; border:1.5px solid var(--panel-border); background:var(--panel); color:var(--ink);" },
                                 altriSenzaCoppia.map((u) => el("option", { value: u.id }, u.nome))
                               ),
-                              el("button", { class: "bot-btn", onclick: () => handlePairHumans(code, p.id, document.getElementById(selectId).value) }, "🤝 Abbina")
+                              el("button", { class: "bot-btn", onclick: () => handlePairHumans(code, p.id, document.getElementById(selectId).value) }, ico("handshake"), " Abbina")
                             )
                           : "",
-                        el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "easy") }, "🤖 Compagno normale"),
-                        el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "hard") }, "🤖 Compagno difficile")
+                        el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "easy") }, ico("bot"), " Compagno normale"),
+                        el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "hard") }, ico("bot"), " Compagno difficile")
                       )
                     : ""
                 );
@@ -8391,8 +8491,8 @@ function renderTournamentLobby(code) {
         el(
           "div",
           { class: "bot-btn-row", style: "margin-top:8px;" },
-          el("button", { class: "bot-btn", onclick: () => handleAddBotToTournament(code, "easy") }, "🤖 Aggiungi bot normale"),
-          el("button", { class: "bot-btn", onclick: () => handleAddBotToTournament(code, "hard") }, "🤖 Aggiungi bot difficile")
+          el("button", { class: "bot-btn", onclick: () => handleAddBotToTournament(code, "easy") }, ico("bot"), " Aggiungi bot normale"),
+          el("button", { class: "bot-btn", onclick: () => handleAddBotToTournament(code, "hard") }, ico("bot"), " Aggiungi bot difficile")
         )
       );
       body.appendChild(
@@ -8405,7 +8505,7 @@ function renderTournamentLobby(code) {
         el(
           "div",
           { class: "sound-test-row", style: "margin-top:12px;" },
-          el("button", { class: "sound-test-btn", style: "flex:1;", onclick: () => handleReclaimOrganizer(code) }, "👑 Diventa organizzatore da questo dispositivo")
+          el("button", { class: "sound-test-btn", style: "flex:1;", onclick: () => handleReclaimOrganizer(code) }, ico("crown"), " Diventa organizzatore da questo dispositivo")
         )
       );
       body.appendChild(
@@ -8418,7 +8518,7 @@ function renderTournamentLobby(code) {
       el(
         "div",
         { class: "sound-test-row", style: "margin-top:12px;" },
-        el("button", { class: "sound-test-btn", onclick: () => shareTournamentInviteLink(code) }, "🔗 Condividi"),
+        el("button", { class: "sound-test-btn", onclick: () => shareTournamentInviteLink(code) }, ico("link"), " Condividi"),
         el("button", { class: "text-link-btn", onclick: () => { tournamentsRef().child(code).off(); renderLobby(); } }, "Torna alla home")
       )
     );
@@ -8785,13 +8885,13 @@ function renderModeChoice(roomId) {
         el(
           "button",
           { class: "mode-btn", onclick: () => pickRoomMode(roomId, "manual") },
-          el("div", { class: "mt" }, "🎨 Scelgo io i colori"),
+          el("div", { class: "mt" }, ico("palette"), " Scelgo io i colori"),
           el("div", { class: "ms" }, "Ogni giocatore entra e sceglie subito il proprio colore, come sempre.")
         ),
         el(
           "button",
           { class: "mode-btn", onclick: () => pickRoomMode(roomId, "draw") },
-          el("div", { class: "mt" }, "🎲 Estrazione a sorte"),
+          el("div", { class: "mt" }, ico("dice"), " Estrazione a sorte"),
           el("div", { class: "ms" }, "Si entra con solo il nome; quando siete in 4, coppie e colori si decidono a caso.")
         )
       ),
@@ -9146,7 +9246,7 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
     if (occupant) {
       inner = [
         el("span", { class: "color-card-dot" }),
-        el("div", { class: "color-card-name" }, (occupant.isBot ? "🤖 " : "") + (occupant.name || colorLabel(c))),
+        el("div", { class: "color-card-name" }, occupant.isBot ? [ico("bot"), " "] : "", occupant.name || colorLabel(c)),
         el("div", { class: "color-card-sub" }, colorLabel(c)),
       ];
     } else if (mine) {
@@ -9191,8 +9291,8 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
         el(
           "div",
           { class: "bot-btn-row" },
-          el("button", { class: "bot-btn", onclick: () => assignBotToColor(roomId, c, () => {}, "easy") }, "🤖 Normale"),
-          el("button", { class: "bot-btn", onclick: () => assignBotToColor(roomId, c, () => {}, "hard") }, "🤖 Difficile")
+          el("button", { class: "bot-btn", onclick: () => assignBotToColor(roomId, c, () => {}, "easy") }, ico("bot"), " Normale"),
+          el("button", { class: "bot-btn", onclick: () => assignBotToColor(roomId, c, () => {}, "hard") }, ico("bot"), " Difficile")
         )
       );
     }
@@ -9201,7 +9301,8 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
       return el(
         "button",
         { class: "bot-btn bot-btn-remove", onclick: () => removeBotFromColor(roomId, c, () => {}) },
-        `🤖 Libera posto (${lv})`
+        ico("bot"),
+        ` Libera posto (${lv})`
       );
     }
     return "";
@@ -9263,15 +9364,15 @@ function homeScreenHint() {
   const platform = detectPlatform();
   const text =
     platform === "ios"
-      ? "💡 Consiglio: tocca l'icona Condividi (il quadratino con la freccia in su) in Safari e scegli \"Aggiungi a Home\" per aprire il gioco a schermo intero come un'app."
+      ? "Consiglio: tocca l'icona Condividi (il quadratino con la freccia in su) in Safari e scegli \"Aggiungi a Home\" per aprire il gioco a schermo intero come un'app."
       : platform === "android"
-      ? "💡 Consiglio: apri il menu ⋮ in alto a destra in Chrome e scegli \"Installa app\" (o \"Aggiungi a schermata Home\") per aprire il gioco a schermo intero come un'app."
-      : "💡 Consiglio: usa la funzione \"Aggiungi a schermata Home\" del tuo browser per aprire il gioco a schermo intero come un'app.";
+      ? "Consiglio: apri il menu ⋮ in alto a destra in Chrome e scegli \"Installa app\" (o \"Aggiungi a schermata Home\") per aprire il gioco a schermo intero come un'app."
+      : "Consiglio: usa la funzione \"Aggiungi a schermata Home\" del tuo browser per aprire il gioco a schermo intero come un'app.";
   const box = el(
     "div",
     { class: "a2hs-hint" },
-    el("span", {}, text),
-    el("button", { class: "a2hs-close", onclick: (e) => { localStorage.setItem("tock-hide-a2hs", "1"); e.target.closest(".a2hs-hint").remove(); } }, "✕")
+    el("span", {}, ico("bulb"), " ", text),
+    el("button", { class: "a2hs-close", onclick: (e) => { localStorage.setItem("tock-hide-a2hs", "1"); e.target.closest(".a2hs-hint").remove(); } }, ico("x"))
   );
   return box;
 }
@@ -10046,7 +10147,8 @@ function renderDraftWaiting(state) {
           el(
             "span",
             { class: "wname" },
-            (isBot ? "🤖 " : "") + state.draft.players[t] + (t === myToken ? " (tu)" : "")
+            isBot ? [ico("bot"), " "] : "",
+            state.draft.players[t] + (t === myToken ? " (tu)" : "")
           ),
           isBot
             ? el(
@@ -10077,8 +10179,8 @@ function renderDraftWaiting(state) {
             el(
               "div",
               { class: "bot-btn-row" },
-              el("button", { class: "bot-btn", onclick: () => assignBotToDraft(myRoomId, "easy") }, "🤖 Aggiungi normale"),
-              el("button", { class: "bot-btn", onclick: () => assignBotToDraft(myRoomId, "hard") }, "🤖 Aggiungi difficile")
+              el("button", { class: "bot-btn", onclick: () => assignBotToDraft(myRoomId, "easy") }, ico("bot"), " Aggiungi normale"),
+              el("button", { class: "bot-btn", onclick: () => assignBotToDraft(myRoomId, "hard") }, ico("bot"), " Aggiungi difficile")
             )
           )
         : "",
@@ -10498,7 +10600,7 @@ function watchConnection() {
       if (!banner) return;
       banner.innerHTML = "";
       if (snap.val() === false) {
-        banner.appendChild(el("div", { class: "conn-lost" }, "⚠️ Connessione persa — provo a riconnettermi..."));
+        banner.appendChild(el("div", { class: "conn-lost" }, ico("alert"), " Connessione persa — provo a riconnettermi..."));
       }
     });
   } catch (e) {
@@ -10565,7 +10667,7 @@ function toggleTheme() {
 function updateThemeToggleBtn() {
   const btn = document.getElementById("theme-toggle-btn");
   if (!btn) return;
-  btn.textContent = currentTheme === "dark" ? "☀️" : "🌙";
+  btn.replaceChildren(ico(currentTheme === "dark" ? "sun" : "moon"));
   btn.setAttribute("aria-label", currentTheme === "dark" ? "Passa al tema chiaro" : "Passa al tema scuro");
 }
 // Fabbrica del pulsante, usata direttamente dentro l'albero di renderLobby
@@ -10576,7 +10678,7 @@ function themeToggleButton() {
   return el(
     "button",
     { id: "theme-toggle-btn", class: "theme-toggle-btn", onclick: toggleTheme },
-    currentTheme === "dark" ? "☀️" : "🌙"
+    ico(currentTheme === "dark" ? "sun" : "moon")
   );
 }
 
@@ -10616,7 +10718,7 @@ function updateFx3dBtn() {
   btn.setAttribute("aria-label", on ? "Passa all'aspetto classico" : "Attiva il rilievo 3D");
 }
 function fx3dToggleButton() {
-  const b = el("button", { id: "fx3d-toggle-btn", class: "theme-toggle-btn", onclick: toggleFx3d, title: "Rilievo 3D acceso/spento" }, "🧊");
+  const b = el("button", { id: "fx3d-toggle-btn", class: "theme-toggle-btn", onclick: toggleFx3d, title: "Rilievo 3D acceso/spento" }, ico("cube"));
   b.style.opacity = document.documentElement.classList.contains("fx3d") ? "1" : "0.45";
   return b;
 }
@@ -11615,11 +11717,11 @@ async function refreshTableStatuses(container) {
       const st = snap.val();
       const allBots = n.getAttribute("data-allbots") === "1";
       const room = n.getAttribute("data-room");
-      if (st && st.phase === "finished") n.textContent = "✅ Finito";
-      else if (allBots && _botOnlyFailed.has(room)) n.textContent = "⚠️ Errore, premi Avvia per riprovare";
-      else if (allBots) n.textContent = _botOnlyBusy.has(room) ? "🤖 Sta giocando…" : "🤖 In attesa";
-      else if (!st || st.phase === "lobby") n.textContent = "⏳ Da iniziare";
-      else n.textContent = "⏳ In corso";
+      if (st && st.phase === "finished") n.replaceChildren(ico("check"), " Finito");
+      else if (allBots && _botOnlyFailed.has(room)) n.replaceChildren(ico("alert"), " Errore, premi Avvia per riprovare");
+      else if (allBots) n.replaceChildren(ico("bot"), _botOnlyBusy.has(room) ? " Sta giocando…" : " In attesa");
+      else if (!st || st.phase === "lobby") n.replaceChildren(ico("hourglass"), " Da iniziare");
+      else n.replaceChildren(ico("hourglass"), " In corso");
     } catch (e) { /* stato non leggibile: lascia vuoto */ }
   }
 }
@@ -12672,7 +12774,7 @@ function renderDealerDrawScreen(state) {
     el(
       "div",
       { class: "choice-box", style: "text-align:center;" },
-      el("h1", { style: "font-size:1.15rem;margin:0 0 6px;" }, "🎴 Estrazione del mazziere"),
+      el("h1", { style: "font-size:1.15rem;margin:0 0 6px;" }, ico("cards"), " Estrazione del mazziere"),
       el("p", { class: "muted", style: "margin:0 auto 14px;font-weight:500;" }, "Si pesca a turno: chi trova l'Asso di Cuori dà le carte per primo."),
       grid,
       el("div", { id: "dealer-draw-banner" })
@@ -12699,7 +12801,7 @@ async function animateDealerDraw(sequence) {
   if (winnerSlot) winnerSlot.classList.add("dealer-winner");
   const banner = document.getElementById("dealer-draw-banner");
   if (banner) {
-    banner.textContent = `🎉 ${colorLabel(winnerColor)} dà le carte per primo!`;
+    banner.replaceChildren(ico("party"), ` ${colorLabel(winnerColor)} dà le carte per primo!`);
     banner.classList.add("show");
   }
   await sleep(1600);
@@ -12754,8 +12856,8 @@ function renderStartControls(state) {
               el(
                 "div",
                 { class: "bot-btn-row" },
-                el("button", { class: "bot-btn", onclick: () => assignBotToColor(myRoomId, c, () => {}, "easy") }, `🤖 ${colorLabel(c)} normale`),
-                el("button", { class: "bot-btn", onclick: () => assignBotToColor(myRoomId, c, () => {}, "hard") }, `🤖 ${colorLabel(c)} difficile`)
+                el("button", { class: "bot-btn", onclick: () => assignBotToColor(myRoomId, c, () => {}, "easy") }, ico("bot"), ` ${colorLabel(c)} normale`),
+                el("button", { class: "bot-btn", onclick: () => assignBotToColor(myRoomId, c, () => {}, "hard") }, ico("bot"), ` ${colorLabel(c)} difficile`)
               )
             )
           )
@@ -12823,7 +12925,7 @@ function renderExchangeControls(state) {
           title: playerName(state, c) + (state.pendingExchange[c] ? " ha scelto" : " sta scegliendo"),
         },
         (playerName(state, c) || "?").trim().charAt(0).toUpperCase(),
-        el("span", { class: "exchange-dot-check" + (state.pendingExchange[c] ? "" : " pending") }, "✓")
+        el("span", { class: "exchange-dot-check" + (state.pendingExchange[c] ? "" : " pending") }, ico("check"))
       )
     )
   );
@@ -12832,8 +12934,8 @@ function renderExchangeControls(state) {
       "div",
       { class: "turn-line exchange-line" + (already ? "" : " my-turn") },
       already
-        ? el("strong", {}, waitingColors.length ? "✓ Scelta fatta" : "Tutti pronti, avvio…")
-        : el("strong", {}, "🤝 Dai una carta a " + playerName(state, partner)),
+        ? el("strong", {}, waitingColors.length ? ico("check") : "", waitingColors.length ? " Scelta fatta" : "Tutti pronti, avvio…")
+        : el("strong", {}, ico("handshake"), " Dai una carta a " + playerName(state, partner)),
       dots
     )
   );
@@ -13226,7 +13328,7 @@ function buildJackOverlay(swap) {
   // indici negli angoli (valore e seme del J) restano leggibili.
   return el("div", { class: "jack-overlay" },
     el("div", { class: "jack-chip a", style: "--c:" + HEX[swap.a.color] }, mk(swap.a.color, swap.a.pawnIndex)),
-    el("span", { class: "jack-overlay-arrow" }, "⇄"),
+    el("span", { class: "jack-overlay-arrow" }, ico("swap")),
     el("div", { class: "jack-chip b", style: "--c:" + HEX[swap.b.color] }, mk(swap.b.color, swap.b.pawnIndex)));
 }
 
@@ -13782,7 +13884,7 @@ function renderNextToast() {
     el(
       "div",
       { class: "toast-box" },
-      el("div", { class: "toast-text" }, message),
+      el("div", { class: "toast-text" }, ...toastContent(message)),
       el("button", { class: "toast-ok-btn", onclick: dismissToast }, "OK")
     )
   );
@@ -14040,8 +14142,8 @@ function renderReplayBar(wrap) {
   const n = moveReplayHistory.length;
   const k = moveReplayIndex;
   let text;
-  if (replayNoteText) text = "ℹ️ " + replayNoteText;
-  else text = `⏪ ${k + 1}/${n} · ${moveReplayHistory[k] ? moveReplayHistory[k].label : ""}`;
+  if (replayNoteText) text = [ico("info"), " " + replayNoteText];
+  else text = [ico("rewind"), ` ${k + 1}/${n} · ${moveReplayHistory[k] ? moveReplayHistory[k].label : ""}`];
   wrap.appendChild(
     el(
       "div",
@@ -14099,29 +14201,29 @@ function openSettingsPanel(keepScroll) {
   const body = el(
     "div",
     { class: "choice-box set-box" },
-    el("div", { class: "set-head" }, el("p", { class: "set-title" }, "⚙️ Impostazioni"), el("button", { class: "set-close", "aria-label": "Chiudi", onclick: closePicker }, "✕")),
+    el("div", { class: "set-head" }, el("p", { class: "set-title" }, ico("gear"), " Impostazioni"), el("button", { class: "set-close", "aria-label": "Chiudi", onclick: closePicker }, ico("x"))),
     settingsCard("Aspetto", [
-      settingsRow("☀️", "Modalità chiara", el("span", { class: "set-radio" + (dark ? "" : " on") }), () => { applyTheme("light"); openSettingsPanel(true); }),
-      settingsRow("🌙", "Modalità scura", el("span", { class: "set-radio" + (dark ? " on" : "") }), () => { applyTheme("dark"); openSettingsPanel(true); }),
-      settingsRow("🧊", "Rilievo 3D", settingsToggle(fx, toggleFx3d)),
+      settingsRow(ico("sun"), "Modalità chiara", el("span", { class: "set-radio" + (dark ? "" : " on") }), () => { applyTheme("light"); openSettingsPanel(true); }),
+      settingsRow(ico("moon"), "Modalità scura", el("span", { class: "set-radio" + (dark ? " on" : "") }), () => { applyTheme("dark"); openSettingsPanel(true); }),
+      settingsRow(ico("cube"), "Rilievo 3D", settingsToggle(fx, toggleFx3d)),
     ]),
     settingsCard("Stile grafico", [
-      ["", "🎴", "Classico"], ["wood", "🪵", "Legno pregiato"], ["night", "🌙", "Notte da casinò"], ["bright", "✨", "Moderno luminoso"], ["arcade", "👾", "Arcade retro"],
-    ].map(([k, ic, lab]) => settingsRow(ic, lab, el("span", { class: "set-radio" + ((document.documentElement.getAttribute("data-skin") || "") === k ? " on" : "") }), () => { applySkin(k); openSettingsPanel(true); }))),
+      ["", "card", "Classico"], ["wood", "tree", "Legno pregiato"], ["night", "chip", "Notte da casinò"], ["bright", "sparkles", "Moderno luminoso"], ["arcade", "gamepad", "Arcade retro"],
+    ].map(([k, ic, lab]) => settingsRow(ico(ic), lab, el("span", { class: "set-radio" + ((document.documentElement.getAttribute("data-skin") || "") === k ? " on" : "") }), () => { applySkin(k); openSettingsPanel(true); }))),
     settingsCard("Suoni", [
-      settingsRow("🔊", "Effetti sonori", settingsToggle(!soundMuted, toggleSoundMuted)),
-      settingsRow("📳", "Vibrazione (turno, pedina mangiata, casa)", settingsToggle(hapticOn, toggleHaptic)),
+      settingsRow(ico("speaker"), "Effetti sonori", settingsToggle(!soundMuted, toggleSoundMuted)),
+      settingsRow(ico("vibrate"), "Vibrazione (turno, pedina mangiata, casa)", settingsToggle(hapticOn, toggleHaptic)),
     ]),
     settingsCard("Regole", [
-      settingsRow("📖", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); }),
-      settingsRow("🎓", "Impara a giocare (tutorial)", null, () => { closePicker(); openTutorial(); }),
+      settingsRow(ico("book"), "Regolamento completo", null, () => { closePicker(); openRulesPanel(); }),
+      settingsRow(ico("cap"), "Impara a giocare (tutorial)", null, () => { closePicker(); openTutorial(); }),
     ]),
     settingsCard("Partita", [
-      settingsRow("🔗", "Condividi il link della stanza", null, () => { closePicker(); shareInviteLink(myRoomId); }),
+      settingsRow(ico("link"), "Condividi il link della stanza", null, () => { closePicker(); shareInviteLink(myRoomId); }),
     ]),
     settingsCard("Sviluppo", [
-      settingsRow("🃏", "Mostra le mani (codice)", settingsToggle(handsDebugVisible, toggleHandsDebug)),
-      settingsRow("ℹ️", "Versione " + APP_VERSION, el("span", {})),
+      settingsRow(ico("eye"), "Mostra le mani (codice)", settingsToggle(handsDebugVisible, toggleHandsDebug)),
+      settingsRow(ico("info"), "Versione " + APP_VERSION, el("span", {})),
     ])
   );
   openPicker(body);
@@ -14136,7 +14238,7 @@ function openRulesPanel() {
     el(
       "div",
       { class: "choice-box" },
-      el("p", { style: "font-weight:800;font-size:1.05rem;margin-bottom:16px;" }, "📖 Regolamento"),
+      el("p", { style: "font-weight:800;font-size:1.05rem;margin-bottom:16px;" }, ico("book"), " Regolamento"),
       RULES_SECTIONS.map((s, i) => {
         const badge = RULE_BADGES[i % RULE_BADGES.length];
         return el(
@@ -14181,14 +14283,14 @@ function tutMakeState(pawns, hand, lapped) {
 
 const TUT_LESSONS = [
   {
-    id: "obiettivo", icon: "🎯", title: "Obiettivo e coppie", desc: "Chi gioca con chi e come si vince",
+    id: "obiettivo", icon: "target", title: "Obiettivo e coppie", desc: "Chi gioca con chi e come si vince",
     info: true,
     make: () => tutMakeState({ red: [1000, 1001, 1002, -1], yellow: [1000, 1001, -1, -1], green: [-1, -1, -1, -1], blue: [-1, -1, -1, -1] }, []),
     text: "Si gioca in quattro, a coppie: Rosso + Giallo contro Verde + Blu. Tu sei il Rosso e il tuo compagno è il Giallo.\n\nVince la coppia che per prima porta tutte e 8 le pedine (le 4 tue e le 4 del compagno) nelle caselle-casa, al centro: nell'immagine ne vedi già alcune arrivate.",
     done: "Ottimo. Passa alla lezione che vuoi: puoi farle in qualsiasi ordine.",
   },
   {
-    id: "entrare", icon: "🅰️", title: "Far uscire una pedina", desc: "Asso e Re portano una pedina in gioco",
+    id: "entrare", icon: "ace", title: "Far uscire una pedina", desc: "Asso e Re portano una pedina in gioco",
     make: () => tutMakeState({}, ["5-clubs", "A-hearts"]),
     card: "A-hearts",
     text: "Tutte le tue pedine sono ancora in base. Solo un Asso o un Re ne fa uscire una.\n\nTocca l'Asso.",
@@ -14197,7 +14299,7 @@ const TUT_LESSONS = [
     done: "Fatto! La pedina è sulla tua base ed è protetta: nessuno la può mangiare finché non si muove. Se hai già una pedina sulla base e giochi un altro Asso o Re, la nuova entra e mangia quella.",
   },
   {
-    id: "mangiare", icon: "💥", title: "Muovere e mangiare", desc: "Atterrare esatti su una pedina",
+    id: "mangiare", icon: "burst", title: "Muovere e mangiare", desc: "Atterrare esatti su una pedina",
     make: () => tutMakeState({ red: [10, -1, -1, -1], green: [15, -1, -1, -1] }, ["9-hearts", "5-clubs"]),
     card: "5-clubs",
     text: "Ti muovi del valore esatto della carta. La pedina verde è a 5 caselle dalla tua.\n\nTocca il 5: ci atterri sopra e la mangi.",
@@ -14206,7 +14308,7 @@ const TUT_LESSONS = [
     done: "Mangiata! Torna alla sua base e dovrà aspettare un Asso o un Re. Si mangia sempre, anche i compagni e le tue pedine (qui non ti fa guadagnare nulla, quindi attenzione).",
   },
   {
-    id: "quattro", icon: "4️⃣", title: "Il 4 va indietro", desc: "La scorciatoia verso casa",
+    id: "quattro", icon: "four", title: "Il 4 va indietro", desc: "La scorciatoia verso casa",
     make: () => tutMakeState({ red: [0, -1, -1, -1] }, ["8-clubs", "4-spades"]),
     card: "4-spades",
     text: "Il 4 è l'unica carta che va indietro. Dalla base, 4 passi indietro ti portano sulla casella \"-4\", a un passo dall'entrata in casa: una scorciatoia che evita il giro intero.\n\nTocca il 4.",
@@ -14215,7 +14317,7 @@ const TUT_LESSONS = [
     done: "Sei sulla \"-4\". Da qui con il numero giusto entri nelle caselle-casa. Nella prossima lezione lo vedi.",
   },
   {
-    id: "casa", icon: "🏠", title: "Entrare in casa", desc: "Il numero esatto, sempre facoltativo",
+    id: "casa", icon: "home", title: "Entrare in casa", desc: "Il numero esatto, sempre facoltativo",
     make: () => tutMakeState({ red: [60, -1, -1, -1] }, ["2-hearts", "6-clubs"], [["red", 0]]),
     card: "6-clubs",
     text: "La tua pedina ha fatto il giro ed è sulla \"-4\". Con il 6 puoi entrare in casa, nella seconda casella. Le caselle-casa sono sicure: nessuno le può mangiare.\n\nTocca il 6 e scegli. Entrare è sempre facoltativo.",
@@ -14232,7 +14334,7 @@ const TUT_LESSONS = [
     done: "",
   },
   {
-    id: "sette", icon: "7️⃣", title: "Il 7 diviso", desc: "Più mangiate con una carta sola",
+    id: "sette", icon: "seven", title: "Il 7 diviso", desc: "Più mangiate con una carta sola",
     make: () => tutMakeState({ red: [10, 30, -1, -1], green: [13, 34, -1, -1] }, ["7-diamonds", "3-clubs"]),
     card: "7-diamonds",
     text: "Il 7 si può giocare intero su una pedina, oppure dividere tra le tue pedine. Con il 7 non sei bloccato: mangi ogni pedina che incontri sul percorso.\n\nHai due pedine verdi davanti: una a 3 caselle dalla tua prima pedina, una a 4 dalla seconda. Tocca il 7 e scegli come giocarlo.",
@@ -14245,7 +14347,7 @@ const TUT_LESSONS = [
     done: "Due mangiate con una carta sola! Il 7 è la carta più potente: serve anche a sbloccare una casella-casa occupata e a far continuare i passi rimasti sulle pedine del compagno.",
   },
   {
-    id: "jack", icon: "🃏", title: "Il Jack", desc: "Scambiare due pedine di posto",
+    id: "jack", icon: "swap", title: "Il Jack", desc: "Scambiare due pedine di posto",
     make: () => tutMakeState({ red: [5, -1, -1, -1], green: [58, -1, -1, -1], yellow: [40, -1, -1, -1] }, ["J-hearts", "2-clubs"]),
     card: "J-hearts",
     text: "Il Jack non muove: scambia di posto due pedine qualsiasi sul percorso, anche avversarie. Non vale per le pedine in casa né per quella appena entrata dalla base.\n\nLa tua pedina è appena partita; la pedina verde è quasi arrivata all'entrata della tua casa. Tocca il Jack e scegli lo scambio più utile.",
@@ -14258,7 +14360,7 @@ const TUT_LESSONS = [
     done: "Scambio fatto: la tua pedina ha saltato quasi tutto il giro. Il Jack è la carta più strategica: usalo anche per mandare indietro un avversario.",
   },
   {
-    id: "bruciare", icon: "🔥", title: "Bruciare una carta", desc: "Quando una carta non ha mosse",
+    id: "bruciare", icon: "flame", title: "Bruciare una carta", desc: "Quando una carta non ha mosse",
     make: () => tutMakeState({ red: [10, -1, -1, -1], green: [15, -1, -1, -1] }, ["2-clubs", "Q-spades"]),
     card: "Q-spades",
     text: "La Regina farebbe 12 passi, ma sul percorso c'è la pedina verde e non puoi passarci sopra: questa carta non ha nessuna mossa legale.\n\nScegli tu quale carta giocare. Tocca la Regina: la bruci e il turno passa.",
@@ -14267,7 +14369,7 @@ const TUT_LESSONS = [
     done: "Bruciata. Ricorda: puoi bruciare solo una carta che non ha nessuna mossa legale. Se ne ha, la devi giocare, oppure scegliere un'altra carta.",
   },
   {
-    id: "scambio", icon: "🤝", title: "Lo scambio con il compagno", desc: "Passargli una carta alla cieca",
+    id: "scambio", icon: "handshake", title: "Lo scambio con il compagno", desc: "Passargli una carta alla cieca",
     make: () => tutMakeState({}, ["K-clubs", "J-spades", "7-hearts", "5-diamonds", "9-clubs"]),
     anyCard: true,
     text: "All'inizio di ogni mano scegli alla cieca una carta da dare al compagno, e ne ricevi una da lui.\n\nTocca la carta che daresti al tuo compagno.",
@@ -14295,12 +14397,12 @@ function showTutorialList() {
   const done = tutDone();
   root.innerHTML = "";
   root.appendChild(el("div", { class: "tut-wrap" },
-    el("div", { class: "tut-head", }, el("h2", {}, "🎓 Impara a giocare"), el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, "✕")),
+    el("div", { class: "tut-head", }, el("h2", {}, ico("cap"), " Impara a giocare"), el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, ico("x"))),
     el("p", { class: "tut-sub" }, "Scegli la lezione che vuoi, nell'ordine che preferisci. Giochi sul vero tabellone: niente stanze, niente fretta."),
     TUT_LESSONS.map((l, i) => el("button", { class: "tut-row", onclick: () => openTutorialLesson(i) },
-      el("span", { class: "tut-ico" }, l.icon),
+      el("span", { class: "tut-ico" }, ico(l.icon)),
       el("span", {}, el("div", { class: "tut-row-t" }, l.title), el("div", { class: "tut-row-d" }, l.desc)),
-      done.indexOf(l.id) >= 0 ? el("span", { class: "tut-check" }, "✓") : ""
+      done.indexOf(l.id) >= 0 ? el("span", { class: "tut-check" }, ico("check")) : ""
     ))
   ));
   root.scrollTop = 0;
@@ -14323,8 +14425,8 @@ function openTutorialLesson(idx) {
   root.appendChild(el("div", { class: "tut-wrap" },
     el("div", { class: "tut-head" },
       el("button", { class: "tut-x", onclick: showTutorialList, "aria-label": "Elenco lezioni" }, "‹"),
-      el("h2", {}, lesson.icon + " " + lesson.title),
-      el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, "✕")),
+      el("h2", {}, ico(lesson.icon), " " + lesson.title),
+      el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, ico("x"))),
     holder, T.bubble, T.handEl, T.chipsEl, T.footEl));
   root.scrollTop = 0;
   T.svg = buildBoardSVG(holder, BOARD);
@@ -14360,10 +14462,10 @@ function tutRenderHand(T) {
 }
 function tutRenderFoot(T) {
   T.footEl.innerHTML = "";
-  if (!T.lesson.info) T.footEl.appendChild(el("button", { onclick: () => openTutorialLesson(T.idx) }, "↺ Ricomincia"));
+  if (!T.lesson.info) T.footEl.appendChild(el("button", { onclick: () => openTutorialLesson(T.idx) }, ico("undo"), " Ricomincia"));
   if (T.finished) {
     const last = T.idx >= TUT_LESSONS.length - 1;
-    T.footEl.appendChild(el("button", { class: "primary", onclick: () => (last ? showTutorialList() : openTutorialLesson(T.idx + 1)) }, last ? "Fine ✓" : "Prossima ›"));
+    T.footEl.appendChild(el("button", { class: "primary", onclick: () => (last ? showTutorialList() : openTutorialLesson(T.idx + 1)) }, last ? ["Fine ", ico("check")] : "Prossima ›"));
   }
   if (T.lesson.info && !T.finished) T.footEl.appendChild(el("button", { class: "primary", onclick: () => { T.finished = true; tutRenderFoot(T); } }, "Avanti"));
 }
@@ -14946,7 +15048,7 @@ function renderChatFab(messages) {
           "aria-expanded": reactionsOpen ? "true" : "false",
           onclick: () => { reactionsOpen = !reactionsOpen; _chatFabRenderKey = null; renderChatFab(currentState.chat || []); },
         },
-        reactionsOpen ? "✕" : "😀"
+        reactionsOpen ? ico("x") : ico("smile")
       )
     )
   );
@@ -14967,7 +15069,7 @@ function renderChatFab(messages) {
     el(
       "div",
       { class: "nudge-row" },
-      el("button", { class: "nudge-btn", title: "Sveglia chi deve giocare", onclick: sendNudge }, "👋", el("span", { class: "nudge-label" }, " Sveglia chi deve giocare"))
+      el("button", { class: "nudge-btn", title: "Sveglia chi deve giocare", onclick: sendNudge }, ico("wave"), el("span", { class: "nudge-label" }, " Sveglia chi deve giocare"))
     )
   );
 }
@@ -15079,7 +15181,7 @@ function openChatPicker() {
     el(
       "div",
       { class: "choice-box" },
-      el("p", { style: "font-weight:800;font-size:1.05rem;margin:0 0 10px;" }, "💬 Chat di stanza"),
+      el("p", { style: "font-weight:800;font-size:1.05rem;margin:0 0 10px;" }, ico("chat"), " Chat di stanza"),
       list,
       el(
         "div",
@@ -15354,7 +15456,7 @@ function renderHandsDebugPanel(state) {
     document.body.appendChild(panel);
   }
   panel.innerHTML = "";
-  panel.appendChild(el("div", { class: "hands-debug-title" }, "🃏 Mani (debug, solo qui)"));
+  panel.appendChild(el("div", { class: "hands-debug-title" }, ico("eye"), " Mani (debug, solo qui)"));
   for (const c of COLORS) {
     const hand = (state.hands[c] || []).map((card) => cardLog(card)).join("  ");
     panel.appendChild(
@@ -15390,7 +15492,7 @@ function buildLogPickerContent(state) {
   return el(
     "div",
     { class: "choice-box" },
-    el("p", { id: "log-title", style: "font-weight:800;font-size:1.05rem;margin:0 0 10px;" }, `📜 Registro (${all.length} mosse)`),
+    el("p", { id: "log-title", style: "font-weight:800;font-size:1.05rem;margin:0 0 10px;" }, ico("scroll"), ` Registro (${all.length} mosse)`),
     el(
       "div",
       { class: "log-controls" },
@@ -15432,7 +15534,7 @@ function renderLog(state) {
     logPickerOpen = false;
     return;
   }
-  title.textContent = `📜 Registro (${(state.log || []).length} mosse)`;
+  title.replaceChildren(ico("scroll"), ` Registro (${(state.log || []).length} mosse)`);
   fillLogList(list, state);
 }
 
@@ -15499,10 +15601,10 @@ function buildAwards(state) {
   const a = top("capt");
   const b = top("lost");
   const j = top("swaps");
-  if (a) rows.push(["🦈", "Squalo", playerName(state, a.c), a.n === 1 ? "1 pedina mangiata" : a.n + " pedine mangiate"]);
-  if (b) rows.push(["🎯", "Vittima della serata", playerName(state, b.c), b.n === 1 ? "mangiata 1 volta" : "mangiata " + b.n + " volte"]);
-  if (j) rows.push(["🃏", "Re dei Jack", playerName(state, j.c), j.n === 1 ? "1 scambio" : j.n + " scambi"]);
-  if (!rows.length) rows.push(["🕊️", "Partita pacifica", "", "nessuna pedina mangiata"]);
+  if (a) rows.push(["burst", "Squalo", playerName(state, a.c), a.n === 1 ? "1 pedina mangiata" : a.n + " pedine mangiate"]);
+  if (b) rows.push(["target", "Vittima della serata", playerName(state, b.c), b.n === 1 ? "mangiata 1 volta" : "mangiata " + b.n + " volte"]);
+  if (j) rows.push(["swap", "Re dei Jack", playerName(state, j.c), j.n === 1 ? "1 scambio" : j.n + " scambi"]);
+  if (!rows.length) rows.push(["leaf", "Partita pacifica", "", "nessuna pedina mangiata"]);
   return el(
     "div",
     { class: "win-awards" },
@@ -15510,7 +15612,7 @@ function buildAwards(state) {
       el(
         "div",
         { class: "win-award" },
-        el("span", { class: "win-award-ico" }, r[0]),
+        el("span", { class: "win-award-ico" }, ico(r[0])),
         el("span", { class: "win-award-txt" }, el("strong", {}, r[1]), r[2] ? " · " + r[2] : "", el("em", {}, " — " + r[3]))
       )
     )
@@ -15561,8 +15663,8 @@ function renderWinBanner(state) {
     // accoppiamenti?"). Al suo posto si torna direttamente alla pagina del
     // torneo, da cui l'organizzatore avvia il round successivo.
     state.torneo
-      ? el("button", { class: "primary", onclick: () => { detachFromGameRoom(); openTournamentByCode(state.torneo.code); } }, "🏆 Torna al torneo")
-      : el("button", { class: "primary", onclick: startNewGame }, "🔁 Rivincita"),
+      ? el("button", { class: "primary", onclick: () => { detachFromGameRoom(); openTournamentByCode(state.torneo.code); } }, ico("trophy"), " Torna al torneo")
+      : el("button", { class: "primary", onclick: startNewGame }, ico("repeat"), " Rivincita"),
     el(
       "button",
       { class: "text-link-btn", style: "display:flex;width:100%;justify-content:center;margin-top:10px;", onclick: () => { location.href = location.pathname; } },
@@ -15803,7 +15905,7 @@ function showNewVersionBanner(newVersion, fromRoom) {
       : el(
           "button",
           { class: "version-banner-dismiss", "aria-label": "Ignora", onclick: () => { versionCheckDismissed = true; bar.remove(); } },
-          "✕"
+          ico("x")
         )
   );
   if (fromRoom) bar.dataset.fromRoom = "1";
