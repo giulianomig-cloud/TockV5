@@ -27,8 +27,11 @@
 - Le pedine protette (appena entrate sulla propria base) non si mangiano né si scavalcano.
 
 ## Icone
-- Le icone dell'interfaccia sono icone a linea color oro (`UI_ICONS` + `ico(nome)` in `index.html`),
-  non emoji. Per una nuova icona aggiungi il disegno a `UI_ICONS` nello stesso stile.
+- Le icone dell'interfaccia sono icone a linea BIANCHE dentro un QUADRATINO COLORATO
+  (stile Impostazioni dell'iPhone, scelto dall'utente; lo stile solo-oro è stato scartato).
+  Codice: `UI_ICONS` (disegni) + `UI_ICON_BG` (colore del quadratino) + `ico(nome)` in `index.html`.
+  Per una nuova icona aggiungi disegno e colore. Senza quadratino solo i simboli di controllo
+  (✕ chiudi, ✓ fatto) e la freccia del Jack sul tabellone.
 - Restano emoji solo i contenuti: semi delle carte, chat e frasi dei bot, reazioni,
   fuoco della carta bruciata, stelline della pedina in casa, titolo della scheda del browser.
 
