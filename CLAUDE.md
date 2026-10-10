@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.34**.
+- Versione attuale: **v5.36**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -25,6 +25,15 @@
   con una carta normale arrivandoci sopra (senza scavalcare nessuno), col 7 anche a metà strada.
   Se si mangia una pedina del proprio colore l'app chiede conferma.
 - Le pedine protette (appena entrate sulla propria base) non si mangiano né si scavalcano.
+
+## Icone
+- Le icone dell'interfaccia sono icone a linea BIANCHE dentro un QUADRATINO COLORATO
+  (stile Impostazioni dell'iPhone, scelto dall'utente; lo stile solo-oro è stato scartato).
+  Codice: `UI_ICONS` (disegni) + `UI_ICON_BG` (colore del quadratino) + `ico(nome)` in `index.html`.
+  Per una nuova icona aggiungi disegno e colore. Senza quadratino solo i simboli di controllo
+  (✕ chiudi, ✓ fatto) e la freccia del Jack sul tabellone.
+- Restano emoji solo i contenuti: semi delle carte, chat e frasi dei bot, reazioni,
+  fuoco della carta bruciata, stelline della pedina in casa, titolo della scheda del browser.
 
 ## Tornei
 - L'organizzatore è riconosciuto dal dispositivo (`organizerToken`), non dal nome.
