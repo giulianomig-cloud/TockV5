@@ -12879,12 +12879,14 @@ function miniPawnsRow(pawnPositions, color) {
   // v5.31: i pallini indicano SOLO quante pedine non sono ancora in gioco
   // (ferme alla partenza, pos === -1) — chiesto: le pedine sul tabellone e
   // quelle a casa si vedono già sul tabellone. Quattro posti fissi (la
-  // pillola non cambia larghezza), riempiti dal lato del nome.
+  // pillola non cambia larghezza), riempiti partendo dal lato della pillola
+  // opposto al nome (per chi sta a destra l'SVG è specchiato, quindi vale
+  // per tutti allo stesso modo).
   const notInPlay = pawnPositions.filter((pos) => pos === -1).length;
   svg.setAttribute("aria-label", `${notInPlay} pedine non ancora in gioco`);
   for (let i = 0; i < notInPlay; i++) {
     const c = document.createElementNS(ns, "circle");
-    c.setAttribute("cx", 12 + i * 25);
+    c.setAttribute("cx", 12 + (3 - i) * 25);
     c.setAttribute("cy", 11);
     c.setAttribute("r", 8);
     c.setAttribute("fill", `url(#${gradId})`);
