@@ -52,6 +52,8 @@
   (le freccette sulle basi sono state scartate);
   icone dell'interfaccia: restano le EMOJI. Provate e scartate sia le icone a linea oro sia
   quelle nei quadratini colorati (v5.36, tolte nella v5.37): non riproporle.
+  Emoji scelte: tutte "oggetti colorati", niente simboli piatti e niente doppioni (Impostazioni:
+  ☀️ 🌙 🧊 · 🃏 Classico, 🪵 Legno, 🎰 Notte, 💎 Luminoso, 🕹️ Arcade · 🔊 📳 · 📜 🎓 · 📤 · 👀 🏷️).
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
 - Prima di eliminare un file, controlla che non sia usato in `index.html`, `sw.js` o `manifest.json`.

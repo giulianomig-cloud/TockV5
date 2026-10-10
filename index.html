@@ -14106,22 +14106,22 @@ function openSettingsPanel(keepScroll) {
       settingsRow("🧊", "Rilievo 3D", settingsToggle(fx, toggleFx3d)),
     ]),
     settingsCard("Stile grafico", [
-      ["", "🎴", "Classico"], ["wood", "🪵", "Legno pregiato"], ["night", "🌙", "Notte da casinò"], ["bright", "✨", "Moderno luminoso"], ["arcade", "👾", "Arcade retro"],
+      ["", "🃏", "Classico"], ["wood", "🪵", "Legno pregiato"], ["night", "🎰", "Notte da casinò"], ["bright", "💎", "Moderno luminoso"], ["arcade", "🕹️", "Arcade retro"],
     ].map(([k, ic, lab]) => settingsRow(ic, lab, el("span", { class: "set-radio" + ((document.documentElement.getAttribute("data-skin") || "") === k ? " on" : "") }), () => { applySkin(k); openSettingsPanel(true); }))),
     settingsCard("Suoni", [
       settingsRow("🔊", "Effetti sonori", settingsToggle(!soundMuted, toggleSoundMuted)),
       settingsRow("📳", "Vibrazione (turno, pedina mangiata, casa)", settingsToggle(hapticOn, toggleHaptic)),
     ]),
     settingsCard("Regole", [
-      settingsRow("📖", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); }),
+      settingsRow("📜", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); }),
       settingsRow("🎓", "Impara a giocare (tutorial)", null, () => { closePicker(); openTutorial(); }),
     ]),
     settingsCard("Partita", [
-      settingsRow("🔗", "Condividi il link della stanza", null, () => { closePicker(); shareInviteLink(myRoomId); }),
+      settingsRow("📤", "Condividi il link della stanza", null, () => { closePicker(); shareInviteLink(myRoomId); }),
     ]),
     settingsCard("Sviluppo", [
-      settingsRow("🃏", "Mostra le mani (codice)", settingsToggle(handsDebugVisible, toggleHandsDebug)),
-      settingsRow("ℹ️", "Versione " + APP_VERSION, el("span", {})),
+      settingsRow("👀", "Mostra le mani (codice)", settingsToggle(handsDebugVisible, toggleHandsDebug)),
+      settingsRow("🏷️", "Versione " + APP_VERSION, el("span", {})),
     ])
   );
   openPicker(body);
@@ -14136,7 +14136,7 @@ function openRulesPanel() {
     el(
       "div",
       { class: "choice-box" },
-      el("p", { style: "font-weight:800;font-size:1.05rem;margin-bottom:16px;" }, "📖 Regolamento"),
+      el("p", { style: "font-weight:800;font-size:1.05rem;margin-bottom:16px;" }, "📜 Regolamento"),
       RULES_SECTIONS.map((s, i) => {
         const badge = RULE_BADGES[i % RULE_BADGES.length];
         return el(
