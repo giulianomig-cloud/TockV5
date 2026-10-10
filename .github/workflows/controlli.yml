@@ -1,0 +1,17 @@
+# Controlli automatici delle regole del gioco: girano a ogni aggiornamento
+# e a ogni pull request. Se una regola si rompe, GitHub lo segnala con una ❌.
+name: Controlli regole
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  regole:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/*.test.js

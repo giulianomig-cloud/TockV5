@@ -4619,6 +4619,24 @@ function activeColorFor(state, seatColor) {
   return partnerHome ? null : partner;
 }
 
+// Confronta due versioni dell'app ("v5.29", "v5.30"...): >0 se a è più
+// nuova di b, <0 se più vecchia, 0 se uguali. Confronto numerico pezzo per
+// pezzo, quindi "v5.30" è più nuova di "v5.4". Una versione illeggibile
+// (es. true scritto da un client vecchio nella presenza) conta come la più
+// vecchia possibile.
+function compareAppVersions(a, b) {
+  const parse = (v) => (typeof v === "string" && /^v?\d+(\.\d+)*$/.test(v) ? v.replace(/^v/, "").split(".").map(Number) : null);
+  const pa = parse(a), pb = parse(b);
+  if (!pa && !pb) return 0;
+  if (!pa) return -1;
+  if (!pb) return 1;
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d !== 0) return d;
+  }
+  return 0;
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     COLORS, TEAM_OF, TEAM_LABEL, PARTNER_OF, NEXT_COLOR,
@@ -4628,6 +4646,7 @@ if (typeof module !== "undefined") {
     occupantAt, homeOccupant, allPawnPositions, isPawnProtected, jackableTargets,
     legalMovesForCard, sevenHasAnyDistribution, sevenValidateDistribution,
     anyLegalMove, applyMove, checkWin, resetForNewGame, burnOneCard, advanceTurn, activeColorFor,
+    compareAppVersions,
   };
 }
 
@@ -5742,8 +5761,34 @@ function watchPresence(roomId) {
   ref.on("value", (snap) => {
     presenceState = snap.val() || {};
     if (currentState) renderPlayerStatus(currentState);
+    if (amIOutdatedInRoom()) showNewVersionBanner(newestRoomVersion(), true);
   });
   presenceListenerRef = ref;
+}
+
+// ---- Versioni dell'app in stanza (v5.30) --------------------------------
+// Ogni connessione scrive in presence/<room>/<color>/<connId> la propria
+// APP_VERSION (i client fino alla v5.29 scrivono solo true). Serve a due
+// cose: chi ha una versione più vecchia di un altro giocatore in stanza
+// viene invitato subito a ricaricare, e non fa muovere i bot (vedi
+// scheduleBotAction) — così le mosse dei bot le calcola sempre un telefono
+// con le regole più recenti.
+function roomVersionsOf(color) {
+  const conns = presenceState && presenceState[color];
+  if (!conns || typeof conns !== "object") return [];
+  return Object.values(conns).filter((v) => typeof v === "string");
+}
+
+function newestRoomVersion() {
+  let best = APP_VERSION;
+  for (const c of COLORS) {
+    for (const v of roomVersionsOf(c)) if (compareAppVersions(v, best) > 0) best = v;
+  }
+  return best;
+}
+
+function amIOutdatedInRoom() {
+  return compareAppVersions(newestRoomVersion(), APP_VERSION) > 0;
 }
 
 // Segnala che QUESTO client (questa scheda/dispositivo, per il colore che
@@ -5783,7 +5828,13 @@ function setupOwnPresence(roomId, color) {
     // rifiutano (permission_denied) non deve comparire l'errore rosso né
     // toccare il gioco — si registra solo in console.
     myPresenceRef.onDisconnect().remove().catch((e) => console.warn("presence onDisconnect", e));
-    myPresenceRef.set(true).catch((e) => console.warn("presence set", e));
+    // v5.30: invece di un semplice true si scrive la versione dell'app, così
+    // ogni telefono sa con che versione giocano gli altri (vedi
+    // newestRoomVersion). Se le regole Firebase accettassero solo true, si
+    // ripiega su true: il pallino "online" deve funzionare comunque.
+    myPresenceRef.set(APP_VERSION).catch(() =>
+      myPresenceRef.set(true).catch((e) => console.warn("presence set", e))
+    );
   };
   if (!presenceConnListenerAttached) {
     presenceConnListenerAttached = true;
@@ -7349,7 +7400,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.29";
+const APP_VERSION = "v5.30";
 
 let myColor = null;
 let myRoomId = null;
@@ -10816,11 +10867,19 @@ function scheduleBotAction(fn) {
   // dell'app più vecchia), saltando le pause. Il "pilota" dei bot è il primo
   // giocatore umano (ordine dei colori); gli altri intervengono solo se il
   // pilota non muove entro 7s (es. telefono spento).
+  // v5.30: il pilota dev'essere su un telefono con la versione più recente
+  // presente in stanza (vedi newestRoomVersion); un telefono rimasto
+  // indietro non muove mai i bot. Se nessuno ha comunicato la versione
+  // (client vecchi, presenza non disponibile) vale la regola della v5.29.
+  if (amIOutdatedInRoom()) return;
   let delay = BOT_GAP_MS;
   try {
     const st = (typeof currentState !== "undefined") ? currentState : null;
     if (st && st.players && myColor) {
-      const driver = COLORS.find((c) => st.players[c] && !st.players[c].isBot);
+      const humans = COLORS.filter((c) => st.players[c] && !st.players[c].isBot);
+      const newest = newestRoomVersion();
+      const driver =
+        humans.find((c) => roomVersionsOf(c).some((v) => compareAppVersions(v, newest) === 0)) || humans[0];
       if (driver && driver !== myColor) delay += 7000;
     }
   } catch (e) {}
@@ -15429,19 +15488,32 @@ function checkForNewVersion() {
     .catch(() => {}); // offline o rete debole: nessun avviso, si ricontrolla al giro successivo
 }
 
-function showNewVersionBanner(newVersion) {
-  if (document.getElementById("version-banner")) return;
+// fromRoom (v5.30): un altro giocatore in stanza ha già una versione più
+// nuova — l'avviso è più deciso e non si può chiudere, perché con regole
+// diverse le mosse viste dai due telefoni potrebbero non tornare.
+function showNewVersionBanner(newVersion, fromRoom) {
+  const existing = document.getElementById("version-banner");
+  if (existing) {
+    if (!fromRoom || existing.dataset.fromRoom === "1") return;
+    existing.remove(); // sostituito dalla versione "non chiudibile"
+  }
+  const text = fromRoom
+    ? `Un altro giocatore usa una versione più nuova (${newVersion}). Ricarica per giocare con le stesse regole.`
+    : `È disponibile una nuova versione (${newVersion}). Ricaricala quando fa comodo.`;
   const bar = el(
     "div",
     { id: "version-banner", class: "version-banner" },
-    el("div", { class: "version-banner-text" }, `È disponibile una nuova versione (${newVersion}). Ricaricala quando fa comodo.`),
+    el("div", { class: "version-banner-text" }, text),
     el("button", { class: "version-banner-btn", onclick: () => location.reload() }, "Ricarica"),
-    el(
-      "button",
-      { class: "version-banner-dismiss", "aria-label": "Ignora", onclick: () => { versionCheckDismissed = true; bar.remove(); } },
-      "✕"
-    )
+    fromRoom
+      ? null
+      : el(
+          "button",
+          { class: "version-banner-dismiss", "aria-label": "Ignora", onclick: () => { versionCheckDismissed = true; bar.remove(); } },
+          "✕"
+        )
   );
+  if (fromRoom) bar.dataset.fromRoom = "1";
   document.body.appendChild(bar);
 }
 

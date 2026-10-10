@@ -13,12 +13,23 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.29**.
+- Versione attuale: **v5.30**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
   - `APP_VERSION` in `index.html` (es. `"v5.30"`) — è il numero mostrato nella lobby;
   - `CACHE_VERSION` in `sw.js` (es. `"v5-30"`) — serve a scartare le cache vecchie sui telefoni.
+
+## Controlli automatici
+- In `tests/` ci sono i controlli delle regole del gioco (mazzo, scambio, movimenti, casa,
+  Jack, 7, turni, vittoria). Leggono il motore direttamente da `index.html`.
+- Si lanciano con `node --test tests/*.test.js` (girano anche su GitHub a ogni aggiornamento).
+- Lanciali prima di ogni push; se cambi una regola apposta, aggiorna anche il controllo.
+
+## Bot e versioni in stanza
+- Dalla v5.30 ogni telefono scrive la propria `APP_VERSION` nella presenza
+  (`presence/<stanza>/<colore>/<connessione>`). Chi ha una versione più vecchia di un altro
+  giocatore vede un avviso non chiudibile e non fa muovere i bot.
 
 ## Come lavorare
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
