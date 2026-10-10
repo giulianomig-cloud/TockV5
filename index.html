@@ -2744,6 +2744,12 @@ html.fx3d[data-theme="dark"]:not([data-skin="arcade"]) #board-wrap {
   box-shadow: 0 10px 18px -6px rgba(0,0,0,.7) inset, 0 -1px 0 rgba(255,255,255,.12) inset, 0 1px 0 rgba(255,255,255,.08), 0 14px 26px -12px rgba(0,0,0,.7);
 }
 html.fx3d[data-theme="dark"]:not([data-skin="arcade"]) .pawn { filter: drop-shadow(2px 4px 1.5px rgba(0,0,0,.7)) drop-shadow(6px 12px 8px rgba(0,0,0,.4)); }
+
+/* --- v5.34: righe con freccia nella cornice del tabellone (vedi drawDirectionArrows) --- */
+.dir-arrows { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; z-index: 2; color: rgba(92,62,28,.6); }
+.dir-arrows line, .dir-arrows path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+:root[data-theme="dark"] .dir-arrows, html[data-skin="wood"] .dir-arrows, html[data-skin="night"] .dir-arrows { color: #E2BF63; }
+html[data-skin="arcade"] .dir-arrows { color: #22e4ff; }
 /* --- v5.31: ritocchi grafici (nomi interi, offline, reazioni) --- */
 /* Pallini delle pedine più piccoli nelle pillole: il posto va al nome,
    che prima veniva tagliato già a 6-7 lettere ("Giulia…"). */
@@ -6438,28 +6444,67 @@ function buildBoardSVG(containerEl, board) {
     });
   }
 
-  // v5.31: freccia del verso di marcia tra la casella di partenza di ogni
-  // colore e quella successiva.
-  for (const color of board.order) {
-    const from = board.loopCells[board.baseIndex[color]];
-    const to = board.loopCells[(board.baseIndex[color] + 1) % board.loopCells.length];
-    const dx = to.x - from.x, dy = to.y - from.y, len = Math.hypot(dx, dy) || 1;
-    const ux = dx / len, uy = dy / len;
-    const mx = (from.x + to.x) / 2, my = (from.y + to.y) / 2, k = R * 0.42;
-    const pts = [
-      [mx + ux * k, my + uy * k],
-      [mx - ux * k - uy * k, my - uy * k + ux * k],
-      [mx - ux * k + uy * k, my - uy * k - ux * k],
-    ].map(([x, y]) => x.toFixed(2) + "," + y.toFixed(2)).join(" ");
-    const fill = isArcade() ? ARCADE_NEON[color] : BASE_COL[color];
-    svg.appendChild(ns_el("polygon", { points: pts, fill, stroke: isArcade() ? "none" : "#fff", "stroke-width": 1.2, "stroke-linejoin": "round", class: "start-arrow" }));
-  }
-
   containerEl.innerHTML = "";
   containerEl.appendChild(svg);
+  scheduleDirectionArrows(containerEl);
   resetPawnAnimState();
   resetMoveReplayHistory();
   return svg;
+}
+
+// v5.34: verso di marcia indicato da una riga con freccia su ogni lato,
+// disegnata nella CORNICE di #board-wrap (fuori dal tabellone, al centro
+// dello spazio libero tra il bordo del contenitore e il tabellone, così non
+// tocca né le caselle né i bordi). Sostituisce le freccette sulle basi
+// (v5.31). Le misure della cornice cambiano con lo stile grafico e con la
+// larghezza dello schermo: si ricalcolano dopo ogni costruzione del
+// tabellone e a ogni cambio di dimensione (ResizeObserver). Il colore viene
+// dal CSS (.dir-arrows), così segue stile e tema.
+let _dirArrowsObserver = null;
+function scheduleDirectionArrows(wrap) {
+  requestAnimationFrame(() => drawDirectionArrows(wrap));
+  if (typeof ResizeObserver !== "undefined") {
+    if (_dirArrowsObserver) _dirArrowsObserver.disconnect();
+    _dirArrowsObserver = new ResizeObserver(() => drawDirectionArrows(wrap));
+    _dirArrowsObserver.observe(wrap);
+  }
+}
+function drawDirectionArrows(wrap) {
+  if (!wrap || !wrap.isConnected) return;
+  const board = wrap.querySelector(":scope > svg:not(.dir-arrows)");
+  if (!board) return;
+  wrap.querySelectorAll(".dir-arrows").forEach((n) => n.remove());
+  const wR = wrap.getBoundingClientRect(), bR = board.getBoundingClientRect();
+  if (!wR.width || !bR.width) return;
+  const cs = getComputedStyle(wrap);
+  const bt = parseFloat(cs.borderTopWidth) || 0, bl = parseFloat(cs.borderLeftWidth) || 0;
+  const br = parseFloat(cs.borderRightWidth) || 0, bb = parseFloat(cs.borderBottomWidth) || 0;
+  const fT = bR.top - wR.top, fL = bR.left - wR.left, fR = wR.right - bR.right, fB = wR.bottom - bR.bottom;
+  const free = Math.min(fT - bt, fL - bl, fR - br, fB - bb);
+  if (free < 5) return; // cornice troppo stretta: meglio niente che una riga sopra i bordi
+  // Le coordinate sono relative al bordo interno del contenitore (dove parte
+  // un figlio con position:absolute).
+  const W = wR.width - bl - br, H = wR.height - bt - bb;
+  const yT = (fT - bt) / 2, yB = H - (fB - bb) / 2, xL = (fL - bl) / 2, xR = W - (fR - br) / 2;
+  const arc = isArcade();
+  const k = arc ? 2 : Math.max(1.6, Math.min(3, free / 2 - 1.8)); // mezza apertura della punta
+  const a = W * 0.16; // le righe lasciano liberi gli angoli, dove ci sono le basi
+  // In senso orario, come il percorso: alto →, destra ↓, basso ←, sinistra ↑.
+  const sides = [[a, yT, W - a, yT], [xR, a, xR, H - a], [W - a, yB, a, yB], [xL, H - a, xL, a]];
+  const ns = "http://www.w3.org/2000/svg";
+  const o = document.createElementNS(ns, "svg");
+  o.setAttribute("class", "dir-arrows");
+  o.setAttribute("width", W);
+  o.setAttribute("height", H);
+  o.setAttribute("aria-hidden", "true");
+  for (const [x1, y1, x2, y2] of sides) {
+    const len = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+    o.appendChild(ns_el("line", { x1, y1, x2: x2 - ux, y2: y2 - uy }));
+    o.appendChild(ns_el("path", {
+      d: `M ${x2 - ux * k * 1.4 - uy * k} ${y2 - uy * k * 1.4 + ux * k} L ${x2} ${y2} L ${x2 - ux * k * 1.4 + uy * k} ${y2 - uy * k * 1.4 - ux * k}`,
+    }));
+  }
+  wrap.appendChild(o);
 }
 
 // A crown-cap silhouette with a smooth wavy (not pointed) crimped edge —
@@ -7552,7 +7597,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.33";
+const APP_VERSION = "v5.34";
 
 let myColor = null;
 let myRoomId = null;
