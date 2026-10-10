@@ -20,6 +20,11 @@
   - `APP_VERSION` in `index.html` (es. `"v5.30"`) — è il numero mostrato nella lobby;
   - `CACHE_VERSION` in `sw.js` (es. `"v5-30"`) — serve a scartare le cache vecchie sui telefoni.
 
+## Regole da ricordare
+- Si può mangiare anche una propria pedina: con una carta normale arrivandoci sopra,
+  col 7 anche a metà strada (come per gli avversari). Prima di farlo l'app chiede conferma.
+- Le pedine protette (appena entrate sulla propria base) non si mangiano né si scavalcano.
+
 ## Controlli automatici
 - In `tests/` ci sono i controlli delle regole del gioco (mazzo, scambio, movimenti, casa,
   Jack, 7, turni, vittoria). Leggono il motore direttamente da `index.html`.

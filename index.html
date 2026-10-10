@@ -3946,8 +3946,10 @@ function applyJackSwap(state, a, b, active) {
 // Walks the full N-step path for one pawn. Unlike every other card, the 7
 // may capture a pawn found ALONG THE WAY (not just at the very last step)
 // and keep going, using its full allotted steps to the very end — it
-// doesn't stop the moment it captures. Blocked entirely by an own pawn, a
-// protected pawn, or an occupied home cell anywhere on the path.
+// doesn't stop the moment it captures — anche le PROPRIE pedine (regola
+// confermata, v5.30: col 7 si mangiano le proprie pedine come quelle degli
+// avversari, anche a metà strada). Blocked entirely only by a protected
+// pawn or an occupied home cell anywhere on the path.
 // Validates one candidate path (capture/blocking rules), or returns null.
 function sevenCheckPath(state, color, path, allowEarlyCapture) {
   if (!path) return null;
@@ -3960,7 +3962,6 @@ function sevenCheckPath(state, color, path, allowEarlyCapture) {
     }
     const occ = occupantAt(state, cell);
     if (occ) {
-      if (occ.color === color) return null; // own pawn always blocks
       if (isPawnProtected(state, occ.color, occ.pawnIndex)) return null; // never capturable
       const isLastStep = i === path.length - 1;
       if (!isLastStep && !allowEarlyCapture) return null; // blocked mid-path
@@ -14385,7 +14386,7 @@ let _sevenRowKeys = null;
 function openSevenSplitter(active, card) {
   // Non proporre pedine già in gioco che in realtà non potrebbero ricevere
   // nemmeno un passo in NESSUNA distribuzione valida (bloccate da una
-  // propria pedina davanti, o a fine percorso-casa) — altrimenti lo
+  // pedina protetta davanti, o a fine percorso-casa) — altrimenti lo
   // splitter mostra righe che sembrano un'opzione ma non lo sono mai. Se
   // però questo 7 può mandare tutte le proprie pedine a casa a metà
   // giocata e proseguire sul compagno, mostra comunque tutte le proprie
@@ -14570,6 +14571,24 @@ function adjustSeven(active, card, ownPawns, targetColor, pawnIndex, delta) {
   renderSevenSplitter(active, card, ownPawns);
 }
 
+// v5.30: col 7 si possono mangiare anche le proprie pedine (vedi
+// sevenCheckPath) — stessa conferma di isSelfCapture per le altre carte.
+// Ripercorre le porzioni nell'ordine in cui verranno giocate, perché una
+// pedina mossa da una porzione precedente non è più dov'era all'inizio.
+function sevenSelfCapture(state, valid) {
+  const scratch = clonePawns(state.pawns);
+  for (let i = 0; i < valid.order.length; i++) {
+    const { color, pawnIndex } = valid.order[i];
+    for (const cell of valid.paths[i]) {
+      if (cell >= 1000) continue;
+      const idx = scratch[color].indexOf(cell);
+      if (idx !== -1 && idx !== pawnIndex) return true;
+    }
+    landSevenPortion(scratch, color, pawnIndex, valid.paths[i]);
+  }
+  return false;
+}
+
 async function confirmSeven(active, card) {
   keepAudioAlive();
   const partner = PARTNER_OF[active];
@@ -14586,6 +14605,7 @@ async function confirmSeven(active, card) {
     showToast("Questa distribuzione non è valida (percorso bloccato o casella-casa occupata). Prova un'altra combinazione.");
     return;
   }
+  if (sevenSelfCapture(currentState, valid) && !confirm("Questo 7 mangia una tua pedina. Confermi?")) return;
   closePicker();
   sevenAllocation = null;
   await playMove(active, card, { type: "seven", distribution });

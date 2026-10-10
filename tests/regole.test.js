@@ -139,6 +139,15 @@ test("arrivando esattamente su un avversario lo si mangia", () => {
   assert.equal(s.pawns.green[0], -1);
 });
 
+test("con una carta normale si può mangiare una propria pedina arrivandoci sopra", () => {
+  const s = partita({ red: [5, 11, -1, -1] });
+  const mosse = T.legalMovesForCard(s, "red", "6-hearts").filter((m) => m.pawnIndex === 0);
+  assert.deepEqual(destinazioni(mosse), [11]);
+  T.applyMove(s, "red", "6-hearts", mosse[0]);
+  assert.equal(s.pawns.red[0], 11);
+  assert.equal(s.pawns.red[1], -1);
+});
+
 test("la pedina appena entrata sulla propria base è protetta", () => {
   const s = partita({ red: [BASE.green - 3, -1, -1, -1], green: [BASE.green, -1, -1, -1] });
   assert.ok(T.isPawnProtected(s, "green", 0));
@@ -240,8 +249,15 @@ test("il 7 mangia tutti gli avversari che incontra e prosegue", () => {
   assert.equal(s.pawns.blue[0], -1);
 });
 
-test("il 7 non scavalca una propria pedina", () => {
+test("il 7 mangia anche le proprie pedine, pure a metà strada", () => {
   const s = partita({ red: [5, 8, -1, -1] });
+  T.applyMove(s, "red", "7-hearts", { type: "seven", distribution: [{ pawnIndex: 0, steps: 7 }] });
+  assert.equal(s.pawns.red[0], 12);
+  assert.equal(s.pawns.red[1], -1, "la pedina rossa a metà strada torna in base");
+});
+
+test("il 7 non passa sopra una pedina protetta, neanche propria", () => {
+  const s = partita({ red: [60, BASE.red, -1, -1] }); // la seconda è appena entrata
   assert.equal(T.sevenValidateDistribution(s, "red", [{ pawnIndex: 0, steps: 7 }]), null);
 });
 
