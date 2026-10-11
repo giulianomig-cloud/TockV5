@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.61**.
+- Versione attuale: **v5.62**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -141,6 +141,12 @@
   vola fino all'etichetta "STANZA …" della schermata dopo; la scheda di un torneo in home si allarga nella
   pagina del torneo; il podio della home diventa la classifica (e torna indietro con "Torna alla home").
   Il resto sfuma. Dove il browser non lo supporta (o "riduci movimento") si cambia schermata come prima.
+  Dalla v5.62 su tutti i passaggi prima della partita: l'etichetta STANZA/TORNEO e il logo "volano" fra le
+  due schermate (`VT_AUTO`); "+ Organizza un torneo" si allarga nella pagina (Annulla la richiude);
+  "Impara" diventa la barra del percorso (✕ la richiude); "Cambia stanza"/"Torna alla home" riportano
+  l'etichetta dentro le caselle del codice (`vtHome`); entrata al tavolo con l'etichetta che va in alto.
+  ATTENZIONE: con `vtGo` la schermata nuova si disegna un attimo dopo: tutto ciò che va fatto dopo il
+  disegno (es. `watchRoom` dopo `renderGameShell`) va messo DENTRO la funzione passata a `vtGo`.
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
