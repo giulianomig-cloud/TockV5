@@ -127,7 +127,9 @@
   Pulsanti "con esito" (`fbBusy` / `fbOk` / `fbFail`): rotellina → verde ✓ / rosso che trema e poi torna
   com'era. Usati su: Siediti (aspetta la prenotazione del colore: "Già preso" se un altro telefono è
   arrivato prima), Iscriviti, Crea torneo, Sono io, Diventa/Passa organizzatore, Condividi l'invito.
-  Il cerchio verde con ✓ solo per i momenti importanti (codice in home).
+  Il cerchio verde con ✓ solo per i momenti importanti: codice in home, "Crea torneo" (dalla v5.58 il
+  codice del torneo si scrive a caselle con la stessa animazione, "🏆 Torneo creato!"; se il codice è già
+  usato le caselle tornano com'erano) e "Iscriviti" al torneo (solo cerchi e ✓, "Sei iscritto!").
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
