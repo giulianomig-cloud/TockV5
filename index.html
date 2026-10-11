@@ -652,6 +652,26 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
   70% { transform: scale(1.08) rotate(2deg); opacity: 1; }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
+/* Mazzetto coperto al centro dei 4 riquadri: ogni carta parte da qui, vola
+   verso chi la pesca e si gira (vedi animateDealerDraw). */
+.dealer-draw-grid { position: relative; }
+.dealer-deck {
+  position: absolute; left: 50%; top: 50%; width: 40px; height: 56px; margin: -28px 0 0 -20px;
+  pointer-events: none; z-index: 1;
+}
+.dealer-deck span, .dealer-card-back {
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,.16) 0 4px, transparent 4px 8px), linear-gradient(135deg, #B8434B, #7E2730);
+  border: 2px solid #fff; border-radius: 6px; box-shadow: 0 2px 5px rgba(36,28,21,.3);
+}
+.dealer-deck span { position: absolute; inset: 0; }
+.dealer-deck span:nth-child(1) { transform: translate(3px, 3px) rotate(4deg); }
+.dealer-deck span:nth-child(2) { transform: translate(1.5px, 1.5px) rotate(-3deg); }
+.dealer-slot .card-btn { position: relative; }
+.dealer-card-back { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+html[data-skin="arcade"] .dealer-deck span, html[data-skin="arcade"] .dealer-card-back {
+  background: repeating-linear-gradient(0deg, rgba(255,43,214,.35) 0 2px, transparent 2px 6px), #1a0c3a;
+  border: 2px solid #ff2bd6; border-radius: 2px; box-shadow: 0 0 8px rgba(255,43,214,.6);
+}
 #dealer-draw-banner {
   text-align: center; margin-top: 14px; background: linear-gradient(135deg, #F3D98A, #D9A93E);
   color: #3B2A18; border: none; border-radius: 999px; padding: 10px 18px;
@@ -7662,7 +7682,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.41";
+const APP_VERSION = "v5.42";
 
 let myColor = null;
 let myRoomId = null;
@@ -12815,7 +12835,9 @@ function renderDealerDrawScreen(state) {
   dealerDrawAnimShown = { forRoom: myRoomId, done: false };
   const slotsByColor = {};
   const grid = el("div", { class: "dealer-draw-grid" });
+  const dealerNames = {};
   COLORS.forEach((c) => {
+    dealerNames[c] = playerName(state, c);
     // Mostra anche il nome del giocatore (non solo il colore) — playerName
     // ricade già da solo sul nome del colore se non c'è un nome impostato
     // (es. posto libero improbabile qui, o un bot già rinominato "Bot X").
@@ -12829,6 +12851,7 @@ function renderDealerDrawScreen(state) {
     slotsByColor[c] = slot;
     grid.appendChild(slot);
   });
+  grid.appendChild(el("div", { class: "dealer-deck", id: "dealer-deck", "aria-hidden": "true" }, el("span"), el("span"), el("span")));
   openPicker(
     el(
       "div",
@@ -12840,10 +12863,35 @@ function renderDealerDrawScreen(state) {
     ),
     { opaque: true }
   );
-  animateDealerDraw(state.dealerDraw.sequence);
+  animateDealerDraw(state.dealerDraw.sequence, dealerNames);
 }
 
-async function animateDealerDraw(sequence) {
+// Ogni carta parte coperta dal mazzetto al centro, vola verso chi la pesca
+// e si gira, con il suono della carta; all'Asso di Cuori il "ding". Stesso
+// ritmo di prima (una carta ogni 550 ms).
+function flyDealerCard(btn) {
+  const deck = document.getElementById("dealer-deck");
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!deck || reduce || !btn.animate) { btn.classList.add("dealer-card-pop"); return; }
+  const d = deck.getBoundingClientRect(), b = btn.getBoundingClientRect();
+  const dx = d.left + d.width / 2 - (b.left + b.width / 2), dy = d.top + d.height / 2 - (b.top + b.height / 2);
+  const back = el("div", { class: "dealer-card-back" });
+  btn.appendChild(back);
+  const steps = isArcade() ? "steps(6, end)" : "ease-out";
+  btn.animate(
+    [
+      { transform: `translate(${dx}px, ${dy}px) scale(0.62) rotate(-10deg)` },
+      { transform: "translate(0, 0) scale(1) rotate(0deg)", offset: 0.55 },
+      { transform: "scaleX(0.04)", offset: 0.77 },
+      { transform: "scaleX(1)" },
+    ],
+    { duration: 460, easing: steps }
+  );
+  back.animate([{ opacity: 1 }, { opacity: 1, offset: 0.77 }, { opacity: 0, offset: 0.78 }, { opacity: 0 }], { duration: 460, fill: "forwards" })
+    .finished.then(() => back.remove()).catch(() => back.remove());
+}
+
+async function animateDealerDraw(sequence, names) {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   for (const step of sequence) {
     const slot = document.getElementById("dealer-slot-" + step.color);
@@ -12851,16 +12899,20 @@ async function animateDealerDraw(sequence) {
     const old = slot.querySelector(".card-btn");
     if (old) old.remove();
     const btn = buildCardButton(step.card, true, () => {});
-    btn.classList.add("dealer-card-pop");
     slot.appendChild(btn);
+    flyDealerCard(btn);
+    try { playSound("cardFlick"); } catch (e) {}
     await sleep(550);
   }
   const winnerColor = sequence[sequence.length - 1].color;
+  try { playSound("homeDing"); } catch (e) {}
   const winnerSlot = document.getElementById("dealer-slot-" + winnerColor);
   if (winnerSlot) winnerSlot.classList.add("dealer-winner");
   const banner = document.getElementById("dealer-draw-banner");
   if (banner) {
-    banner.textContent = `🎉 ${colorLabel(winnerColor)} dà le carte per primo!`;
+    const name = names && names[winnerColor];
+    const who = name && name !== colorLabel(winnerColor) ? `${name} (${colorLabel(winnerColor)})` : colorLabel(winnerColor);
+    banner.textContent = `🎉 ${who} dà le carte per primo!`;
     banner.classList.add("show");
   }
   await sleep(1600);
