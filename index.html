@@ -824,6 +824,60 @@ html.fx3d[data-theme="dark"] .home-tile { background: linear-gradient(165deg, #3
    contenuto ("i pallini del logo sono sfocati"). Qui scende quanto basta;
    con la safe-area normale non cambia nulla. */
 @media (pointer: coarse) { .lobby-card > .app-logo:first-child { margin-top: max(0px, calc(50px - env(safe-area-inset-top, 0px))); } }
+/* Pagina del torneo (v5.48) */
+.t-head h1 { margin: 0 0 8px; }
+.t-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.t-chip { font-size: .74rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--panel-border); color: var(--muted-3); }
+.t-chip.t-chip-live { background: #FCEFD9; border-color: #F0D9A8; color: #B4791E; }
+.t-chip.t-chip-open { background: #E7F3EC; border-color: #C5E3D1; color: #2E7D52; }
+.t-chip.t-chip-gold { background: var(--gold); border-color: var(--gold); color: var(--ink-on-gold); }
+.t-note { font-size: .76rem; color: var(--muted-2); margin: 6px 2px 0; }
+.t-sec { display: flex; align-items: baseline; justify-content: space-between; margin: 22px 2px 8px; }
+.t-sec b { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-3); }
+.t-sec span { font-size: .76rem; font-weight: 700; color: var(--muted-2); }
+.t-seats { display: flex; gap: 4px; }
+.t-seats i { width: 9px; height: 9px; border-radius: 50%; background: var(--panel-border); }
+.t-seats i.on { background: var(--gold); }
+.t-list { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; overflow: hidden; }
+.t-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; flex-wrap: wrap; }
+.t-row + .t-row { border-top: 1px solid var(--panel-border); }
+.t-row.t-me { background: rgba(201,154,58,.12); }
+.t-av { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .85rem; color: #fff; }
+.t-av.t-av-bot { background: rgba(201,154,58,.16); font-size: 1rem; }
+.t-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.t-name b { font-size: .98rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-name small { font-size: .74rem; color: var(--muted-2); font-weight: 700; }
+.t-x { all: unset; box-sizing: border-box; cursor: pointer; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #E8C4C4; color: #B4434B; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 800; flex-shrink: 0; }
+.t-addbot { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px dashed var(--panel-border); }
+.t-addbot span { flex: 1; font-size: .84rem; font-weight: 700; color: var(--muted-3); }
+.t-chipbtn { all: unset; box-sizing: border-box; cursor: pointer; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--panel-border); background: var(--panel); font-size: .78rem; font-weight: 800; color: var(--ink); }
+.t-rules summary { cursor: pointer; font-size: .78rem; color: var(--muted-2); font-weight: 700; margin: 8px 2px 0; }
+.t-rules p { font-size: .76rem; color: var(--muted-2); margin: 6px 2px 0; }
+.t-tools { display: flex; flex-direction: column; gap: 10px; }
+.t-tool-row { display: flex; gap: 8px; align-items: center; }
+.t-tool-row select { flex: 1; padding: 9px 10px; border-radius: 12px; border: 1.5px solid var(--panel-border); background: var(--panel); color: var(--ink); }
+.t-danger-link { all: unset; cursor: pointer; align-self: center; color: #B4434B; font-weight: 800; font-size: .85rem; padding: 6px; }
+.t-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; }
+.t-chip.t-chip-live, .t-chip.t-chip-live * { color: #B4791E; }
+:root[data-theme="dark"] .t-chip.t-chip-live { background: #3A2C17; border-color: #6B5126; }
+:root[data-theme="dark"] .t-chip.t-chip-open { background: #1C3326; border-color: #2E5A41; color: #8FD3AE; }
+:root[data-theme="dark"] .t-x { border-color: #6B3A3A; color: #E58A8F; }
+:root[data-theme="dark"] .t-danger-link { color: #E58A8F; }
+/* Rientro in una partita già in corso (v5.49) */
+.rj-title { font-size: 1.35rem; font-weight: 800; color: var(--ink); margin: 4px 0 6px; }
+.rj-text { margin: 0 0 14px; color: var(--muted-2); font-size: .92rem; line-height: 1.45; }
+.rj-list { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; overflow: hidden; }
+.rj-row { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; -webkit-tap-highlight-color: transparent; }
+.rj-row + .rj-row { border-top: 1px solid var(--panel-border); }
+.rj-row:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.rj-dot { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; box-shadow: inset 0 -2px 0 rgba(0,0,0,.15); }
+.rj-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rj-txt b { font-size: .98rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rj-txt small { font-size: .74rem; font-weight: 700; color: var(--muted-2); }
+.rj-go, .rj-go * { color: var(--ink-on-gold); }
+.rj-go { flex-shrink: 0; font-size: .8rem; font-weight: 800; padding: 7px 14px; border-radius: 999px; background: var(--gold); }
+.rj-row.rj-bot { cursor: default; opacity: .6; }
+.rj-sec { margin: 20px 2px 8px; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-3); }
 /* Elenco tornei attivi in home. */
 .tourney-row {
   all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center;
@@ -7753,7 +7807,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.47";
+const APP_VERSION = "v5.49";
 
 let myColor = null;
 let myRoomId = null;
@@ -8216,346 +8270,149 @@ async function submitJoinTournament(code, tournament) {
   renderTournamentLobby(code);
 }
 
-// Sala del torneo: elenco iscritti in tempo reale, link da condividere.
-// Niente ancora avvio round/tavoli (prossimo passo) — lo si segnala
-// chiaramente invece di mostrare un bottone che non farebbe nulla.
+// Sala del torneo: elenco iscritti in tempo reale, round, tavoli e classifica.
 let _tournamentLobbyListenerCode = null;
+// Pagina del torneo (v5.48, riorganizzata): etichette di stato in alto,
+// azione principale dell'organizzatore, tavoli e classifica in riquadri a
+// righe, iscritti in un unico elenco (tondino, nome, ✕ uguale per tutti,
+// "Aggiungi bot" solo se ci sono posti liberi) e in fondo "Gestione" con
+// Condividi / Passa l'organizzazione / Elimina (non più in alto, dove si
+// toccava per sbaglio). Le funzioni sono le stesse di prima.
+const T_AV_COLORS = ["#D9636B", "#3FA77E", "#E3AC33", "#3E8FCB", "#9C7420", "#8A6BB8"];
+function tAvatarColor(s) {
+  return T_AV_COLORS[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % T_AV_COLORS.length];
+}
 function renderTournamentLobby(code) {
-  if (_tournamentLobbyListenerCode && _tournamentLobbyListenerCode !== code) {
-    tournamentsRef().child(_tournamentLobbyListenerCode).off();
-  }
+  if (_tournamentLobbyListenerCode && _tournamentLobbyListenerCode !== code) tournamentsRef().child(_tournamentLobbyListenerCode).off();
   _tournamentLobbyListenerCode = code;
-  const root = $("#app");
-  root.innerHTML = "";
-  root.appendChild(
-    el(
-      "div",
-      { class: "lobby-card" },
-      el("h1", {}, "🏆 " + code),
-      el("div", { id: "torneo-lobby-body" }, el("p", { class: "muted" }, "Carico…"))
-    )
-  );
+  const root = $("#app"); root.innerHTML = "";
+  root.appendChild(el("div", { class: "lobby-card" }, el("div", { class: "t-head" }, el("h1", {}, "🏆 " + code)), el("div", { id: "torneo-lobby-body" }, el("p", { class: "muted" }, "Carico…"))));
   tournamentsRef().child(code).on("value", (snap) => {
     const t = snap.val();
     const body = document.getElementById("torneo-lobby-body");
-    if (!body) { tournamentsRef().child(code).off(); return; } // schermata cambiata: stacca l'ascolto
-    if (!t) {
-      body.innerHTML = "";
-      body.appendChild(el("p", { class: "muted" }, "Questo torneo non esiste più."));
-      body.appendChild(el("button", { class: "primary", style: "margin-top:10px;", onclick: renderLobby }, "Torna alla home"));
-      return;
-    }
+    if (!body) { tournamentsRef().child(code).off(); return; }
+    if (!t) { body.innerHTML = ""; body.appendChild(el("p", { class: "muted" }, "Questo torneo non esiste più.")); body.appendChild(el("button", { class: "primary", style: "margin-top:10px;", onclick: renderLobby }, "Torna alla home")); return; }
     const isOrganizer = t.organizerToken === getOrCreateOrganizerToken(code);
-    // v5.33: organizzazione passata a un iscritto (vedi passOrganizer): se
-    // sono io, il mio telefono prende il ruolo.
-    const passedTo = typeof t.organizerToken === "string" && t.organizerToken.indexOf(PASS_ORGANIZER_PREFIX) === 0
-      ? t.organizerToken.slice(PASS_ORGANIZER_PREFIX.length) : null;
-    // Rimandato a dopo il disegno della pagina: la scrittura fa ripartire
-    // subito questo stesso ascolto, che altrimenti verrebbe ridisegnato a
-    // metà con i dati vecchi.
-    if (passedTo && myPlayerId && passedTo === myPlayerId) {
-      const me = myPlayerId;
-      setTimeout(() => {
-        claimPassedOrganizer(code, me).then((ok) => { if (ok) showToast("👑 Ora sei tu l'organizzatore di questo torneo."); }).catch(() => {});
-      }, 0);
-    }
+    const passedTo = typeof t.organizerToken === "string" && t.organizerToken.indexOf(PASS_ORGANIZER_PREFIX) === 0 ? t.organizerToken.slice(PASS_ORGANIZER_PREFIX.length) : null;
+    if (passedTo && myPlayerId && passedTo === myPlayerId) { const me = myPlayerId; setTimeout(() => { claimPassedOrganizer(code, me).then((ok) => { if (ok) showToast("👑 Ora sei tu l'organizzatore di questo torneo."); }).catch(() => {}); }, 0); }
     const passedToName = passedTo && t.iscritti && t.iscritti[passedTo] ? t.iscritti[passedTo].nome : null;
     const iscritti = Object.entries(t.iscritti || {}).map(([id, p]) => ({ id, ...p }));
     const currentRound = t.roundCorrente || 0;
     const currentTables = currentRound > 0 && t.rounds ? (t.rounds[currentRound] && t.rounds[currentRound].tables) || {} : {};
     setTimeout(() => refreshTableStatuses(body), 0);
-    // Tavoli di soli bot: nessuno li farebbe mai giocare, li gioca l'organizzatore.
     if (isOrganizer && t.stato === "in_corso") autoPlayBotOnlyTables(currentTables);
+    const aperto = t.stato !== "concluso";
+    const rot = t.formato === "rotante_8";
     body.innerHTML = "";
-    body.appendChild(
-      el("p", { class: "muted" },
-        (t.formato === "rotante_8" ? "Tutti con tutti (max 8)" : "Coppie fisse") +
-        " · " + (t.stato === "concluso" ? "Concluso" : t.stato === "in_corso" ? `In corso · round ${currentRound}` : "Iscrizioni aperte") +
-        (isOrganizer ? " · sei l'organizzatore" : "") +
-        (passedTo && passedTo !== myPlayerId ? ` · organizzazione passata a ${passedToName || "un iscritto"} (diventa attiva quando apre il torneo)` : ""))
-    );
-    // Prima di avviarlo, in "Tutti con tutti" è utile vedere subito quanti
-    // posti mancano sugli 8 dello schema fisso — è lì sotto, nella lista
-    // "Iscritti", che l'organizzatore può riempirli con bot fissi (richiesto:
-    // "si vedano tutti gli iscritti con possibilità di aggiungere bot nei
-    // posti ancora mancanti").
-    if (t.formato === "rotante_8" && t.stato !== "concluso") {
-      const postiLiberi = Math.max(0, 8 - iscritti.length);
-      body.appendChild(
-        el("p", { class: "muted", style: "margin-top:-8px;" },
-          `${iscritti.length}/8 iscritti` + (postiLiberi > 0 ? ` · ${postiLiberi} post${postiLiberi === 1 ? "o libero" : "i liberi"}` : " · al completo"))
-      );
-    }
-    // Stessa cosa ma per "Coppie fisse" (richiesto: "uguale anche per le
-    // coppie"): qui non c'è un massimo fisso come rotante_8, quindi invece
-    // di "posti liberi su 8" si contano le coppie già complete e chi è
-    // rimasto senza compagno — è a QUEGLI iscritti, uno per uno più sotto
-    // nella lista "Iscritti", che l'organizzatore assegna un bot come
-    // compagno (i pulsanti "🤖 Compagno normale/difficile" per riga, non
-    // un pulsante unico: la scelta di CHI abbinare al bot è per forza
-    // individuale, a differenza dei posti anonimi di rotante_8).
-    if (t.formato === "coppie_fisse" && t.stato !== "concluso") {
-      const seenPair = new Set();
-      let coppieComplete = 0;
-      for (const [id, p] of Object.entries(t.iscritti || {})) {
-        if (seenPair.has(id) || !p.coppiaConId || !t.iscritti[p.coppiaConId]) continue;
-        const partnerId = p.coppiaConId;
-        if (seenPair.has(partnerId)) continue;
-        seenPair.add(id);
-        seenPair.add(partnerId);
-        coppieComplete++;
-      }
-      const senzaCompagno = iscritti.filter((p) => !seenPair.has(p.id)).length;
-      body.appendChild(
-        el("p", { class: "muted", style: "margin-top:-8px;" },
-          `${iscritti.length} iscritti · ${coppieComplete} copp${coppieComplete === 1 ? "ia" : "ie"} complet${coppieComplete === 1 ? "a" : "e"}` +
-          (senzaCompagno > 0 ? ` · ${senzaCompagno} senza compagno` : ""))
-      );
-    }
+
+    // 1) Etichette di stato
+    body.appendChild(el("div", { class: "t-chips" },
+      el("span", { class: "t-chip" }, rot ? "Tutti con tutti" : "Coppie fisse"),
+      el("span", { class: "t-chip " + (t.stato === "in_corso" ? "t-chip-live" : t.stato === "concluso" ? "" : "t-chip-open") }, t.stato === "concluso" ? "🏆 Concluso" : t.stato === "in_corso" ? `In corso · round ${currentRound}` : "Iscrizioni aperte"),
+      isOrganizer ? el("span", { class: "t-chip t-chip-gold" }, "👑 Organizzatore") : ""));
+    if (passedTo && passedTo !== myPlayerId) body.appendChild(el("p", { class: "t-note", style: "margin:-6px 2px 12px" }, `Organizzazione passata a ${passedToName || "un iscritto"}: diventa attiva quando apre il torneo.`));
+
     if (t.stato === "concluso") {
-      body.appendChild(
-        el(
-          "div",
-          { class: "win-team-banner", style: "background:#F3EBD8; border:1.5px solid var(--gold); border-radius:14px; padding:12px 14px; margin-bottom:14px;" },
-          el("p", { style: "margin:0; font-weight:800;" },
-            t.vincitore ? `🏆 Vince ${t.vincitore.isBot ? "🤖 " : ""}${t.vincitore.nome}!${t.decisoDa === "catture" ? " (differenza catture)" : t.decisoDa === "spareggio" ? " (dopo lo spareggio)" : t.decisoDa === "sorteggio" ? " (🎲 deciso a sorte)" : ""}` : "🏆 Torneo concluso"),
-          el("p", { class: "muted", style: "margin:4px 0 0; font-size:0.85rem;" }, "Tutti gli incontri sono stati giocati.")
-        )
-      );
+      body.appendChild(el("div", { class: "win-team-banner", style: "background:#F3EBD8; border:1.5px solid var(--gold); border-radius:14px; padding:12px 14px; margin-bottom:14px;" },
+        el("p", { style: "margin:0; font-weight:800;" }, t.vincitore ? `🏆 Vince ${t.vincitore.isBot ? "🤖 " : ""}${t.vincitore.nome}!${t.decisoDa === "catture" ? " (differenza catture)" : t.decisoDa === "spareggio" ? " (dopo lo spareggio)" : t.decisoDa === "sorteggio" ? " (🎲 deciso a sorte)" : ""}` : "🏆 Torneo concluso"),
+        el("p", { class: "muted", style: "margin:4px 0 0; font-size:0.85rem;" }, "Tutti gli incontri sono stati giocati.")));
     }
 
+    // 2) Azione principale dell'organizzatore
+    if (isOrganizer && aperto) {
+      body.appendChild(el("button", { class: "primary", style: "margin:0;", onclick: () => handleAvviaRound(code, currentRound > 0) }, t.spareggio ? "Concludi torneo (dopo lo spareggio)" : currentRound > 0 ? "Avvia round successivo" : "Avvia il torneo (round 1)"));
+      body.appendChild(el("p", { class: "t-note" }, "Si considerano presenti tutti gli iscritti."));
+      if (currentRound > 0) {
+        body.appendChild(el("button", { class: "secondary", style: "width:100%;margin-top:10px;", onclick: () => handleRigeneraRound(code) }, "↻ Rigenera tavoli del round"));
+        body.appendChild(el("p", { class: "t-note" }, "Se hai sbagliato ad avviarlo o è arrivato qualcuno in ritardo: solo finché nessun tavolo ha finito."));
+      }
+    }
+
+    // 3) Tavoli del round / spareggio
     if (currentRound > 0) {
-      body.appendChild(el("p", { class: "step-label" }, `Tavoli del round ${currentRound}`));
-      body.appendChild(
-        el(
-          "div",
-          { class: "leaderboard-list" },
-          Object.values(currentTables).map((tb) => {
-            const mine = tb.giocatori.some((g) => g.playerId === myPlayerId);
-            const label = tb.giocatori.map((g) => g.nome + (g.bot ? " 🤖" : "")).join(" · ");
-            return el(
-              "div",
-              { class: "leaderboard-row" },
-              el("span", { class: "leaderboard-name" }, label),
-              el("span", { class: "table-status muted", "data-room": tb.roomCode, "data-allbots": tb.giocatori.every((g) => g.bot) ? "1" : "0", style: "font-size:0.78rem;white-space:nowrap;" }),
-              mine
-                ? el("button", { class: "sound-test-btn", onclick: () => joinTournamentTable(tb.roomCode) }, "▶️ Il tuo tavolo")
-                : ""
-            );
-          })
-        )
-      );
+      body.appendChild(el("div", { class: "t-sec" }, el("b", {}, `Tavoli del round ${currentRound}`)));
+      body.appendChild(el("div", { class: "t-list" }, Object.values(currentTables).map((tb) => {
+        const mine = tb.giocatori.some((g) => g.playerId === myPlayerId);
+        return el("div", { class: "t-row" + (mine ? " t-me" : "") },
+          el("div", { class: "t-name" }, el("b", { style: "white-space:normal" }, tb.giocatori.map((g) => g.nome + (g.bot ? " 🤖" : "")).join(" · ")),
+            el("small", { class: "table-status", "data-room": tb.roomCode, "data-allbots": tb.giocatori.every((g) => g.bot) ? "1" : "0" })),
+          mine ? el("button", { class: "t-chipbtn", onclick: () => joinTournamentTable(tb.roomCode) }, "▶️ Il tuo tavolo") : "");
+      })));
     }
 
     if (t.spareggio && t.spareggio.giocatori) {
       const sp = t.spareggio;
       const mineSp = sp.giocatori.some((g) => g.playerId === myPlayerId);
-      body.appendChild(el("p", { class: "step-label" }, "⚔️ Spareggio (decide il vincitore)"));
-      body.appendChild(
-        el("div", { class: "leaderboard-list" },
-          el("div", { class: "leaderboard-row" },
-            el("span", { class: "leaderboard-name" }, sp.giocatori.map((g) => g.nome + (g.bot ? " 🤖" : "") + (sp.tied.indexOf(g.playerId) >= 0 ? " ⭐" : "")).join(" · ")),
-            el("span", { class: "table-status muted", "data-room": sp.roomCode, "data-allbots": sp.giocatori.every((g) => g.bot) ? "1" : "0", style: "font-size:0.78rem;white-space:nowrap;" }),
-            mineSp ? el("button", { class: "sound-test-btn", onclick: () => joinTournamentTable(sp.roomCode) }, "▶️ Il tuo tavolo") : ""
-          )
-        )
-      );
-      body.appendChild(el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" }, "⭐ = i giocatori a pari punti. Vince il torneo chi tra i due vince lo spareggio; i compagni non contano."));
+      body.appendChild(el("div", { class: "t-sec" }, el("b", {}, "⚔️ Spareggio (decide il vincitore)")));
+      body.appendChild(el("div", { class: "t-list" },
+        el("div", { class: "t-row" + (mineSp ? " t-me" : "") },
+          el("div", { class: "t-name" }, el("b", { style: "white-space:normal" }, sp.giocatori.map((g) => g.nome + (g.bot ? " 🤖" : "") + (sp.tied.indexOf(g.playerId) >= 0 ? " ⭐" : "")).join(" · ")),
+            el("small", { class: "table-status", "data-room": sp.roomCode, "data-allbots": sp.giocatori.every((g) => g.bot) ? "1" : "0" })),
+          mineSp ? el("button", { class: "t-chipbtn", onclick: () => joinTournamentTable(sp.roomCode) }, "▶️ Il tuo tavolo") : "")));
+      body.appendChild(el("p", { class: "t-note" }, "⭐ = i giocatori a pari punti. Vince il torneo chi tra i due vince lo spareggio; i compagni non contano."));
     }
 
-    if (isOrganizer && t.stato !== "concluso") {
-      body.appendChild(
-        el(
-          "div",
-          { class: "sound-test-row", style: "margin-top:12px;" },
-          el("button", { class: "primary", style: "flex:1;", onclick: () => handleAvviaRound(code, currentRound > 0) }, t.spareggio ? "Concludi torneo (dopo lo spareggio)" : currentRound > 0 ? "Avvia round successivo" : "Avvia il torneo (round 1)")
-        )
-      );
-      body.appendChild(
-        el("p", { class: "muted", style: "font-size:0.74rem; margin-top:6px;" },
-          "Semplificato per ora: si considerano presenti tutti gli iscritti. La presenza serata-per-serata arriva in un passo successivo.")
-      );
-      if (currentRound > 0) {
-        body.appendChild(
-          el(
-            "div",
-            { class: "sound-test-row", style: "margin-top:8px;" },
-            el("button", { class: "sound-test-btn", style: "flex:1;", onclick: () => handleRigeneraRound(code) }, "↻ Rigenera tavoli round corrente")
-          )
-        );
-        body.appendChild(
-          el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" },
-            "Utile se hai sbagliato ad avviarlo o è arrivato un iscritto in ritardo — funziona solo finché nessun tavolo del round ha già finito.")
-        );
-      }
-    }
-    if (isOrganizer) {
-      // v5.33: passa l'organizzazione a un altro iscritto (solo persone).
-      const altri = iscritti.filter((p) => !p.isBot && p.id !== myPlayerId);
-      if (altri.length > 0 && t.stato !== "concluso") {
-        body.appendChild(el("p", { class: "step-label" }, "Passa l'organizzazione"));
-        body.appendChild(
-          el(
-            "div",
-            { style: "display:flex; gap:6px; align-items:center;" },
-            el(
-              "select",
-              { id: "pass-organizer-select", style: "flex:1; padding:6px 8px; border-radius:10px; border:1.5px solid var(--panel-border); background:var(--panel); color:var(--ink);" },
-              altri.map((u) => el("option", { value: u.id }, u.nome))
-            ),
-            el("button", { class: "bot-btn", onclick: () => handlePassOrganizer(code, document.getElementById("pass-organizer-select").value, t) }, "👑 Passa")
-          )
-        );
-        body.appendChild(
-          el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" },
-            "Diventa organizzatore appena apre la pagina del torneo dal suo telefono. Da quel momento tu non lo sei più.")
-        );
-      }
-      body.appendChild(
-        el(
-          "div",
-          { class: "sound-test-row", style: "margin-top:12px;" },
-          el("button", { class: "danger", style: "flex:1;", onclick: () => handleDeleteTournament(code) }, "🗑️ Elimina torneo")
-        )
-      );
-    }
-
-    const classifica = Object.entries(t.classifica || {})
-      .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, diff: (p && p.diff) || 0, isBot: !!(p && p.isBot) }))
+    // 4) Classifica (con le regole a scomparsa)
+    const classifica = Object.entries(t.classifica || {}).map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, diff: (p && p.diff) || 0, isBot: !!(p && p.isBot) }))
       .sort((a, b) => b.vittorie - a.vittorie || b.diff - a.diff || a.nome.localeCompare(b.nome, "it"));
     if (classifica.length > 0) {
-      body.appendChild(el("p", { class: "step-label" }, "Classifica del torneo"));
-      body.appendChild(el("p", { class: "muted", style: "font-size:0.78rem; margin:-4px 0 8px;" }, "Punteggio: 1 vittoria a ciascuno dei 2 giocatori della squadra che vince la partita, con qualsiasi compagno. A pari vittorie conta la differenza catture (pedine mangiate − pedine perse, su tutto il torneo). Se anche quella è pari in testa: spareggio giocato."));
-      body.appendChild(
-        el(
-          "div",
-          { class: "leaderboard-list" },
-          classifica.map((p, i) =>
-            el(
-              "div",
-              { class: "leaderboard-row" },
-              el("span", { class: "leaderboard-rank" }, "#" + (i + 1)),
-              el("span", { class: "leaderboard-name" }, (p.isBot ? "🤖 " : "") + p.nome),
-              el("span", { class: "leaderboard-wins" }, p.vittorie + (p.vittorie === 1 ? " vittoria" : " vittorie") + " · " + (p.diff > 0 ? "+" : "") + p.diff + " catt.")
-            )
-          )
-        )
-      );
+      body.appendChild(el("div", { class: "t-sec" }, el("b", {}, "Classifica del torneo")));
+      body.appendChild(el("div", { class: "lb-list-card" }, classifica.map((p, i) => buildLbRow({ rank: i + 1, name: (p.isBot ? "🤖 " : "") + p.nome, main: String(p.vittorie), unit: p.vittorie === 1 ? "vittoria" : "vittorie", sub: (p.diff > 0 ? "+" : "") + p.diff + " catt." }))));
+      const det = el("details", { class: "t-rules" }, el("summary", {}, "Come si contano i punti"),
+        el("p", {}, "1 vittoria a ciascuno dei 2 giocatori della squadra che vince, con qualsiasi compagno. A pari vittorie conta la differenza catture (pedine mangiate − perse). Se anche quella è pari in testa: spareggio giocato."));
+      body.appendChild(det);
     }
 
-    body.appendChild(el("p", { class: "step-label" }, "Iscritti"));
-    body.appendChild(
-      el(
-        "div",
-        { class: "leaderboard-list" },
-        iscritti.length === 0
-          ? el("p", { class: "muted" }, "Ancora nessun iscritto.")
-          : (() => {
-              // Tutti si iscrivono singolarmente; è l'organizzatore ad
-              // abbinare le coppie dopo, da questa lista (richiesto: "io
-              // farei iscrivere tutti e quando la lista è completa
-              // l'organizzatore accoppia i vari giocatori").
-              const unpairedHumans = iscritti.filter((p) => !p.isBot && !p.coppiaConId);
-              return iscritti.map((p) => {
-                const isCoppieFisse = t.formato === "coppie_fisse";
-                const senzaCoppia = isCoppieFisse && !p.isBot && !p.coppiaConId;
-                const partnerRec = p.coppiaConId && t.iscritti[p.coppiaConId];
-                const partnerIsHuman = partnerRec && !partnerRec.isBot;
-                const altriSenzaCoppia = senzaCoppia ? unpairedHumans.filter((u) => u.id !== p.id) : [];
-                const selectId = "pair-select-" + p.id;
-                return el(
-                  "div",
-                  { class: "leaderboard-row", style: senzaCoppia && isOrganizer ? "flex-wrap:wrap;" : "" },
-                  el("span", { class: "leaderboard-name" }, (p.isBot ? "🤖 " : "") + p.nome + (p.id === myPlayerId ? " (tu)" : "")),
-                  partnerRec ? el("span", { class: "leaderboard-wins" }, "con " + partnerRec.nome) : "",
-                  isOrganizer && p.isBot && t.stato !== "concluso"
-                    ? el(
-                        "button",
-                        { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleRemoveBotFromTournament(code, p.id) },
-                        "✕"
-                      )
-                    : "",
-                  isOrganizer && partnerIsHuman && t.stato !== "concluso"
-                    ? el(
-                        "button",
-                        { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleUnpairHumans(code, p.id) },
-                        "✕ Sciogli"
-                      )
-                    : "",
-                  // v5.33: togliere un iscritto in carne e ossa (i bot hanno già il loro ✕).
-                  isOrganizer && !p.isBot && t.stato !== "concluso"
-                    ? el(
-                        "button",
-                        { class: "bot-btn bot-btn-remove", style: "margin-left:8px; padding:2px 8px; font-size:0.72rem;", onclick: () => handleRemovePlayer(code, p.id, p.nome, t) },
-                        "✕ Togli"
-                      )
-                    : "",
-                  // Un iscritto umano senza compagno, in un torneo a coppie
-                  // fisse, non entra mai a un tavolo (buildCoppieFisseTables
-                  // abbina solo coppie dichiarate) — l'organizzatore lo
-                  // abbina a un altro iscritto senza compagno, oppure gli dà
-                  // un bot come compagno.
-                  senzaCoppia && isOrganizer && t.stato !== "concluso"
-                    ? el(
-                        "div",
-                        { class: "bot-btn-row", style: "width:100%; margin-top:6px; flex-wrap:wrap;" },
-                        altriSenzaCoppia.length > 0
-                          ? el(
-                              "div",
-                              { style: "display:flex; gap:6px; width:100%; align-items:center;" },
-                              el(
-                                "select",
-                                { id: selectId, style: "flex:1; padding:6px 8px; border-radius:10px; border:1.5px solid var(--panel-border); background:var(--panel); color:var(--ink);" },
-                                altriSenzaCoppia.map((u) => el("option", { value: u.id }, u.nome))
-                              ),
-                              el("button", { class: "bot-btn", onclick: () => handlePairHumans(code, p.id, document.getElementById(selectId).value) }, "🤝 Abbina")
-                            )
-                          : "",
-                        el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "easy") }, "🤖 Compagno normale"),
-                        el("button", { class: "bot-btn", onclick: () => handleAssignBotAsPartner(code, p.id, "hard") }, "🤖 Compagno difficile")
-                      )
-                    : ""
-                );
-              });
-            })()
-      )
-    );
-    if (isOrganizer && t.formato === "rotante_8" && t.stato !== "concluso") {
-      body.appendChild(
-        el(
-          "div",
-          { class: "bot-btn-row", style: "margin-top:8px;" },
-          el("button", { class: "bot-btn", onclick: () => handleAddBotToTournament(code, "easy") }, "🤖 Aggiungi bot normale"),
-          el("button", { class: "bot-btn", onclick: () => handleAddBotToTournament(code, "hard") }, "🤖 Aggiungi bot difficile")
-        )
-      );
-      body.appendChild(
-        el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" },
-          "A differenza dei bot che riempiono automaticamente i posti scoperti, questi restano fissi round dopo round ed entrano in classifica.")
-      );
+    // 5) Iscritti
+    const postiLiberi = Math.max(0, 8 - iscritti.length);
+    body.appendChild(el("div", { class: "t-sec" }, el("b", {}, "Iscritti"),
+      rot ? el("span", { style: "display:flex;align-items:center;gap:8px" }, el("span", { class: "t-seats" }, Array.from({ length: 8 }, (_, i) => el("i", { class: i < iscritti.length ? "on" : "" }))), `${iscritti.length}/8`) : el("span", {}, `${iscritti.length} iscritti`)));
+    const unpairedHumans = iscritti.filter((p) => !p.isBot && !p.coppiaConId);
+    const rows = iscritti.map((p) => {
+      const partnerRec = p.coppiaConId && t.iscritti[p.coppiaConId];
+      const senzaCoppia = !rot && !p.isBot && !p.coppiaConId;
+      const me = p.id === myPlayerId;
+      const removeBtn = isOrganizer && aperto
+        ? el("button", { class: "t-x", "aria-label": p.isBot ? "Togli il bot" : "Togli " + p.nome, onclick: () => (p.isBot ? handleRemoveBotFromTournament(code, p.id) : handleRemovePlayer(code, p.id, p.nome, t)) }, "✕") : "";
+      const altri = senzaCoppia ? unpairedHumans.filter((u) => u.id !== p.id) : [];
+      const selectId = "pair-select-" + p.id;
+      return el("div", { class: "t-row" + (me ? " t-me" : "") },
+        p.isBot ? el("span", { class: "t-av t-av-bot" }, "🤖") : el("span", { class: "t-av", style: `background:${tAvatarColor(p.nome)}` }, String(p.nome || "?").trim().charAt(0).toUpperCase()),
+        el("div", { class: "t-name" }, el("b", {}, p.nome, me ? el("span", { class: "lb-you" }, "tu") : ""),
+          el("small", {}, p.isBot ? (p.botLevel === "easy" ? "Bot normale" : "Bot difficile") + (partnerRec ? " · con " + partnerRec.nome : "") : partnerRec ? "con " + partnerRec.nome : senzaCoppia ? "senza compagno" : "")),
+        isOrganizer && partnerRec && !partnerRec.isBot && aperto ? el("button", { class: "t-chipbtn", onclick: () => handleUnpairHumans(code, p.id) }, "Sciogli") : "",
+        removeBtn,
+        senzaCoppia && isOrganizer && aperto ? el("div", { style: "width:100%;display:flex;flex-wrap:wrap;gap:6px;margin-left:42px" },
+          altri.length ? el("div", { class: "t-tool-row", style: "width:100%" }, el("select", { id: selectId }, altri.map((u) => el("option", { value: u.id }, u.nome))), el("button", { class: "t-chipbtn", onclick: () => handlePairHumans(code, p.id, document.getElementById(selectId).value) }, "🤝 Abbina")) : "",
+          el("button", { class: "t-chipbtn", onclick: () => handleAssignBotAsPartner(code, p.id, "easy") }, "🤖 Compagno normale"),
+          el("button", { class: "t-chipbtn", onclick: () => handleAssignBotAsPartner(code, p.id, "hard") }, "🤖 Compagno difficile")) : "");
+    });
+    const list = el("div", { class: "t-list" }, iscritti.length ? rows : el("div", { class: "t-row" }, el("span", { class: "muted" }, "Ancora nessun iscritto.")));
+    if (isOrganizer && rot && aperto && postiLiberi > 0) {
+      list.appendChild(el("div", { class: "t-addbot" }, el("span", {}, "🤖 Aggiungi bot"),
+        el("button", { class: "t-chipbtn", onclick: () => handleAddBotToTournament(code, "easy") }, "Normale"),
+        el("button", { class: "t-chipbtn", onclick: () => handleAddBotToTournament(code, "hard") }, "Difficile")));
     }
-    if (!isOrganizer) {
-      body.appendChild(
-        el(
-          "div",
-          { class: "sound-test-row", style: "margin-top:12px;" },
-          el("button", { class: "sound-test-btn", style: "flex:1;", onclick: () => handleReclaimOrganizer(code) }, "👑 Diventa organizzatore da questo dispositivo")
-        )
-      );
-      body.appendChild(
-        el("p", { class: "muted", style: "font-size:0.74rem; margin-top:4px;" },
-          "Usalo se hai creato tu questo torneo ma da qui non risulti organizzatore (es. hai aperto il link da WhatsApp/un'altra app invece che dal browser).")
-      );
-    }
+    body.appendChild(list);
+    if (isOrganizer && rot && aperto && postiLiberi > 0) body.appendChild(el("p", { class: "t-note" }, "Questi bot restano fissi round dopo round ed entrano in classifica."));
 
-    body.appendChild(
-      el(
-        "div",
-        { class: "sound-test-row", style: "margin-top:12px;" },
-        el("button", { class: "sound-test-btn", onclick: () => shareTournamentInviteLink(code) }, "🔗 Condividi"),
-        el("button", { class: "text-link-btn", onclick: () => { tournamentsRef().child(code).off(); renderLobby(); } }, "Torna alla home")
-      )
-    );
+    // 6) Strumenti
+    body.appendChild(el("div", { class: "t-sec" }, el("b", {}, isOrganizer ? "Gestione" : "Altro")));
+    const tools = el("div", { class: "t-tools" });
+    tools.appendChild(el("button", { class: "secondary", style: "width:100%", onclick: () => shareTournamentInviteLink(code) }, "🔗 Condividi l'invito"));
+    if (isOrganizer) {
+      const altri = iscritti.filter((p) => !p.isBot && p.id !== myPlayerId);
+      if (altri.length > 0 && aperto) {
+        tools.appendChild(el("div", { class: "t-tool-row" }, el("select", { id: "pass-organizer-select" }, altri.map((u) => el("option", { value: u.id }, u.nome))),
+          el("button", { class: "t-chipbtn", onclick: () => handlePassOrganizer(code, document.getElementById("pass-organizer-select").value, t) }, "👑 Passa l'organizzazione")));
+      }
+      tools.appendChild(el("button", { class: "t-danger-link", onclick: () => handleDeleteTournament(code) }, "🗑️ Elimina torneo"));
+    } else {
+      tools.appendChild(el("button", { class: "secondary", style: "width:100%", onclick: () => handleReclaimOrganizer(code) }, "👑 Diventa organizzatore da questo dispositivo"));
+      tools.appendChild(el("p", { class: "t-note", style: "margin-top:-4px" }, "Usalo se hai creato tu questo torneo ma da qui non risulti organizzatore (es. hai aperto il link da WhatsApp invece che dal browser)."));
+    }
+    body.appendChild(tools);
+    body.appendChild(el("button", { class: "primary", style: "margin-top:18px", onclick: () => { tournamentsRef().child(code).off(); renderLobby(); } }, "Torna alla home"));
   });
 }
 
@@ -8893,7 +8750,7 @@ async function continueFromRoomCode() {
   // sta rientrando da un dispositivo diverso — offriglielo prima di
   // mandarlo dritto alla lobby/estrazione come fosse nuovo.
   if (existing.players && Object.keys(existing.players).length > 0) {
-    renderNameRecoveryScreen(roomId);
+    renderNameRecoveryScreen(roomId, existing.players);
     return;
   }
 
@@ -8968,27 +8825,44 @@ async function pickRoomMode(roomId, mode) {
 // chiave, quindi due persone con lo stesso nome nella stessa stanza si
 // "ruberebbero" il posto a vicenda — stesso comportamento già esistente
 // in modalità manuale.
-function renderNameRecoveryScreen(roomId) {
+// v5.49: invece di far scrivere il nome "esattamente come la prima volta",
+// si mostra l'elenco di chi è seduto nella stanza e si tocca il proprio.
+function renderNameRecoveryScreen(roomId, players) {
   const root = $("#app");
   root.innerHTML = "";
-  const nameInput = el("input", { id: "recover-name-input", placeholder: "il tuo nome", value: myName || "" });
+  const seated = players || {};
+  const rows = COLORS.filter((c) => seated[c]).map((c) => {
+    const p = seated[c];
+    const dot = el("span", { class: "rj-dot", style: `background:var(--${c})` });
+    if (p.isBot) {
+      return el("div", { class: "rj-row rj-bot" }, dot, el("div", { class: "rj-txt" }, el("b", {}, "🤖 Computer"), el("small", {}, colorLabel(c))));
+    }
+    return el(
+      "button",
+      { class: "rj-row", onclick: () => recoverByName(roomId, p.name) },
+      dot,
+      el("div", { class: "rj-txt" }, el("b", {}, p.name || colorLabel(c)), el("small", {}, `${colorLabel(c)} · squadra ${TEAM_LABEL[TEAM_OF[c]]}`)),
+      el("span", { class: "rj-go" }, "Sono io ›")
+    );
+  });
   root.appendChild(
     el(
       "div",
       { class: "lobby-card" },
-      el("h1", {}, "Tock"),
-      el("p", { class: "muted" },
-        `Stanza ${roomId} — c'è già una partita in corso qui. Se sei tu (da un altro dispositivo), scrivi esattamente lo stesso nome che avevi usato per rientrare al tuo posto.`),
-      nameInput,
-      el("button", { id: "recover-btn", class: "primary", onclick: () => recoverByName(roomId) }, "Rientra con questo nome"),
-      el("button", { class: "sound-test-btn", style: "margin-top:10px;", onclick: () => continueAsNewPlayer(roomId) }, "Sono nuovo, continua"),
-      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: renderLobby }, backChevronIcon(), "Cambia stanza")
+      el("div", { class: "lobby-header-row" }, el("div", { class: "app-logo" }, el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" }))),
+      el("div", { class: "room-tag" }, el("span", { class: "room-tag-label" }, "Stanza"), el("span", { class: "room-tag-code" }, roomId)),
+      el("p", { class: "rj-title" }, "Partita già in corso"),
+      el("p", { class: "rj-text" }, "Stavi giocando da un altro telefono? Tocca il tuo nome per riprendere il tuo posto."),
+      el("div", { class: "rj-list" }, rows),
+      el("div", { class: "rj-sec" }, "Non sei nella lista?"),
+      el("button", { class: "secondary", style: "width:100%;", onclick: () => continueAsNewPlayer(roomId) }, "Entro come nuovo giocatore"),
+      el("button", { class: "text-link-btn", style: "margin-top:10px;", onclick: renderLobby }, backChevronIcon(), "Cambia stanza")
     )
   );
 }
 
-async function recoverByName(roomId) {
-  const name = $("#recover-name-input").value.trim();
+async function recoverByName(roomId, chosenName) {
+  const name = String(chosenName || "").trim();
   if (!name) return showToast("Scrivi il tuo nome.");
   try {
     const snap = await roomRef(roomId).get();
@@ -9008,10 +8882,17 @@ async function recoverByName(roomId) {
     // claim-token già usato dalla modalità manuale, semplicemente
     // riassegnato a questo dispositivo.
     const newToken = getOrCreateClaimToken(roomId, match);
-    await roomRef(roomId).child("players").child(match).set({ name: claim.name, token: newToken });
+    // Si tengono tutti i campi del posto (playerId compreso: prima andava
+    // perso, e le partite giocate dopo un rientro non contavano più in
+    // classifica generale); cambia solo il token, che passa a questo telefono.
+    await roomRef(roomId).child("players").child(match).set({ ...claim, token: newToken });
     myColor = match;
     myRoomId = roomId;
     myName = claim.name;
+    if (claim.playerId) {
+      myPlayerId = claim.playerId;
+      savePlayerShortcut(claim.playerId, claim.name);
+    }
     // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
     // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
     // ("Cannot set properties of null", visto su un tavolo di torneo).
