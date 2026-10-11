@@ -863,6 +863,21 @@ html.fx3d[data-theme="dark"] .home-tile { background: linear-gradient(165deg, #3
 :root[data-theme="dark"] .t-chip.t-chip-open { background: #1C3326; border-color: #2E5A41; color: #8FD3AE; }
 :root[data-theme="dark"] .t-x { border-color: #6B3A3A; color: #E58A8F; }
 :root[data-theme="dark"] .t-danger-link { color: #E58A8F; }
+/* Rientro in una partita già in corso (v5.49) */
+.rj-title { font-size: 1.35rem; font-weight: 800; color: var(--ink); margin: 4px 0 6px; }
+.rj-text { margin: 0 0 14px; color: var(--muted-2); font-size: .92rem; line-height: 1.45; }
+.rj-list { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; overflow: hidden; }
+.rj-row { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; -webkit-tap-highlight-color: transparent; }
+.rj-row + .rj-row { border-top: 1px solid var(--panel-border); }
+.rj-row:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.rj-dot { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; box-shadow: inset 0 -2px 0 rgba(0,0,0,.15); }
+.rj-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rj-txt b { font-size: .98rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rj-txt small { font-size: .74rem; font-weight: 700; color: var(--muted-2); }
+.rj-go, .rj-go * { color: var(--ink-on-gold); }
+.rj-go { flex-shrink: 0; font-size: .8rem; font-weight: 800; padding: 7px 14px; border-radius: 999px; background: var(--gold); }
+.rj-row.rj-bot { cursor: default; opacity: .6; }
+.rj-sec { margin: 20px 2px 8px; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-3); }
 /* Elenco tornei attivi in home. */
 .tourney-row {
   all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center;
@@ -7792,7 +7807,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.48";
+const APP_VERSION = "v5.49";
 
 let myColor = null;
 let myRoomId = null;
@@ -8735,7 +8750,7 @@ async function continueFromRoomCode() {
   // sta rientrando da un dispositivo diverso — offriglielo prima di
   // mandarlo dritto alla lobby/estrazione come fosse nuovo.
   if (existing.players && Object.keys(existing.players).length > 0) {
-    renderNameRecoveryScreen(roomId);
+    renderNameRecoveryScreen(roomId, existing.players);
     return;
   }
 
@@ -8810,27 +8825,44 @@ async function pickRoomMode(roomId, mode) {
 // chiave, quindi due persone con lo stesso nome nella stessa stanza si
 // "ruberebbero" il posto a vicenda — stesso comportamento già esistente
 // in modalità manuale.
-function renderNameRecoveryScreen(roomId) {
+// v5.49: invece di far scrivere il nome "esattamente come la prima volta",
+// si mostra l'elenco di chi è seduto nella stanza e si tocca il proprio.
+function renderNameRecoveryScreen(roomId, players) {
   const root = $("#app");
   root.innerHTML = "";
-  const nameInput = el("input", { id: "recover-name-input", placeholder: "il tuo nome", value: myName || "" });
+  const seated = players || {};
+  const rows = COLORS.filter((c) => seated[c]).map((c) => {
+    const p = seated[c];
+    const dot = el("span", { class: "rj-dot", style: `background:var(--${c})` });
+    if (p.isBot) {
+      return el("div", { class: "rj-row rj-bot" }, dot, el("div", { class: "rj-txt" }, el("b", {}, "🤖 Computer"), el("small", {}, colorLabel(c))));
+    }
+    return el(
+      "button",
+      { class: "rj-row", onclick: () => recoverByName(roomId, p.name) },
+      dot,
+      el("div", { class: "rj-txt" }, el("b", {}, p.name || colorLabel(c)), el("small", {}, `${colorLabel(c)} · squadra ${TEAM_LABEL[TEAM_OF[c]]}`)),
+      el("span", { class: "rj-go" }, "Sono io ›")
+    );
+  });
   root.appendChild(
     el(
       "div",
       { class: "lobby-card" },
-      el("h1", {}, "Tock"),
-      el("p", { class: "muted" },
-        `Stanza ${roomId} — c'è già una partita in corso qui. Se sei tu (da un altro dispositivo), scrivi esattamente lo stesso nome che avevi usato per rientrare al tuo posto.`),
-      nameInput,
-      el("button", { id: "recover-btn", class: "primary", onclick: () => recoverByName(roomId) }, "Rientra con questo nome"),
-      el("button", { class: "sound-test-btn", style: "margin-top:10px;", onclick: () => continueAsNewPlayer(roomId) }, "Sono nuovo, continua"),
-      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: renderLobby }, backChevronIcon(), "Cambia stanza")
+      el("div", { class: "lobby-header-row" }, el("div", { class: "app-logo" }, el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" }))),
+      el("div", { class: "room-tag" }, el("span", { class: "room-tag-label" }, "Stanza"), el("span", { class: "room-tag-code" }, roomId)),
+      el("p", { class: "rj-title" }, "Partita già in corso"),
+      el("p", { class: "rj-text" }, "Stavi giocando da un altro telefono? Tocca il tuo nome per riprendere il tuo posto."),
+      el("div", { class: "rj-list" }, rows),
+      el("div", { class: "rj-sec" }, "Non sei nella lista?"),
+      el("button", { class: "secondary", style: "width:100%;", onclick: () => continueAsNewPlayer(roomId) }, "Entro come nuovo giocatore"),
+      el("button", { class: "text-link-btn", style: "margin-top:10px;", onclick: renderLobby }, backChevronIcon(), "Cambia stanza")
     )
   );
 }
 
-async function recoverByName(roomId) {
-  const name = $("#recover-name-input").value.trim();
+async function recoverByName(roomId, chosenName) {
+  const name = String(chosenName || "").trim();
   if (!name) return showToast("Scrivi il tuo nome.");
   try {
     const snap = await roomRef(roomId).get();
@@ -8850,10 +8882,17 @@ async function recoverByName(roomId) {
     // claim-token già usato dalla modalità manuale, semplicemente
     // riassegnato a questo dispositivo.
     const newToken = getOrCreateClaimToken(roomId, match);
-    await roomRef(roomId).child("players").child(match).set({ name: claim.name, token: newToken });
+    // Si tengono tutti i campi del posto (playerId compreso: prima andava
+    // perso, e le partite giocate dopo un rientro non contavano più in
+    // classifica generale); cambia solo il token, che passa a questo telefono.
+    await roomRef(roomId).child("players").child(match).set({ ...claim, token: newToken });
     myColor = match;
     myRoomId = roomId;
     myName = claim.name;
+    if (claim.playerId) {
+      myPlayerId = claim.playerId;
+      savePlayerShortcut(claim.playerId, claim.name);
+    }
     // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
     // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
     // ("Cannot set properties of null", visto su un tavolo di torneo).

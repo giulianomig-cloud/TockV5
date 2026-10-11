@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.48**.
+- Versione attuale: **v5.49**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -88,6 +88,9 @@
   iscritti in un unico elenco (tondino 🤖 o iniziale colorata, ✕ uguale per tutti, pallini 8 posti),
   "Aggiungi bot" solo con posti liberi; in fondo "Gestione": Condividi, Passa l'organizzazione,
   Elimina torneo (scritta rossa, non più pulsante grande in alto).
+- Rientro in una partita già in corso (v5.49): elenco di chi è seduto nella stanza, si tocca
+  "Sono io ›" sul proprio nome (niente più nome da riscrivere). Il rientro tiene tutti i campi del
+  posto, `playerId` compreso (prima si perdeva e le partite dopo il rientro non contavano in classifica).
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
