@@ -911,6 +911,15 @@ body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
 .bx-home .bx-logo { width: 92px; max-width: 30vw; display: block; transform: rotate(-2deg); }
 .bx-icons { display: flex; gap: 8px; }
 .bx-icons .theme-toggle-btn { width: 38px; height: 38px; border-radius: 12px; border: none; background: var(--bx-card); box-shadow: var(--bx-shadow); font-size: 1.05rem; }
+/* v5.68: interruttore del tema "a pillola" (vedi themePill). */
+.theme-pill { position: relative; flex: none; width: 74px; height: 38px; padding: 0; border: none; border-radius: 999px; background: #FFFFFF; box-shadow: var(--bx-shadow), inset 0 1px 3px rgba(60,40,10,.12); cursor: pointer; overflow: visible; transition: background .5s ease; -webkit-tap-highlight-color: transparent; }
+.theme-pill.tp-dark { background: #262B40; box-shadow: var(--bx-shadow), inset 0 1px 4px rgba(0,0,0,.5); }
+.theme-pill .tp-knob { position: absolute; left: 4px; top: 4px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .95rem; background: #F5F1EA; box-shadow: 0 2px 5px rgba(60,40,10,.25); transition: background .5s ease; }
+.theme-pill.tp-dark .tp-knob { background: #343A55; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
+.theme-pill .tp-hole { position: absolute; right: 9px; bottom: 9px; width: 18px; height: 6px; border-radius: 50%; background: #1D1712; transform: scaleX(0); }
+.theme-pill.tp-dark .tp-hole { background: #05060B; }
+.theme-pill .tp-pawn { position: absolute; left: 19px; bottom: 11px; width: 13px; height: 13px; pointer-events: none; z-index: 2; }
+.theme-pill .tp-pawn svg { display: block; filter: drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
 .bx-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 22px 18px 18px; background: var(--bx-hero); }
 .bx-hero h1 { margin: 0; font-size: 2rem; line-height: 1.05; letter-spacing: -.03em; font-weight: 800; color: var(--bx-ink); text-wrap: balance; }
 .bx-hero p { margin: 8px 0 16px; color: var(--bx-sub); font-size: .92rem; }
@@ -8040,7 +8049,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.67";
+const APP_VERSION = "v5.68";
 
 let myColor = null;
 let myRoomId = null;
@@ -8190,7 +8199,7 @@ function renderLobby() {
         el("img", { class: "app-logo-img bx-logo", src: logoSrc(currentTheme), alt: "Tock" }),
         el("div", { class: "bx-icons" },
           el("button", { class: "theme-toggle-btn", "aria-label": "Prova il suono", title: "Prova il suono", onclick: testSound }, "🔊"),
-          themeToggleButton(),
+          themePill(),
           fx3dToggleButton())),
       el("div", { class: "bx-hero" },
         el("h1", {}, "Pronto per", el("br"), "una partita?"),
@@ -11167,6 +11176,12 @@ function toggleTheme() {
   applyTheme(currentTheme === "dark" ? "light" : "dark");
 }
 function updateThemeToggleBtn() {
+  const pill = document.getElementById("theme-pill");
+  if (pill) {
+    pill.classList.toggle("tp-dark", currentTheme === "dark");
+    pill.querySelector(".tp-knob").textContent = currentTheme === "dark" ? "🌙" : "☀️";
+    pill.setAttribute("aria-label", currentTheme === "dark" ? "Passa al tema chiaro" : "Passa al tema scuro");
+  }
   const btn = document.getElementById("theme-toggle-btn");
   if (!btn) return;
   btn.textContent = currentTheme === "dark" ? "☀️" : "🌙";
@@ -11182,6 +11197,62 @@ function themeToggleButton() {
     { id: "theme-toggle-btn", class: "theme-toggle-btn", onclick: toggleTheme },
     currentTheme === "dark" ? "☀️" : "🌙"
   );
+}
+
+// v5.68: interruttore del tema "a pillola" in home (dal video dell'utente):
+// toccandolo dal sole esce una pedina che saltella verso destra e cade in un
+// buco che si apre — "si spengono le luci" e si passa al tema scuro. Al
+// contrario la pedina esce dal buco e torna saltellando al pomello (luna →
+// sole). Con "riduci movimento" cambia subito.
+let _themePillBusy = false;
+function themePill() {
+  const dark = currentTheme === "dark";
+  const pill = el(
+    "button",
+    { id: "theme-pill", class: "theme-pill" + (dark ? " tp-dark" : ""), "aria-label": dark ? "Passa al tema chiaro" : "Passa al tema scuro", onclick: () => animateThemePill(pill) },
+    el("span", { class: "tp-knob" }, dark ? "🌙" : "☀️"),
+    el("span", { class: "tp-hole" })
+  );
+  return pill;
+}
+async function animateThemePill(pill) {
+  if (_themePillBusy) return;
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !pill.animate) { toggleTheme(); return; }
+  _themePillBusy = true;
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const toDark = currentTheme !== "dark";
+  const hole = pill.querySelector(".tp-hole");
+  const pawn = el("span", { class: "tp-pawn" }, pipIcon(myColor || "red", 0, 13));
+  pill.appendChild(pawn);
+  const X = 31; // dal pomello al buco
+  try {
+    hole.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: 220, fill: "forwards", easing: "ease-out" });
+    const hops = [];
+    const N = 3;
+    for (let i = 0; i <= N; i++) {
+      const x = toDark ? (X * i) / N : X - (X * i) / N;
+      hops.push({ transform: `translate(${x}px, 0)`, offset: i / (N + 1) });
+      if (i < N) hops.push({ transform: `translate(${toDark ? x + X / N / 2 : x - X / N / 2}px, -9px)`, offset: (i + 0.5) / (N + 1) });
+    }
+    if (toDark) {
+      // esce dal pomello, saltella, salto finale dentro il buco
+      pawn.animate([{ transform: "translate(0,0) scale(0)" }, { transform: "translate(0,0) scale(1)" }], { duration: 160, fill: "forwards" });
+      await wait(160);
+      await pawn.animate(hops.concat([{ transform: `translate(${X}px, -12px)`, offset: 0.9 }, { transform: `translate(${X}px, 4px) scale(.3)`, opacity: 0 }]), { duration: 900, fill: "forwards", easing: "linear" }).finished;
+      try { playSound("captureBonk"); } catch (e) {}
+    } else {
+      // salta fuori dal buco e torna saltellando al pomello
+      await pawn.animate([{ transform: `translate(${X}px, 4px) scale(.3)`, opacity: 0 }, { transform: `translate(${X}px, -12px) scale(1)`, opacity: 1, offset: 0.25 }, { transform: `translate(${X}px, 0) scale(1)` }], { duration: 320, fill: "forwards" }).finished;
+      try { playSound("pawnOut"); } catch (e) {}
+      await pawn.animate(hops.concat([{ transform: "translate(0,0) scale(0)" }]), { duration: 820, fill: "forwards", easing: "linear" }).finished;
+    }
+    toggleTheme();
+    hole.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }], { duration: 220, fill: "forwards", easing: "ease-in" });
+  } finally {
+    pawn.remove();
+    _themePillBusy = false;
+  }
 }
 
 // ---------------- Aspetto rilievo 3D ----------------

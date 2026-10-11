@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.67**.
+- Versione attuale: **v5.68**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -156,6 +156,10 @@
   l'etichetta dentro le caselle del codice (`vtHome`); entrata al tavolo con l'etichetta che va in alto.
   ATTENZIONE: con `vtGo` la schermata nuova si disegna un attimo dopo: tutto ciò che va fatto dopo il
   disegno (es. `watchRoom` dopo `renderGameShell`) va messo DENTRO la funzione passata a `vtGo`.
+- Interruttore del tema a pillola (v5.68, da un video dell'utente): in home in alto a destra, al posto
+  del tastino 🌙 (nelle Impostazioni resta com'era). Verso lo scuro: una pedina esce dal ☀️, saltella,
+  si apre un buco nero e ci cade dentro (suono `captureBonk`), la pillola diventa blu notte con 🌙;
+  al contrario la pedina esce dal buco (`pawnOut`) e torna al pomello. `themePill` / `animateThemePill`.
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Animazioni dei menu portate nel GIOCO (v5.65, scelti i gruppi 1 e 2 dai video di prova):
