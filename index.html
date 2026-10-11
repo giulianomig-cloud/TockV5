@@ -3077,7 +3077,6 @@ html:not([data-skin]) .dealer-pile .card-btn.dealer-under { z-index: 3; filter: 
 .cf-box.cf-abs { position: absolute; left: 50%; top: 50%; width: 36px; max-width: none; height: 46px; margin: -23px 0 0 -18px; flex: none; }
 .cf-box.cf-warn { border-color: #E8A24A; box-shadow: 0 0 16px rgba(232,162,74,.55); background: rgba(232,162,74,.08); animation: none; }
 .cf-box.cf-okx { border-color: #4FB477; box-shadow: 0 0 20px rgba(79,180,119,.55); background: rgba(79,180,119,.1); animation: none; }
-.cf-box.cf-new { border-color: #D9A93E; box-shadow: 0 0 20px rgba(217,169,62,.55); background: rgba(217,169,62,.12); animation: none; }
 .cf-box.cf-bad { border-color: #D9534F; box-shadow: 0 0 18px rgba(217,83,79,.5); background: rgba(217,83,79,.1); animation: fbShake .45s; }
 .cf-ring { position: absolute; left: 50%; top: 50%; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; border: 2px solid rgba(79,180,119,.85); box-shadow: 0 0 22px rgba(79,180,119,.45), inset 0 0 16px rgba(79,180,119,.2); opacity: 0; pointer-events: none; }
 .cf-orbit { position: absolute; left: 50%; top: 50%; width: 80px; height: 80px; margin: -40px 0 0 -40px; opacity: 0; pointer-events: none; }
@@ -3085,11 +3084,8 @@ html:not([data-skin]) .dealer-pile .card-btn.dealer-under { z-index: 3; filter: 
 .cf-check { position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; margin: -12px 0 0 -12px; pointer-events: none; }
 .cf-check path { stroke: #2F9E5F; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 30; stroke-dashoffset: 30; }
 :root[data-theme="dark"] .cf-check path { stroke: #8FE0A8; }
-.cf-row:has(.cf-new) .cf-check path { stroke: #B8862A; }
 .bx-hero.cf-hero-ok { box-shadow: inset 0 0 0 2px rgba(79,180,119,.45); transition: box-shadow .6s; }
-.bx-hero.cf-hero-new { box-shadow: inset 0 0 0 2px rgba(217,169,62,.5); transition: box-shadow .6s; }
 .bx-hero h1 .cf-g { background: linear-gradient(135deg, #5CC489, #2F9E5F); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.bx-hero h1 .cf-gold { background: linear-gradient(135deg, #E2B85A, #A87D22); -webkit-background-clip: text; background-clip: text; color: transparent; }
 /* Pulsanti "con esito" (fbBusy / fbOk / fbFail). */
 .fb-spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -2px; margin-right: 8px; opacity: .75; animation: fbSpin .7s linear infinite; }
 .fb-busy { cursor: progress; }
@@ -3101,8 +3097,6 @@ html:not([data-skin]) .dealer-pile .card-btn.dealer-under { z-index: 3; filter: 
 @keyframes fbSpin { to { transform: rotate(360deg); } }
 .fb-ok { background: linear-gradient(135deg, #9BE8B4, #4FB477) !important; border-color: transparent !important; box-shadow: 0 10px 22px -12px rgba(79,180,119,.8) !important; }
 .fb-ok, .fb-ok * { color: #10261A !important; }
-.fb-ok.fb-gold { background: var(--bx-btn-bg) !important; box-shadow: 0 10px 22px -12px rgba(168,125,34,.7) !important; }
-.fb-ok.fb-gold, .fb-ok.fb-gold * { color: var(--bx-btn-ink) !important; }
 .fb-fail { background: linear-gradient(135deg, #F19A97, #D9534F) !important; border-color: transparent !important; animation: fbShake .45s; }
 .fb-fail, .fb-fail * { color: #fff !important; }
 @keyframes fbShake { 0%,100% { transform: none; } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(2px); } }
@@ -7987,7 +7981,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.57";
+const APP_VERSION = "v5.58";
 
 let myColor = null;
 let myRoomId = null;
@@ -8978,7 +8972,8 @@ function codeBoxesDraw(row) {
 // Animazione dopo "Gioca": le caselle si mettono in cerchio, girano e si
 // fondono in una sola al centro (mentre l'app cerca il codice su Firebase);
 // poi finish() mostra l'esito: verde con cerchi che si allargano e ✓ (stanza
-// o torneo trovati), oro (stanza nuova) o rosso che trema (errore).
+// trovata, stanza nuova o torneo — v5.58: la stanza nuova ha la stessa
+// animazione delle altre) oppure rosso che trema (errore).
 function codeFxStart() {
   const row = document.querySelector(".cf-row");
   const go = document.getElementById("continue-btn");
@@ -9032,10 +9027,10 @@ function codeFxStart() {
         renderLobby();
         return;
       }
-      c.classList.add(kind === "new" ? "cf-new" : "cf-okx");
+      c.classList.add("cf-okx");
       const hero = document.querySelector(".bx-hero");
-      if (hero) hero.classList.add(kind === "new" ? "cf-hero-new" : "cf-hero-ok");
-      if (kind !== "new") {
+      if (hero) hero.classList.add("cf-hero-ok");
+      {
         const ring = el("div", { class: "cf-ring" }), ring2 = el("div", { class: "cf-ring" });
         const orb = el("div", { class: "cf-orbit" }, el("i", { style: "left:37px;top:-2px" }), el("i", { style: "right:-2px;top:37px" }), el("i", { style: "left:37px;bottom:-2px" }), el("i", { style: "left:-2px;top:37px" }));
         row.append(ring, ring2, orb);
@@ -9043,8 +9038,7 @@ function codeFxStart() {
         setTimeout(() => ring2.animate([{ opacity: 0, transform: "scale(.4)" }, { opacity: 0.8, transform: "scale(1)", offset: 0.4 }, { opacity: 0, transform: "scale(2.3)" }], { duration: 1400, easing: "ease-out" }), 350);
         orb.animate([{ opacity: 0, transform: "rotate(0) scale(.6)" }, { opacity: 1, transform: "rotate(140deg) scale(1)", offset: 0.5 }, { opacity: 0, transform: "rotate(280deg) scale(1.3)" }], { duration: 1300, easing: "ease-in-out" });
       }
-      if (kind === "new") fbSet(go, "fb-ok", null, label); else fbOk(go, label);
-      go.classList.toggle("fb-gold", kind === "new");
+      fbOk(go, label);
       const swap = (node, build) => {
         if (!node) return;
         node.animate([{ opacity: 1, filter: "blur(0)" }, { opacity: 0, filter: "blur(4px)" }], { duration: 280, fill: "forwards" }).finished.then(() => {
@@ -9053,11 +9047,11 @@ function codeFxStart() {
           node.animate([{ opacity: 0, filter: "blur(4px)", transform: "translateY(6px)" }, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: 380, fill: "forwards" });
         });
       };
-      swap(hero && hero.querySelector("h1"), (n) => n.append(h[0], el("br"), el("span", { class: kind === "new" ? "cf-gold" : "cf-g" }, h[1])));
+      swap(hero && hero.querySelector("h1"), (n) => n.append(h[0], el("br"), el("span", { class: "cf-g" }, h[1])));
       swap(hero && hero.querySelector("p"), (n) => n.append(sub));
       await fbWait(420);
       const ck = el("div", { class: "cf-check" });
-      ck.innerHTML = kind === "new" ? '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 6v12M6 12h12"/></svg>' : '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 12.5l5 5L19 8"/></svg>';
+      ck.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 12.5l5 5L19 8"/></svg>';
       row.appendChild(ck);
       ck.querySelector("path").animate([{ strokeDashoffset: 30 }, { strokeDashoffset: 0 }], { duration: 450, easing: "ease-out", fill: "forwards" });
       await fbWait(1100);
@@ -9102,7 +9096,7 @@ async function continueFromRoomCode() {
   }
 
   if (!snap.exists()) {
-    if (fx) await fx.finish("new", ["Stanza", "nuova!"], "Non esiste ancora: la crei tu.", "Crea la stanza");
+    if (fx) await fx.finish("ok", ["Stanza", "nuova!"], "Non esiste ancora: la crei tu.", "Stanza nuova");
     renderModeChoice(roomId);
     return;
   }

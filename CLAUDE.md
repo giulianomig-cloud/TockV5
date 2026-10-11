@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.57**.
+- Versione attuale: **v5.58**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -122,7 +122,8 @@
   caselle (una per lettera, input vero invisibile sopra; casella attiva oro che "respira", lettera con
   saltello). Dopo "Gioca": rotellina "Cerco la stanza…", le caselle si mettono in cerchio, girano e si
   fondono in una (mentre si cerca su Firebase), poi l'esito: verde con cerchi e ✓ "Stanza trovata!" /
-  "Torneo trovato!", oro con + "Stanza nuova!", rosso che trema "Nessuna connessione".
+  "Torneo trovato!" / "Stanza nuova!" (dalla v5.58 la stanza nuova ha la STESSA animazione verde,
+  non più oro con il +), rosso che trema "Nessuna connessione".
   Pulsanti "con esito" (`fbBusy` / `fbOk` / `fbFail`): rotellina → verde ✓ / rosso che trema e poi torna
   com'era. Usati su: Siediti (aspetta la prenotazione del colore: "Già preso" se un altro telefono è
   arrivato prima), Iscriviti, Crea torneo, Sono io, Diventa/Passa organizzatore, Condividi l'invito.
