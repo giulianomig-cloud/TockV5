@@ -2414,6 +2414,7 @@ html[data-skin="bright"]:not([data-theme="dark"]) .reaction-bar .reaction-btn:ac
 .reaction-who { font-size: 0.7rem; font-weight: 800; padding: 1px 8px; border-radius: 10px; background: rgba(0,0,0,0.65); color: #fff; display: inline-block; }
 @keyframes reactionUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 15% { transform: translateY(-20px) scale(1.15); opacity: 1; } 100% { transform: translateY(-190px) scale(1); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .reaction-float { animation-duration: 1.5s; } }
+.reaction-mini { position: fixed; bottom: 22%; z-index: 9998; pointer-events: none; font-size: 1.9rem; margin-left: .6rem; filter: drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
 .chat-fab-row { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-bottom: 10px; }
 .chat-preview {
   flex: 1;
@@ -7984,7 +7985,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.59";
+const APP_VERSION = "v5.60";
 
 let myColor = null;
 let myRoomId = null;
@@ -15705,8 +15706,33 @@ function showReactionsFrom(state) {
       );
       document.body.appendChild(node);
       setTimeout(() => node.remove(), 2300);
+      if (m.text !== NUDGE_TEXT) reactionBurst(m.text, node);
     }, i * 250);
   });
+}
+
+// v5.60: "come i cuori nelle dirette" — insieme all'emoji grande ne salgono
+// altre più piccole che ondeggiano a destra e sinistra e svaniscono.
+function reactionBurst(emoji, from) {
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !document.body.animate) return;
+  const left = from && from.style.left ? from.style.left : "50%";
+  for (let k = 0; k < 7; k++) {
+    const mini = el("div", { class: "reaction-mini", style: `left:${left}` }, emoji);
+    document.body.appendChild(mini);
+    const rise = 220 + Math.random() * 120, sway = 14 + Math.random() * 16, dir = Math.random() < 0.5 ? -1 : 1;
+    const dx = (Math.random() - 0.5) * 50, size = 0.55 + Math.random() * 0.45;
+    const a = mini.animate(
+      [
+        { transform: `translate(${dx}px, 0) scale(${size * 0.4})`, opacity: 0 },
+        { transform: `translate(${dx + dir * sway}px, -${rise * 0.25}px) scale(${size})`, opacity: 1, offset: 0.2 },
+        { transform: `translate(${dx - dir * sway}px, -${rise * 0.55}px) scale(${size})`, opacity: 0.9, offset: 0.55 },
+        { transform: `translate(${dx + dir * sway * 0.6}px, -${rise}px) scale(${size * 0.85})`, opacity: 0 },
+      ],
+      { duration: 1700 + Math.random() * 700, delay: 120 + k * 110, easing: "ease-out", fill: "both" }
+    );
+    a.finished.then(() => mini.remove(), () => mini.remove());
+  }
 }
 
 function chatBubbleIconSvg() {
