@@ -7012,8 +7012,9 @@ function animateCaptureOut(el, svg, board, color, fromXY) {
     } else {
       const k = (t - T_POP - T_FLY) / T_LAND;
       x = baseCell.x; y = baseCell.y;
-      sx = 0.96 + 0.3 * Math.sin(k * Math.PI); // schiacciata: larga e bassa
-      sy = 0.96 - 0.28 * Math.sin(k * Math.PI);
+      // Atterra restando tonda (niente più schiacciamento): solo un piccolo
+      // rimbalzo di grandezza, uguale in larghezza e altezza.
+      sx = sy = 0.96 + 0.12 * Math.sin(k * Math.PI);
       rot = 360;
       op = 1 - k * k;
       if (!bonked) {
@@ -7240,17 +7241,47 @@ function pathForAnimation(color, oldPos, newPos) {
   return null; // couldn't reconstruct (e.g. a Jack swap) — caller will snap instead
 }
 
+// La pedina va di casella in casella con un piccolo saltello morbido (prima
+// "si teletrasportava" da una casella all'altra). Stessa durata di prima:
+// stepMs per ogni casella, così i tempi di mangiate/banner non cambiano.
+// Arcade: il saltello è a scatti (fxQ), come gli altri effetti di quello stile.
 function animateAlongPath(el, board, path, color, stepMs, genToken) {
-  let i = 0;
-  function step() {
-    if (el.__animGen !== genToken) return; // a newer move superseded this animation
-    if (i >= path.length) return;
-    const cell = cellForColor(board, color, path[i]);
-    el.setAttribute("transform", `translate(${cell.x},${cell.y})`);
-    i++;
-    if (i < path.length) setTimeout(step, stepMs);
+  if (!path.length) return;
+  const cells = path.map((p) => cellForColor(board, color, p));
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) {
+    let i = 0;
+    const step = () => {
+      if (el.__animGen !== genToken || i >= cells.length) return;
+      el.setAttribute("transform", `translate(${cells[i].x},${cells[i].y})`);
+      i++;
+      if (i < cells.length) setTimeout(step, stepMs);
+    };
+    step();
+    return;
   }
-  step();
+  const m = /translate\(\s*([-\d.]+)[ ,]+([-\d.]+)/.exec(el.getAttribute("transform") || "");
+  const start = m ? { x: +m[1], y: +m[2] } : cells[0];
+  const lift = board.cellRadiusMm * 0.55;
+  const t0 = performance.now();
+  const f = (now) => {
+    if (el.__animGen !== genToken) return; // una mossa più recente ha preso il posto di questa
+    const t = Math.max(0, (now - t0) / stepMs); // il tempo del fotogramma può essere un filo prima di t0
+    const i = Math.min(cells.length - 1, Math.floor(t));
+    if (t >= cells.length) {
+      const end = cells[cells.length - 1];
+      el.setAttribute("transform", `translate(${end.x},${end.y})`);
+      return;
+    }
+    const from = i === 0 ? start : cells[i - 1], to = cells[i];
+    const k = fxQ(t - i);
+    const e = k * k * (3 - 2 * k);
+    const x = from.x + (to.x - from.x) * e;
+    const y = from.y + (to.y - from.y) * e - Math.sin(k * Math.PI) * lift;
+    el.setAttribute("transform", `translate(${x},${y})`);
+    requestAnimationFrame(f);
+  };
+  requestAnimationFrame(f);
 }
 
 function cellForColor(board, color, pos) {
@@ -7631,7 +7662,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.40";
+const APP_VERSION = "v5.41";
 
 let myColor = null;
 let myRoomId = null;
@@ -12640,6 +12671,40 @@ function botEvaluateBoard(pawns, lapped, forTeam) {
 // modulo così una chiamata successiva può annullare un ritardo ancora in
 // sospeso invece di accumularne più di uno.
 let _winBannerTimer = null;
+let _winCelebrateUntil = 0;
+
+// Festa sul tabellone a fine partita: le 8 pedine della squadra vincente
+// saltano una dopo l'altra (a onda) con un anello del loro colore. Ritorna
+// quanto dura (ms), 0 se non parte (movimento ridotto, tabellone assente).
+function celebrateWinOnBoard(state, delayMs) {
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return 0;
+  if (!boardSvg || !state || !state.winnerTeam) return 0;
+  const winners = COLORS.filter((c) => TEAM_OF[c] === state.winnerTeam);
+  const items = [];
+  winners.forEach((c) => [0, 1, 2, 3].forEach((i) => {
+    const el = _pawnAnimState.els[c + "-" + i];
+    const pos = state.pawns && state.pawns[c] && state.pawns[c][i];
+    if (el && pos != null && pos !== -1) items.push({ el, color: c, cell: cellForColor(BOARD, c, pos) });
+  }));
+  if (!items.length) return 0;
+  const GAP = 80, HOP = 420, lift = BOARD.cellRadiusMm * 1.3;
+  setTimeout(() => {
+    items.forEach((it, n) => setTimeout(() => {
+      const gen = (it.el.__animGen || 0) + 1;
+      it.el.__animGen = gen;
+      const t0 = performance.now();
+      const f = (now) => {
+        if (it.el.__animGen !== gen) return;
+        const k0 = Math.min(1, (now - t0) / HOP), k = fxQ(k0);
+        it.el.setAttribute("transform", `translate(${it.cell.x},${it.cell.y - Math.sin(k * Math.PI) * lift})`);
+        if (k0 < 1) requestAnimationFrame(f);
+        else fxRing(boardSvg, it.cell.x, it.cell.y, BOARD.cellRadiusMm * 0.6, BOARD.cellRadiusMm * 1.6, fxCol(it.color), 480, 3);
+      };
+      requestAnimationFrame(f);
+    }, n * GAP));
+  }, delayMs);
+  return (items.length - 1) * GAP + HOP + 300;
+}
 // Evita di ritentare il reclamo della classifica ad ogni singolo
 // re-render mentre la partita resta "finished" (onStateChange viene
 // richiamato spesso) — un solo tentativo per transizione, azzerato non
@@ -12677,10 +12742,20 @@ function onStateChange(state) {
     // l'entrata e poi il banner"). pawnAnimMs è 0 quando non c'è
     // un'animazione fresca da aspettare (es. si riapre l'app su una
     // partita già conclusa), quindi in quel caso il banner compare subito.
+    // Partita appena vinta davanti ai nostri occhi (pawnAnimMs > 0): dopo
+    // l'ultima mossa le pedine della squadra vincente fanno un saltello "a
+    // onda" sul tabellone, e solo dopo arriva il banner. Il momento in cui
+    // il banner può comparire è segnato una volta sola (_winCelebrateUntil),
+    // così un nuovo render nel frattempo non lo fa spuntare prima.
+    if (pawnAnimMs > 0 && !_winCelebrateUntil) {
+      const startIn = pawnAnimMs + 250;
+      const waveMs = celebrateWinOnBoard(state, startIn);
+      _winCelebrateUntil = Date.now() + startIn + waveMs + (waveMs > 0 ? 200 : 0);
+    }
     clearTimeout(_winBannerTimer);
     _winBannerTimer = setTimeout(() => {
       if (currentState && currentState.phase === "finished") renderWinBanner(currentState);
-    }, pawnAnimMs + (pawnAnimMs > 0 ? 250 : 0));
+    }, Math.max(0, (_winCelebrateUntil || 0) - Date.now()));
     if (!_leaderboardClaimAttempted) {
       _leaderboardClaimAttempted = true;
       tryClaimLeaderboardCredit(state).catch(() => {});
@@ -12688,6 +12763,7 @@ function onStateChange(state) {
     }
   } else {
     _leaderboardClaimAttempted = false;
+    _winCelebrateUntil = 0;
     clearTimeout(_winBannerTimer);
     // The banner is prepended straight into #app (outside the normal
     // per-section re-render), so once the phase leaves "finished" — e.g.
