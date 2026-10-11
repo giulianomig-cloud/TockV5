@@ -770,6 +770,38 @@ button.primary:disabled {
   display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px;
   border-radius: 50%; background: var(--gold); color: #FFFFFF; font-size: 0.8rem; font-weight: 800; line-height: 1;
 }
+/* Home "A · Tessere" (v5.46) */
+.home-play { display: flex; gap: 8px; align-items: stretch; }
+.home-play #room-input { flex: 1; min-width: 0; margin: 0; }
+.home-play #continue-btn { width: auto; margin: 0; padding: 0 20px; white-space: nowrap; flex-shrink: 0; }
+.home-hint { margin: 6px 2px 0; font-size: 0.78rem; color: var(--muted-2); }
+.home-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0 10px; }
+.home-tile { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 14px; border-radius: 18px;
+  background: var(--panel); border: 1px solid var(--panel-border); box-shadow: 0 6px 14px -10px rgba(60,40,10,.4); -webkit-tap-highlight-color: transparent; }
+.home-tile:hover { border-color: var(--gold); }
+.home-tile:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.home-tile-em { font-size: 1.7rem; line-height: 1; }
+.home-tile b { font-size: 0.98rem; color: var(--ink); }
+.home-tile small { font-size: 0.74rem; color: var(--muted-2); }
+.home-section { margin: 20px 0 8px; }
+.tourney-group { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; overflow: hidden; }
+.tourney-group .tourney-row { margin: 0; border: none; border-radius: 0; background: transparent; }
+.tourney-group .tourney-row + .tourney-row { border-top: 1px solid var(--panel-border); }
+.tourney-group .tourney-row:hover { background: rgba(201,154,58,.08); }
+.tourney-group .tourney-placeholder { border: none; margin: 0; }
+.tourney-row.tourney-done { opacity: 0.8; }
+.home-tools { display: flex; justify-content: center; gap: 16px; margin-top: 22px; }
+.home-tool { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.66rem; font-weight: 700; color: var(--muted-2); }
+.home-tool > button { margin: 0; }
+.home-tool > .sound-test-btn { width: 31px; height: 31px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; line-height: 1; }
+.home-meta { text-align: center; margin-top: 12px; }
+html.fx3d .home-tile { background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 60%, #F3E9D0 100%); border-color: #D9CBA8; box-shadow: 0 1px 0 rgba(255,255,255,.95) inset, 0 3px 0 #D2C093, 0 8px 10px -4px rgba(60,40,10,.35); }
+html.fx3d[data-theme="dark"] .home-tile { background: linear-gradient(165deg, #30281E 0%, #261F17 100%); border-color: #4F4030; box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 3px 0 #0E0B08, 0 8px 10px -4px rgba(0,0,0,.65); }
+/* Logo in cima: se il telefono non riserva spazio alla barra dell'ora
+   (safe-area 0) il logo finiva sotto l'ora, dove l'iPhone sfuma il
+   contenuto ("i pallini del logo sono sfocati"). Qui scende quanto basta;
+   con la safe-area normale non cambia nulla. */
+@media (pointer: coarse) { .lobby-card > .app-logo:first-child { margin-top: max(0px, calc(50px - env(safe-area-inset-top, 0px))); } }
 /* Elenco tornei attivi in home. */
 .tourney-row {
   all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center;
@@ -7699,7 +7731,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.45";
+const APP_VERSION = "v5.46";
 
 let myColor = null;
 let myRoomId = null;
@@ -7797,15 +7829,19 @@ function forwardArrowIcon(stroke) {
 // La modalità "estrazione" (sorteggio coppie + scelta colori) è descritta
 // più sotto, cercare "Estrazione squadre".
 
+// Home (v5.46, proposta "A · Tessere"): codice + "Gioca" sulla stessa riga,
+// Classifica e Impara a giocare come due tessere affiancate, tornei in un
+// unico riquadro a righe, tastini in basso con il loro nome sotto.
 function renderLobby() {
   const root = $("#app");
   root.innerHTML = "";
 
   const roomInput = el("input", {
     id: "room-input",
-    placeholder: "codice stanza (es. TORVA1)",
+    placeholder: "Codice stanza",
     value: myRoomId || "",
   });
+  const tool = (btn, label) => el("div", { class: "home-tool" }, btn, el("span", {}, label));
 
   root.appendChild(
     el(
@@ -7814,52 +7850,35 @@ function renderLobby() {
       el("div", { class: "app-logo" },
         el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" })
       ),
-      el("p", { class: "muted" }, "Inserisci il codice stanza per creare o entrare in una partita."),
-      roomInput,
-      el("button", { id: "continue-btn", class: "primary", onclick: continueFromRoomCode }, "Continua"),
+      el("div", { class: "home-play" },
+        roomInput,
+        el("button", { id: "continue-btn", class: "primary", onclick: continueFromRoomCode }, "Gioca ›")
+      ),
+      el("p", { class: "home-hint" }, "Es. TORVA1 — se la stanza non esiste, la crei tu."),
       el(
         "div",
-        { class: "home-divider" },
-        el("span", { class: "hd-line" }),
-        el("span", { class: "hd-label" }, "oppure"),
-        el("span", { class: "hd-line" })
+        { class: "home-tiles" },
+        el("button", { class: "home-tile", onclick: renderLeaderboardScreen },
+          el("span", { class: "home-tile-em" }, "🏆"), el("b", {}, "Classifica"), el("small", {}, "Chi vince di più")),
+        el("button", { class: "home-tile", onclick: openTutorial },
+          el("span", { class: "home-tile-em" }, "🎓"), el("b", {}, "Impara a giocare"), el("small", {}, "Le regole passo passo"))
       ),
-      el(
-        "button",
-        { class: "leaderboard-open-btn", onclick: renderLeaderboardScreen },
-        el("span", {}, "🏆 Classifica generale"),
-        el("span", { class: "leaderboard-open-arrow" }, "›")
-      ),
-      el(
-        "button",
-        { class: "leaderboard-open-btn", style: "margin-top:8px;", onclick: openTutorial },
-        el("span", {}, "🎓 Impara a giocare"),
-        el("span", { class: "leaderboard-open-arrow" }, "›")
-      ),
-      el(
-        "div",
-        { class: "section-label-row" },
-        el("span", { class: "section-label" }, "Tornei attivi")
-      ),
-      el("div", { id: "tourney-list-wrap" }, el("div", { class: "tourney-placeholder" }, "Carico i tornei…")),
       el(
         "button",
         { class: "organize-btn", onclick: renderTournamentCreateScreen },
         el("span", { class: "plus-badge" }, "+"),
         el("span", {}, "Organizza un torneo")
       ),
+      el("div", { class: "section-label-row home-section" }, el("span", { class: "section-label" }, "Tornei")),
+      el("div", { id: "tourney-list-wrap", class: "tourney-group" }, el("div", { class: "tourney-placeholder" }, "Carico i tornei…")),
       el(
         "div",
-        { class: "sound-test-row" },
-        el(
-          "div",
-          { style: "display:flex; align-items:center; gap:8px;" },
-          el("button", { class: "sound-test-btn", onclick: testSound }, "🔊 Test suono"),
-          themeToggleButton(),
-          fx3dToggleButton()
-        ),
-        el("span", { class: "app-meta" }, `Tock by Mig · ${APP_VERSION} · © 2026 Mig`)
+        { class: "home-tools" },
+        tool(el("button", { class: "sound-test-btn", "aria-label": "Prova il suono", onclick: testSound }, "🔊"), "Suono"),
+        tool(themeToggleButton(), currentTheme === "dark" ? "Tema chiaro" : "Tema scuro"),
+        tool(fx3dToggleButton(), "Effetto 3D")
       ),
+      el("p", { class: "app-meta home-meta" }, `Tock by Mig · ${APP_VERSION} · © 2026 Mig`),
       homeScreenHint()
     )
   );
@@ -7895,7 +7914,7 @@ async function fillActiveTournamentsList() {
     wrap.appendChild(
       el(
         "button",
-        { class: "tourney-row", onclick: () => openTournamentByCode(t.code) },
+        { class: "tourney-row" + (t.stato === "concluso" ? " tourney-done" : ""), onclick: () => openTournamentByCode(t.code) },
         el(
           "div",
           { class: "tourney-row-main" },

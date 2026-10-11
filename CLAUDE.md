@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.45**.
+- Versione attuale: **v5.46**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -73,6 +73,11 @@
 - Classifica generale (v5.45): tre linguette (Vittorie · Media · Tornei), ogni elenco in un unico
   riquadro con righe divise da una linea, barretta sotto il nome nella Media. Nella Media entra in
   classifica solo chi ha almeno 5 partite (`LB_MIN_PARTITE_MEDIA`); gli altri sotto, in grigio.
+- Home (v5.46, scelta "A · Tessere" fra 3 proposte, con i tornei in elenco come la "B"): codice +
+  "Gioca ›" sulla stessa riga, suggerimento "Es. TORVA1…" sotto, tessere Classifica / Impara a
+  giocare, "Organizza un torneo", tornei in un unico riquadro a righe (concluso in fondo, sbiadito),
+  tastini in basso con il nome sotto. Il logo scende se il telefono non riserva spazio all'ora
+  (sotto l'ora l'iPhone lo sfocava). Scartate: "B · Elenco" e "C · Copertina".
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
 - Alcuni giocatori usano l'app con il **traduttore di Chrome** (es. in spagnolo): avvolge i testi
