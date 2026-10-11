@@ -884,10 +884,11 @@ html.fx3d[data-theme="dark"] .home-tile { background: linear-gradient(165deg, #3
 /* ===== Stile "Bento" (v5.53) per tutte le pagine prima della partita ===== */
 :root { --bx-bg: #F5F1EA; --bx-card: #FFFFFF; --bx-ink: #1D1712; --bx-sub: #9A8B7A; --bx-line: #EFE7DB;
   --bx-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 24px -16px rgba(60,40,10,.35);
-  --bx-btn: #1D1712; --bx-btn-ink: #FFFFFF;
+  --bx-btn: #C99A3A; --bx-btn-ink: #241C15;
+  --bx-btn-bg: linear-gradient(135deg, #F0CF7A 0%, #C99A3A 55%, #A87D22 100%);
   --bx-hero: radial-gradient(60% 70% at 0% 0%, #F7C9CC 0%, transparent 60%), radial-gradient(60% 70% at 100% 0%, #BFE6D2 0%, transparent 60%), radial-gradient(60% 70% at 100% 100%, #BCD7F1 0%, transparent 60%), radial-gradient(60% 70% at 0% 100%, #F8E3A6 0%, transparent 60%), #FFF8EE; }
 :root[data-theme="dark"] { --bx-bg: #14110E; --bx-card: #221C17; --bx-ink: #F3EBDD; --bx-sub: #A8998A; --bx-line: #3A3028;
-  --bx-shadow: 0 10px 24px -16px rgba(0,0,0,.85); --bx-btn: #F3E6CC; --bx-btn-ink: #1D1712;
+  --bx-shadow: 0 10px 24px -16px rgba(0,0,0,.85); --bx-btn: #C99A3A; --bx-btn-ink: #241C15;
   --bx-hero: radial-gradient(60% 70% at 0% 0%, rgba(217,99,107,.35) 0%, transparent 60%), radial-gradient(60% 70% at 100% 0%, rgba(63,167,126,.32) 0%, transparent 60%), radial-gradient(60% 70% at 100% 100%, rgba(62,143,203,.32) 0%, transparent 60%), radial-gradient(60% 70% at 0% 100%, rgba(227,172,51,.3) 0%, transparent 60%), #221C17; }
 body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
 .lobby-card .t-list, .lobby-card .lb-list-card, .lobby-card .room-team, .lobby-card .rj-list, .lobby-card .mode-btn,
@@ -895,8 +896,8 @@ body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
   background: var(--bx-card); border-color: transparent; border-radius: 22px; box-shadow: var(--bx-shadow); }
 .lobby-card button.primary, .lobby-card button.primary * { color: var(--bx-btn-ink); }
 .lobby-card button.primary svg, .lobby-card button.primary svg * { stroke: var(--bx-btn-ink); }
-.lobby-card button.primary { background: var(--bx-btn); border-radius: 18px; box-shadow: 0 10px 22px -12px rgba(0,0,0,.45); }
-.lobby-card button.primary:hover { background: var(--bx-btn); filter: brightness(1.15); }
+.lobby-card button.primary { background: var(--bx-btn-bg); border-radius: 18px; box-shadow: 0 10px 22px -12px rgba(168,125,34,.65); }
+.lobby-card button.primary:hover { background: var(--bx-btn-bg); filter: brightness(1.06); }
 .lobby-card button.secondary { background: var(--bx-card); color: var(--bx-ink); border: none; border-radius: 16px; box-shadow: var(--bx-shadow); padding: 13px 14px; }
 .lobby-card #room-input, .lobby-card #name-input, .lobby-card #recover-name-input, .lobby-card #torneo-code-input,
 .lobby-card #torneo-organizer-name, .lobby-card #torneo-join-name, .lobby-card .room-tag {
@@ -916,7 +917,7 @@ body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
 :root:not([data-theme="dark"]) .bx-hero p { color: #5A4E42; }
 .bx-play { display: flex; gap: 8px; background: var(--bx-card); border-radius: 18px; padding: 6px; box-shadow: 0 10px 24px -14px rgba(60,40,10,.45); }
 .bx-play #room-input { flex: 1; min-width: 0; border: none; background: transparent; box-shadow: none; margin: 0; padding: 12px 10px; font-weight: 700; outline: none; }
-.bx-play #continue-btn { all: unset; cursor: pointer; background: var(--bx-btn); color: var(--bx-btn-ink); font-weight: 800; border-radius: 14px; padding: 0 20px; -webkit-tap-highlight-color: transparent; }
+.bx-play #continue-btn { all: unset; cursor: pointer; background: var(--bx-btn-bg); color: var(--bx-btn-ink); font-weight: 800; border-radius: 14px; padding: 0 20px; -webkit-tap-highlight-color: transparent; }
 .bx-play #continue-btn * { color: var(--bx-btn-ink); }
 .bx-bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .bx-card { all: unset; box-sizing: border-box; cursor: pointer; background: var(--bx-card); border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--bx-shadow); -webkit-tap-highlight-color: transparent; min-width: 0; }
@@ -935,9 +936,10 @@ body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
 .bx-muted { color: var(--bx-sub); font-size: .82rem; }
 .bx-ring { display: flex; align-items: center; gap: 10px; }
 .bx-ring-bg { stroke: var(--bx-line); }
-.bx-dark { background: var(--bx-btn); }
+/* "bx-dark" = riquadro nel colore dei pulsanti principali (oro, v5.54). */
+.bx-dark { background: var(--bx-btn-bg); }
 .bx-dark .bx-t, .bx-dark .bx-t * { color: var(--bx-btn-ink); }
-.bx-dark .bx-k { color: var(--bx-sub); }
+.bx-dark .bx-k { color: #5A4320; }
 .bx-sec { display: flex; justify-content: space-between; align-items: baseline; margin: 22px 4px 10px; }
 .bx-sec b { font-size: 1.15rem; letter-spacing: -.01em; color: var(--bx-ink); }
 .bx-scroll { display: flex; gap: 10px; overflow-x: auto; margin: 0 -20px; padding: 0 20px 8px; scroll-snap-type: x mandatory; scroll-padding-left: 20px; -webkit-overflow-scrolling: touch; }
@@ -3023,6 +3025,19 @@ html[data-skin="arcade"] .status-offline-dot { background: #6c6c80; box-shadow: 
 .chat-fab-row .reaction-btn.reaction-fab { flex: 0 0 auto; width: 44px; height: 44px; padding: 0; border-radius: 50%; font-size: 1.35rem; display: flex; align-items: center; justify-content: center; }
 .chat-fab-row .reaction-fab.open { font-size: 1rem; font-weight: 800; }
 #chat-wrap .reaction-bar { margin-top: 0; animation: lmIn .15s ease-out; }
+/* v5.55: schermata di gioco in stile Bento (solo stile Classico; carte e tabellone invariati) */
+html:not([data-skin]) body:has(.game-shell) { background: var(--bx-bg); }
+html:not([data-skin]) .game-shell .icon-btn, html:not([data-skin]) .game-shell .icon-btn-pair { background: var(--bx-card); border: none; border-radius: 12px; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .icon-btn-pair .icon-btn { box-shadow: none; }
+html:not([data-skin]) .game-shell .room-team-row { border: none; border-radius: 22px; background: var(--bx-card); box-shadow: var(--bx-shadow); overflow: hidden; }
+html:not([data-skin]) .game-shell .board-player { border: none; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell #board-wrap { border-radius: 28px; box-shadow: 0 2px 4px rgba(0,0,0,.05), 0 18px 34px -20px rgba(60,40,10,.55); }
+html:not([data-skin]) .game-shell .turn-line.my-turn { background: var(--bx-btn-bg); border: none; border-radius: 22px; box-shadow: 0 12px 26px -14px rgba(168,125,34,.7); }
+html:not([data-skin]) .game-shell .turn-line:not(.my-turn) { background: var(--bx-card); border: none; border-radius: 22px; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .chat-preview { background: var(--bx-card); border: none; border-radius: 18px; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .chat-fab { background: var(--bx-btn-bg); box-shadow: 0 10px 22px -12px rgba(168,125,34,.7); }
+html:not([data-skin]) .game-shell .reaction-fab { background: var(--bx-card); border: none; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .nudge-btn { background: var(--bx-card); border: none; border-radius: 18px; box-shadow: var(--bx-shadow); }
 </style>
 </head>
 <body>
@@ -7900,7 +7915,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.53";
+const APP_VERSION = "v5.55";
 
 let myColor = null;
 let myRoomId = null;
