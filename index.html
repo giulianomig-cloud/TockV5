@@ -273,6 +273,28 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
 }
 .lobby-header-row .app-logo-img { width: 130px; max-width: 42vw; }
 
+/* Stanza "C · Squadre" (v5.46) */
+.room-teams { margin-bottom: 16px; }
+.room-team { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; overflow: hidden; }
+.room-team-head { padding: 9px 14px; font-size: .72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-3); background: rgba(201,154,58,.08); }
+.room-seat { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--panel-border); }
+.room-seat.rs-mine { background: rgba(201,154,58,.13); }
+.room-seat.rs-pending .room-seat-name { font-style: italic; color: var(--muted-2); }
+.room-dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .78rem; font-weight: 900; box-shadow: inset 0 -2px 0 rgba(0,0,0,.15); }
+.rs-free .room-dot, .rs-pending .room-dot { opacity: .55; }
+.room-seat-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.room-seat-name { font-weight: 800; color: var(--ink); font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-seat-sub { font-size: .72rem; font-weight: 700; color: var(--muted-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-chip { all: unset; box-sizing: border-box; cursor: pointer; flex-shrink: 0; text-align: center; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--panel-border); background: var(--panel); font-size: .78rem; font-weight: 800; color: var(--ink); white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.room-chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.room-chip-bot { padding: 7px 10px; }
+.room-chip.room-chip-sit, .room-chip.room-chip-sit * { background: var(--gold); border-color: var(--gold); color: var(--ink-on-gold); }
+.room-chip.room-chip-sit { padding: 7px 16px; }
+.room-vs { display: flex; align-items: center; gap: 10px; margin: 8px 0; color: var(--muted-3); font-size: .72rem; font-weight: 900; letter-spacing: .1em; }
+.room-vs::before, .room-vs::after { content: ""; flex: 1; height: 1px; background: var(--panel-border); }
+html.fx3d .room-team { background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 60%, #F3E9D0 100%); border-color: #D9CBA8; box-shadow: 0 1px 0 rgba(255,255,255,.95) inset, 0 3px 0 #D2C093, 0 8px 10px -4px rgba(60,40,10,.35); }
+html.fx3d[data-theme="dark"] .room-team { background: linear-gradient(165deg, #30281E 0%, #261F17 100%); border-color: #4F4030; box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 3px 0 #0E0B08, 0 8px 10px -4px rgba(0,0,0,.65); }
+@media (pointer: coarse) { .lobby-card > .lobby-header-row:first-child { margin-top: max(0px, calc(50px - env(safe-area-inset-top, 0px))); } }
 /* "Etichetta" bianca con il codice stanza, come nel mockup — al posto del
    codice infilato nel paragrafo di istruzioni. */
 .room-tag {
@@ -770,6 +792,38 @@ button.primary:disabled {
   display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px;
   border-radius: 50%; background: var(--gold); color: #FFFFFF; font-size: 0.8rem; font-weight: 800; line-height: 1;
 }
+/* Home "A · Tessere" (v5.46) */
+.home-play { display: flex; gap: 8px; align-items: stretch; }
+.home-play #room-input { flex: 1; min-width: 0; margin: 0; }
+.home-play #continue-btn { width: auto; margin: 0; padding: 0 20px; white-space: nowrap; flex-shrink: 0; }
+.home-hint { margin: 6px 2px 0; font-size: 0.78rem; color: var(--muted-2); }
+.home-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0 10px; }
+.home-tile { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 14px; border-radius: 18px;
+  background: var(--panel); border: 1px solid var(--panel-border); box-shadow: 0 6px 14px -10px rgba(60,40,10,.4); -webkit-tap-highlight-color: transparent; }
+.home-tile:hover { border-color: var(--gold); }
+.home-tile:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.home-tile-em { font-size: 1.7rem; line-height: 1; }
+.home-tile b { font-size: 0.98rem; color: var(--ink); }
+.home-tile small { font-size: 0.74rem; color: var(--muted-2); }
+.home-section { margin: 20px 0 8px; }
+.tourney-group { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; overflow: hidden; }
+.tourney-group .tourney-row { margin: 0; border: none; border-radius: 0; background: transparent; }
+.tourney-group .tourney-row + .tourney-row { border-top: 1px solid var(--panel-border); }
+.tourney-group .tourney-row:hover { background: rgba(201,154,58,.08); }
+.tourney-group .tourney-placeholder { border: none; margin: 0; }
+.tourney-row.tourney-done { opacity: 0.8; }
+.home-tools { display: flex; justify-content: center; gap: 16px; margin-top: 22px; }
+.home-tool { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.66rem; font-weight: 700; color: var(--muted-2); }
+.home-tool > button { margin: 0; }
+.home-tool > .sound-test-btn { width: 31px; height: 31px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; line-height: 1; }
+.home-meta { text-align: center; margin-top: 12px; }
+html.fx3d .home-tile { background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 60%, #F3E9D0 100%); border-color: #D9CBA8; box-shadow: 0 1px 0 rgba(255,255,255,.95) inset, 0 3px 0 #D2C093, 0 8px 10px -4px rgba(60,40,10,.35); }
+html.fx3d[data-theme="dark"] .home-tile { background: linear-gradient(165deg, #30281E 0%, #261F17 100%); border-color: #4F4030; box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 3px 0 #0E0B08, 0 8px 10px -4px rgba(0,0,0,.65); }
+/* Logo in cima: se il telefono non riserva spazio alla barra dell'ora
+   (safe-area 0) il logo finiva sotto l'ora, dove l'iPhone sfuma il
+   contenuto ("i pallini del logo sono sfocati"). Qui scende quanto basta;
+   con la safe-area normale non cambia nulla. */
+@media (pointer: coarse) { .lobby-card > .app-logo:first-child { margin-top: max(0px, calc(50px - env(safe-area-inset-top, 0px))); } }
 /* Elenco tornei attivi in home. */
 .tourney-row {
   all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center;
@@ -812,10 +866,6 @@ button.primary:disabled {
   background: var(--panel); border: 1px solid var(--panel-border); border-radius: 14px;
 }
 .lb-row > * { position: relative; z-index: 1; }
-.lb-row > .lb-fill {
-  position: absolute; z-index: 0; left: 0; top: 0; bottom: 0;
-  background: linear-gradient(90deg, rgba(201,154,58,.30), rgba(201,154,58,.10));
-}
 .lb-rank {
   width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -827,6 +877,26 @@ button.primary:disabled {
 .lb-r2 .lb-rank { background: linear-gradient(135deg, #F1F1F1 0%, #BDBDBD 55%, #8F8F8F 100%); }
 .lb-r3 .lb-rank { background: linear-gradient(135deg, #EBB98C 0%, #C0804A 55%, #8F5A2E 100%); }
 .lb-r1 { border-color: var(--gold); }
+/* Classifica a linguette, elenco in un unico riquadro (v5.45) */
+.lb-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; margin: 8px 0 12px; border-radius: 999px; background: rgba(201,154,58,.14); }
+.lb-tab { all: unset; box-sizing: border-box; text-align: center; padding: 9px 0; border-radius: 999px; font-weight: 800; font-size: .86rem; color: var(--muted-2); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.lb-tab.on, .lb-tab.on * { color: var(--ink); }
+.lb-tab.on { background: var(--panel); box-shadow: 0 1px 4px rgba(60,40,10,.18); }
+.lb-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.lb-list-card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 16px; overflow: hidden; }
+.lb-list-card .lb-row { border: none !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; margin: 0 !important; padding: 9px 14px; }
+.lb-list-card .lb-row + .lb-row { border-top: 1px solid var(--panel-border) !important; }
+.lb-list-card .lb-row.lb-me { background: rgba(201,154,58,.13) !important; }
+.lb-namecol { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.lb-bar { height: 4px; border-radius: 2px; background: rgba(201,154,58,.18); max-width: 160px; }
+.lb-bar i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, #D4A63F, #A87D22); }
+.lb-few-label { margin: 14px 2px 6px; font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-2); }
+.lb-few .lb-row { opacity: .6; }
+:root[data-theme="dark"] .lb-list-card { background: linear-gradient(180deg, #2A231B, #211B15); border-color: #4A3C2C; }
+:root[data-theme="dark"] .lb-list-card .lb-row + .lb-row { border-top-color: #4A3C2C !important; }
+:root[data-theme="dark"] .lb-tab.on { background: #34291A; }
+html.fx3d .lb-list-card { background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 60%, #F3E9D0 100%); border-color: #D9CBA8; box-shadow: 0 1px 0 rgba(255,255,255,.95) inset, 0 3px 0 #D2C093, 0 8px 10px -4px rgba(60,40,10,.35); margin-bottom: 3px; }
+html.fx3d[data-theme="dark"] .lb-list-card { background: linear-gradient(165deg, #30281E 0%, #261F17 100%); border-color: #4F4030; box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 3px 0 #0E0B08, 0 8px 10px -4px rgba(0,0,0,.65); }
 .lb-r1 .lb-name { font-size: 1.04rem; }
 .lb-name { flex: 1; min-width: 0; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb-you {
@@ -840,7 +910,6 @@ button.primary:disabled {
 .lb-val small { font-size: 0.74rem; font-weight: 700; color: var(--muted-2); }
 :root[data-theme="dark"] .lb-row { background: linear-gradient(180deg, #2A231B, #211B15); border-color: #4A3C2C; }
 :root[data-theme="dark"] .lb-r1 { background: linear-gradient(180deg, #34291A, #271F14); border-color: #9C7420; }
-:root[data-theme="dark"] .lb-row > .lb-fill { background: linear-gradient(90deg, rgba(214,170,74,.34), rgba(214,170,74,.08)); }
 :root[data-theme="dark"] .lb-val small { color: var(--muted-3); }
 /* rilievo 3D: righe in cartoncino con spessore, come le carte */
 html.fx3d .lb-row {
@@ -7684,7 +7753,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.44";
+const APP_VERSION = "v5.47";
 
 let myColor = null;
 let myRoomId = null;
@@ -7782,15 +7851,19 @@ function forwardArrowIcon(stroke) {
 // La modalità "estrazione" (sorteggio coppie + scelta colori) è descritta
 // più sotto, cercare "Estrazione squadre".
 
+// Home (v5.46, proposta "A · Tessere"): codice + "Gioca" sulla stessa riga,
+// Classifica e Impara a giocare come due tessere affiancate, tornei in un
+// unico riquadro a righe, tastini in basso con il loro nome sotto.
 function renderLobby() {
   const root = $("#app");
   root.innerHTML = "";
 
   const roomInput = el("input", {
     id: "room-input",
-    placeholder: "codice stanza (es. TORVA1)",
+    placeholder: "Codice stanza",
     value: myRoomId || "",
   });
+  const tool = (btn, label) => el("div", { class: "home-tool" }, btn, el("span", {}, label));
 
   root.appendChild(
     el(
@@ -7799,52 +7872,35 @@ function renderLobby() {
       el("div", { class: "app-logo" },
         el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" })
       ),
-      el("p", { class: "muted" }, "Inserisci il codice stanza per creare o entrare in una partita."),
-      roomInput,
-      el("button", { id: "continue-btn", class: "primary", onclick: continueFromRoomCode }, "Continua"),
+      el("div", { class: "home-play" },
+        roomInput,
+        el("button", { id: "continue-btn", class: "primary", onclick: continueFromRoomCode }, "Gioca ›")
+      ),
+      el("p", { class: "home-hint" }, "Es. TORVA1 — se la stanza non esiste, la crei tu."),
       el(
         "div",
-        { class: "home-divider" },
-        el("span", { class: "hd-line" }),
-        el("span", { class: "hd-label" }, "oppure"),
-        el("span", { class: "hd-line" })
+        { class: "home-tiles" },
+        el("button", { class: "home-tile", onclick: renderLeaderboardScreen },
+          el("span", { class: "home-tile-em" }, "🏆"), el("b", {}, "Classifica"), el("small", {}, "Chi vince di più")),
+        el("button", { class: "home-tile", onclick: openTutorial },
+          el("span", { class: "home-tile-em" }, "🎓"), el("b", {}, "Impara a giocare"), el("small", {}, "Le regole passo passo"))
       ),
-      el(
-        "button",
-        { class: "leaderboard-open-btn", onclick: renderLeaderboardScreen },
-        el("span", {}, "🏆 Classifica generale"),
-        el("span", { class: "leaderboard-open-arrow" }, "›")
-      ),
-      el(
-        "button",
-        { class: "leaderboard-open-btn", style: "margin-top:8px;", onclick: openTutorial },
-        el("span", {}, "🎓 Impara a giocare"),
-        el("span", { class: "leaderboard-open-arrow" }, "›")
-      ),
-      el(
-        "div",
-        { class: "section-label-row" },
-        el("span", { class: "section-label" }, "Tornei attivi")
-      ),
-      el("div", { id: "tourney-list-wrap" }, el("div", { class: "tourney-placeholder" }, "Carico i tornei…")),
       el(
         "button",
         { class: "organize-btn", onclick: renderTournamentCreateScreen },
         el("span", { class: "plus-badge" }, "+"),
         el("span", {}, "Organizza un torneo")
       ),
+      el("div", { class: "section-label-row home-section" }, el("span", { class: "section-label" }, "Tornei")),
+      el("div", { id: "tourney-list-wrap", class: "tourney-group" }, el("div", { class: "tourney-placeholder" }, "Carico i tornei…")),
       el(
         "div",
-        { class: "sound-test-row" },
-        el(
-          "div",
-          { style: "display:flex; align-items:center; gap:8px;" },
-          el("button", { class: "sound-test-btn", onclick: testSound }, "🔊 Test suono"),
-          themeToggleButton(),
-          fx3dToggleButton()
-        ),
-        el("span", { class: "app-meta" }, `Tock by Mig · ${APP_VERSION} · © 2026 Mig`)
+        { class: "home-tools" },
+        tool(el("button", { class: "sound-test-btn", "aria-label": "Prova il suono", onclick: testSound }, "🔊"), "Suono"),
+        tool(themeToggleButton(), currentTheme === "dark" ? "Tema chiaro" : "Tema scuro"),
+        tool(fx3dToggleButton(), "Effetto 3D")
       ),
+      el("p", { class: "app-meta home-meta" }, `Tock by Mig · ${APP_VERSION} · © 2026 Mig`),
       homeScreenHint()
     )
   );
@@ -7880,7 +7936,7 @@ async function fillActiveTournamentsList() {
     wrap.appendChild(
       el(
         "button",
-        { class: "tourney-row", onclick: () => openTournamentByCode(t.code) },
+        { class: "tourney-row" + (t.stato === "concluso" ? " tourney-done" : ""), onclick: () => openTournamentByCode(t.code) },
         el(
           "div",
           { class: "tourney-row-main" },
@@ -7904,123 +7960,115 @@ function lbMyName() {
   const sp = typeof getSavedPlayerShortcut === "function" ? getSavedPlayerShortcut() : null;
   return String(myName || (sp && sp.nome) || "").trim().toLowerCase();
 }
-function buildLbRow({ rank, name, main, unit, sub, bar }) {
+// few: giocatore con poche partite nella "Media" (fuori classifica, in grigio).
+// La barra (solo nella Media) è una barretta sottile sotto il nome.
+function buildLbRow({ rank, name, main, unit, sub, bar, few }) {
   const isMe = !!name && String(name).trim().toLowerCase() === lbMyName();
-  const cls = "lb-row" + (rank <= 3 ? " lb-r" + rank : "") + (isMe ? " lb-me" : "");
+  const cls = "lb-row" + (rank <= 3 && !few ? " lb-r" + rank : "") + (isMe ? " lb-me" : "");
   return el(
     "div",
     { class: cls },
-    bar != null ? el("span", { class: "lb-fill", style: "width:" + Math.max(0, Math.min(100, bar)) + "%;" }) : "",
-    el("span", { class: "lb-rank" }, String(rank)),
-    el("span", { class: "lb-name" }, name, isMe ? el("span", { class: "lb-you" }, "tu") : ""),
+    el("span", { class: "lb-rank" }, few ? "–" : String(rank)),
+    el(
+      "div",
+      { class: "lb-namecol" },
+      el("span", { class: "lb-name" }, name, isMe ? el("span", { class: "lb-you" }, "tu") : ""),
+      bar != null ? el("div", { class: "lb-bar" }, el("i", { style: "width:" + Math.max(0, Math.min(100, bar)) + "%;" })) : ""
+    ),
     el("span", { class: "lb-val" }, el("b", {}, main), el("small", {}, unit + (sub ? " · " + sub : "")))
   );
 }
 
-// Classifica generale (v5): vittorie totali per giocatore, aggregate tra
-// tutte le stanze — vedi docs/v5-roadmap.md, sezione "Classifica". Voce a
-// sé in home, pubblica e cliccabile da chiunque, senza dover prima avere
-// un nome/rubrica selezionata.
+// Nella "Media" entra in classifica solo chi ha giocato almeno queste
+// partite: prima chi ne aveva giocata una sola e vinta finiva primo con 100%
+// davanti a chi ne aveva vinte 13 su 25. Gli altri restano visibili sotto,
+// in grigio ("Poche partite").
+const LB_MIN_PARTITE_MEDIA = 5;
+
+// Classifica generale: tre linguette (Vittorie · Media · Tornei) invece di
+// tre elenchi uno sotto l'altro, e ogni elenco in un unico riquadro con le
+// righe divise da una linea — molto meno da scorrere. Voce a sé in home,
+// pubblica e cliccabile da chiunque.
+let _lbTab = "vittorie";
 async function renderLeaderboardScreen() {
   const root = $("#app");
   root.innerHTML = "";
-  const listWrap = el("div", { class: "leaderboard-list" }, el("p", { class: "muted" }, "Carico la classifica…"));
-  // Classifica NUOVA e separata, sotto a quella delle vittorie-partita:
-  // quanti TORNEI (non singole partite) ha vinto ciascuno — richiesto:
-  // "aggiungi anche alla classifica generale in più classifica i vincitori
-  // dei vari tornei". Scritta da concludeTournament quando un torneo
-  // finisce tutti i suoi incontri (vedi allTournamentMatchesPlayed).
-  const tourneyListWrap = el("div", { class: "leaderboard-list" }, el("p", { class: "muted" }, "Carico…"));
-  const avgListWrap = el("div", { class: "leaderboard-list" }, el("p", { class: "muted" }, "Carico…"));
+  const tabs = el("div", { class: "lb-tabs", role: "tablist" });
+  const body = el("div", { class: "lb-body" }, el("p", { class: "muted" }, "Carico la classifica…"));
   root.appendChild(
     el(
       "div",
       { class: "lobby-card" },
       el("div", { class: "app-logo" }, el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" })),
-      el("h2", { style: "margin:0 0 2px;" }, "🏆 Classifica generale"),
-      el("p", { class: "muted lb-desc" }, "Vittorie totali per giocatore, in tutte le stanze."),
-      listWrap,
-      el("h2", { style: "margin:20px 0 2px;" }, "📊 Media vittorie"),
-      el("p", { class: "muted lb-desc" }, "Percentuale di partite vinte sulle giocate. Conta solo le partite giocate da quando esiste questa classifica."),
-      avgListWrap,
-      el("h2", { style: "margin:20px 0 2px;" }, "🥇 Tornei vinti"),
-      el("p", { class: "muted lb-desc" }, "Quanti tornei ha vinto ciascun giocatore (non le singole partite)."),
-      tourneyListWrap,
-      el("button", { class: "primary", style: "margin-top:12px;", onclick: renderLobby }, "Torna alla home")
+      el("h2", { style: "margin:0 0 2px;" }, "Classifica generale"),
+      tabs,
+      body,
+      el("button", { class: "primary", style: "margin-top:14px;", onclick: renderLobby }, "Torna alla home")
     )
   );
-  let list = null;
-  let lbError = "";
+
+  let list = null, lbError = "", tourneyList = null;
+  const draw = () => {
+    tabs.innerHTML = "";
+    [["vittorie", "🏆 Vittorie"], ["media", "📊 Media"], ["tornei", "🥇 Tornei"]].forEach(([k, label]) => {
+      tabs.appendChild(el("button", { class: "lb-tab" + (k === _lbTab ? " on" : ""), role: "tab", "aria-selected": k === _lbTab ? "true" : "false", onclick: () => { _lbTab = k; draw(); } }, label));
+    });
+    body.innerHTML = "";
+    const card = (rows) => el("div", { class: "lb-list-card" }, rows);
+    if (_lbTab === "tornei") {
+      body.appendChild(el("p", { class: "muted lb-desc" }, "Quanti tornei ha vinto ciascun giocatore (non le singole partite)."));
+      if (!tourneyList) body.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica, riprova."));
+      else if (tourneyList.length === 0) body.appendChild(el("p", { class: "muted" }, "Nessun torneo concluso ancora."));
+      else body.appendChild(card(tourneyList.map((p, i) => buildLbRow({ rank: i + 1, name: p.nome, main: String(p.tornei), unit: p.tornei === 1 ? "torneo" : "tornei" }))));
+      return;
+    }
+    if (!list) {
+      body.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica (" + lbError + "). Riprova."));
+      return;
+    }
+    if (_lbTab === "media") {
+      body.appendChild(el("p", { class: "muted lb-desc" }, `Percentuale di partite vinte. In classifica chi ha giocato almeno ${LB_MIN_PARTITE_MEDIA} partite (contano quelle giocate da quando esiste questa classifica).`));
+      // A parità di percentuale, prima chi ha più partite (più affidabile).
+      const avg = list
+        .filter((p) => p.partite > 0)
+        .map((p) => ({ ...p, rate: Math.min(p.vinte, p.partite) / p.partite }))
+        .sort((a, b) => b.rate - a.rate || b.partite - a.partite || a.nome.localeCompare(b.nome, "it"));
+      const ok = avg.filter((p) => p.partite >= LB_MIN_PARTITE_MEDIA);
+      const few = avg.filter((p) => p.partite < LB_MIN_PARTITE_MEDIA);
+      if (avg.length === 0) body.appendChild(el("p", { class: "muted" }, "Ancora nessuna partita contata: si riempie dalle prossime partite."));
+      if (ok.length) body.appendChild(card(ok.map((p, i) => buildLbRow({ rank: i + 1, name: p.nome, main: Math.round(p.rate * 100) + "%", unit: p.vinte + "/" + p.partite, bar: p.rate * 100 }))));
+      else if (avg.length) body.appendChild(el("p", { class: "muted" }, `Nessuno ha ancora giocato ${LB_MIN_PARTITE_MEDIA} partite.`));
+      if (few.length) {
+        body.appendChild(el("div", { class: "lb-few-label" }, `Poche partite (meno di ${LB_MIN_PARTITE_MEDIA})`));
+        body.appendChild(el("div", { class: "lb-list-card lb-few" }, few.map((p) => buildLbRow({ few: true, name: p.nome, main: Math.round(p.rate * 100) + "%", unit: p.vinte + "/" + p.partite }))));
+      }
+      return;
+    }
+    body.appendChild(el("p", { class: "muted lb-desc" }, "Vittorie totali per giocatore, in tutte le stanze."));
+    const winners = list.filter((p) => p.vittorie > 0);
+    if (winners.length === 0) body.appendChild(el("p", { class: "muted" }, "Ancora nessuna vittoria registrata."));
+    else body.appendChild(card(winners.map((p, i) => buildLbRow({
+      rank: i + 1,
+      name: p.nome,
+      main: String(p.vittorie),
+      unit: p.vittorie === 1 ? "vittoria" : "vittorie",
+      sub: typeof p.diff === "number" ? (p.diff > 0 ? "+" : "") + p.diff + " catt." : "",
+    }))));
+  };
+
   try {
     list = await loadLeaderboard();
   } catch (e) {
     console.error(e);
     lbError = (e && (e.code || e.message)) ? String(e.code || e.message) : "errore sconosciuto";
   }
-  listWrap.innerHTML = "";
-  avgListWrap.innerHTML = "";
-  if (!list) {
-    const msg = "Non riesco a caricare la classifica (" + lbError + "). Riprova.";
-    listWrap.appendChild(el("p", { class: "muted" }, msg));
-    avgListWrap.appendChild(el("p", { class: "muted" }, msg));
-  } else {
-    // Media: solo chi ha almeno una partita contata; ordinata per percentuale,
-    // a parità per numero di partite giocate (più partite = più affidabile).
-    const avg = list
-      .filter((p) => p.partite > 0)
-      .map((p) => ({ ...p, rate: Math.min(p.vinte, p.partite) / p.partite }))
-      .sort((a, b) => b.rate - a.rate || b.partite - a.partite || a.nome.localeCompare(b.nome, "it"));
-    if (avg.length === 0) {
-      avgListWrap.appendChild(el("p", { class: "muted" }, "Ancora nessuna partita contata: si riempie dalle prossime partite."));
-    } else {
-      avg.forEach((p, i) => {
-        avgListWrap.appendChild(
-          buildLbRow({
-            rank: i + 1,
-            name: p.nome,
-            main: Math.round(p.rate * 100) + "%",
-            unit: p.vinte + "/" + p.partite,
-            bar: p.rate * 100,
-          })
-        );
-      });
-    }
-    list = list.filter((p) => p.vittorie > 0);
-  }
-  if (list && list.length === 0) {
-    listWrap.appendChild(el("p", { class: "muted" }, "Ancora nessuna vittoria registrata."));
-  } else if (list) {
-    list.forEach((p, i) => {
-      listWrap.appendChild(
-        buildLbRow({
-          rank: i + 1,
-          name: p.nome,
-          main: String(p.vittorie),
-          unit: p.vittorie === 1 ? "vittoria" : "vittorie",
-          sub: typeof p.diff === "number" ? (p.diff > 0 ? "+" : "") + p.diff + " catt." : "",
-        })
-      );
-    });
-  }
-
-  let tourneyList = null;
   try {
     tourneyList = await loadTournamentWinsLeaderboard();
   } catch (e) {
     console.error(e);
   }
-  tourneyListWrap.innerHTML = "";
-  if (!tourneyList) {
-    tourneyListWrap.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica, riprova."));
-  } else if (tourneyList.length === 0) {
-    tourneyListWrap.appendChild(el("p", { class: "muted" }, "Nessun torneo concluso ancora."));
-  } else {
-    tourneyList.forEach((p, i) => {
-      tourneyListWrap.appendChild(
-        buildLbRow({ rank: i + 1, name: p.nome, main: String(p.tornei), unit: p.tornei === 1 ? "torneo" : "tornei" })
-      );
-    });
-  }
+  if (!body.isConnected) return; // nel frattempo si è cambiata schermata
+  draw();
 }
 
 // ---------------- Torneo (v5) — schermate --------------------------------
@@ -9195,6 +9243,7 @@ document.addEventListener("visibilitychange", () => {
 // scrivendo nel campo sopra. Chiamata sia al primo render sia da ogni
 // tick dell'ascolto Firebase in renderManualLobby.
 let lastColorSectionArgs = null;
+let _roomBotChoice = null; // colore su cui si sta scegliendo il livello del computer
 function renderLobbyColorSection(roomId, existingPlayers, pending) {
   const wrap = $("#color-row-wrap");
   if (!wrap) return; // non siamo più su questa schermata (es. si è già entrati)
@@ -9213,120 +9262,71 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
     showToast(`${colorLabel(lost)} lo ha appena scelto un altro giocatore. Scegli un altro colore.`);
   }
 
-  // Le pedine sono raggruppate per squadra (TEAM_OF) invece che in una
-  // semplice griglia 2x2, con un badge "VS" al centro tra i due gruppi. I
-  // colori già presi da un altro giocatore in questa stanza sono disabilitati
-  // e mostrano CHI li ha presi (nome, o "computer") invece di un generico
-  // "(preso)" che non diceva nulla su chi ci fosse già dentro.
-  const takenColors = new Set(Object.keys(existingPlayers || {}));
-  const checkmark = () =>
-    el(
-      "span",
-      { class: "color-card-check" },
-      svgIcon(12, 12, "0 0 24 24", "#FFFFFF", 3.2, [["polyline", { points: "20 6 9 17 4 12" }]])
-    );
-  // Il "corpo" cliccabile del riquadro: pallino + nome/etichetta. Preso da un
-  // altro giocatore -> nome (o "computer") e colore come sottotitolo; è il
-  // tuo colore già scelto (ma non ancora confermato, vedi joinManualRoom) ->
-  // il tuo nome (se scritto) e un segno di spunta; libero -> solo "Libero",
-  // i pulsanti bot stanno sotto nello stesso riquadro.
-  const colorBtn = (c) => {
+  // v5.46 (proposta "C · Squadre"): due riquadri, uno per squadra, con una
+  // riga per colore — pallino, nome/stato e a destra i pulsanti. Libero:
+  // "Siediti" (= selectColor) e 🤖 (sceglie Normale/Difficile e assegna il
+  // computer). Computer: "Libera". Preso da un'altra persona: solo il nome.
+  // Prenotato da un altro telefono in questo momento (vedi
+  // reserveColorPending): "In scelta…", senza pulsanti.
+  // 🤖 apre la scelta del livello DENTRO la riga (qui non c'è il foglio a
+  // comparsa dei picker: #picker-wrap esiste solo nella schermata di gioco).
+  const redraw = () => { if (lastColorSectionArgs) renderLobbyColorSection(lastColorSectionArgs.roomId, lastColorSectionArgs.existingPlayers, lastColorSectionArgs.pending); };
+  if (_roomBotChoice && ((existingPlayers && existingPlayers[_roomBotChoice]) || pendingByOther(roomId, pending, _roomBotChoice))) _roomBotChoice = null;
+  const seatRow = (c) => {
     const occupant = existingPlayers && existingPlayers[c];
     const mine = !occupant && myColor === c;
-    // Qualcun altro lo ha appena selezionato (non ancora confermato con
-    // "Entra nella stanza") — vedi reserveColorPending. Il riquadro viene
-    // disabilitato come per un colore già preso da un umano/bot, così non
-    // si può cliccarci sopra proprio mentre un altro sta decidendo; è
-    // comunque solo una protezione "morbida" lato interfaccia — la vera
-    // assegnazione resta protetta dalla transazione in joinManualRoom.
     const pendingOther = !occupant && !mine && pendingByOther(roomId, pending, c);
-    let inner;
-    if (occupant) {
-      inner = [
-        el("span", { class: "color-card-dot" }),
-        el("div", { class: "color-card-name" }, (occupant.isBot ? "🤖 " : "") + (occupant.name || colorLabel(c))),
-        el("div", { class: "color-card-sub" }, colorLabel(c)),
-      ];
+    let name, sub, actions = [];
+    if (occupant && occupant.isBot) {
+      name = "🤖 Computer";
+      sub = occupant.botLevel === "easy" ? "normale" : "difficile";
+      actions = [el("button", { class: "room-chip", onclick: () => removeBotFromColor(roomId, c, () => {}) }, "Libera")];
+    } else if (occupant) {
+      name = occupant.name || colorLabel(c);
+      sub = colorLabel(c);
     } else if (mine) {
-      const myDisplayName = ($("#name-input") && $("#name-input").value.trim()) || myName || "Tu";
-      inner = [
-        checkmark(),
-        el("span", { class: "color-card-dot" }),
-        el("div", { class: "color-card-name" }, myDisplayName),
-        el("div", { class: "color-card-sub" }, `${colorLabel(c)} · tu`),
-      ];
+      name = ($("#name-input") && $("#name-input").value.trim()) || myName || "Tu";
+      sub = `${colorLabel(c)} · tu`;
     } else if (pendingOther) {
-      inner = [el("span", { class: "color-card-dot" }), el("div", { class: "color-card-free-label" }, "In scelta…")];
+      name = "In scelta…";
+      sub = "Un altro giocatore lo sta scegliendo";
+    } else if (_roomBotChoice === c) {
+      name = colorLabel(c);
+      sub = "🤖 Livello?";
+      const pick = (lv) => { _roomBotChoice = null; assignBotToColor(roomId, c, () => {}, lv); redraw(); };
+      actions = [
+        el("button", { class: "room-chip", onclick: () => pick("easy") }, "Normale"),
+        el("button", { class: "room-chip", onclick: () => pick("hard") }, "Difficile"),
+        el("button", { class: "room-chip room-chip-bot", "aria-label": "Annulla", onclick: () => { _roomBotChoice = null; redraw(); } }, "✕"),
+      ];
     } else {
-      inner = [el("span", { class: "color-card-dot" }), el("div", { class: "color-card-free-label" }, "Libero")];
+      name = "Libero";
+      sub = colorLabel(c);
+      actions = [
+        el("button", { class: "room-chip room-chip-bot", "aria-label": `Computer al posto ${colorLabel(c)}`, onclick: () => { _roomBotChoice = c; redraw(); } }, "🤖"),
+        el("button", { class: "room-chip room-chip-sit", onclick: () => { _roomBotChoice = null; selectColor(c); } }, "Siediti"),
+      ];
     }
+    const state = occupant ? (occupant.isBot ? "rs-bot" : "rs-taken") : mine ? "rs-mine" : pendingOther ? "rs-pending" : "rs-free";
     return el(
-      "button",
-      { class: "color-btn color-" + c, onclick: () => selectColor(c), "data-color": c, disabled: takenColors.has(c) || pendingOther },
-      inner
+      "div",
+      { class: `room-seat ${state}`, "data-color": c },
+      el("span", { class: "room-dot", style: `background:var(--${c})` }, mine ? "✓" : ""),
+      el("div", { class: "room-seat-text" }, el("span", { class: "room-seat-name" }, name), el("span", { class: "room-seat-sub" }, sub)),
+      actions
     );
   };
-  // Ogni posto libero può anche essere affidato al computer invece che a
-  // una persona — comodo per provare/giocare quando non siete in 4. Un
-  // posto già assegnato al computer si può anche liberare di nuovo (mai un
-  // posto occupato da una persona vera). onDone è un no-op: l'ascolto
-  // realtime già attivo su questa schermata si occupa da solo di
-  // ridisegnare non appena Firebase conferma la scrittura.
-  const botCell = (c) => {
-    const taken = existingPlayers && existingPlayers[c];
-    if (!taken && myColor === c) return ""; // è il colore che hai appena scelto tu, niente pulsanti bot
-    // Un altro giocatore lo sta scegliendo proprio ora: niente pulsanti
-    // "assegna al computer" qui, per non invitare a scatenare proprio in
-    // quel momento una corsa fra bot e umano sullo stesso colore.
-    if (!taken && pendingByOther(roomId, pending, c)) {
-      return el("div", { class: "bot-cell-assign" }, el("div", { class: "bot-assign-label pending-hint" }, "Un altro giocatore lo sta scegliendo…"));
-    }
-    if (!taken) {
-      return el(
-        "div",
-        { class: "bot-cell-assign" },
-        el("div", { class: "bot-assign-label" }, "Assegna al computer:"),
-        el(
-          "div",
-          { class: "bot-btn-row" },
-          el("button", { class: "bot-btn", onclick: () => assignBotToColor(roomId, c, () => {}, "easy") }, "🤖 Normale"),
-          el("button", { class: "bot-btn", onclick: () => assignBotToColor(roomId, c, () => {}, "hard") }, "🤖 Difficile")
-        )
-      );
-    }
-    if (taken.isBot) {
-      const lv = taken.botLevel === "easy" ? "normale" : "difficile";
-      return el(
-        "button",
-        { class: "bot-btn bot-btn-remove", onclick: () => removeBotFromColor(roomId, c, () => {}) },
-        `🤖 Libera posto (${lv})`
-      );
-    }
-    return "";
-  };
-  // Il riquadro intero (.color-cell) porta ora bordo/sfondo/posizione dello
-  // stato (preso/tuo/libero) — prima erano due blocchi separati (bottone +
-  // div sotto) invece di un'unica card come nel mockup.
-  const colorCell = (c) => {
-    const occupant = existingPlayers && existingPlayers[c];
-    const pendingOther = !occupant && myColor !== c && pendingByOther(roomId, pending, c);
-    const state = occupant ? "cc-taken" : myColor === c ? "cc-mine" : pendingOther ? "cc-pending" : "cc-free";
-    return el("div", { class: `color-cell cc-${c} ${state}` }, colorBtn(c), botCell(c));
-  };
-  // COLORS è già nell'ordine giusto per riempire la griglia 2x2 riga per
-  // riga (rosso+verde sulla prima riga, giallo+blu sulla seconda) — vedi il
-  // commento su .teams-grid per il perché di una griglia unica.
-  wrap.innerHTML = "";
-  wrap.appendChild(
-    el(
+  const teamCard = (team) => {
+    const cols = COLORS.filter((c) => TEAM_OF[c] === team);
+    return el(
       "div",
-      { class: "teams-grid" },
-      el("div", { class: "team-thread team-thread-a" }),
-      el("div", { class: "team-thread team-thread-b" }),
-      COLORS.map(colorCell),
-      el("div", { class: "vs-badge" }, el("span", {}, "VS"))
-    )
-  );
+      { class: "room-team" },
+      el("div", { class: "room-team-head" }, `Squadra ${team === "A" ? 1 : 2} · ${TEAM_LABEL[team]}`),
+      cols.map(seatRow)
+    );
+  };
+  wrap.innerHTML = "";
+  wrap.appendChild(el("div", { class: "room-teams" }, teamCard("A"), el("div", { class: "room-vs" }, "VS"), teamCard("B")));
 
   const joinBtn = $("#join-btn");
   if (joinBtn) joinBtn.disabled = !myColor;
