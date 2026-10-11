@@ -654,9 +654,12 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
 }
 /* Mazzetto coperto al centro dei 4 riquadri: ogni carta parte da qui, vola
    verso chi la pesca e si gira (vedi animateDealerDraw). */
-.dealer-draw-grid { position: relative; }
+/* Mazzetto grande quanto le carte scoperte (64x90): le colonne si
+   allargano per fargli posto e i nomi restano su una riga. */
+.dealer-draw-grid { position: relative; column-gap: 66px; }
+.dealer-draw-grid .dealer-slot-label { flex-wrap: nowrap; white-space: nowrap; }
 .dealer-deck {
-  position: absolute; left: 50%; top: 50%; width: 40px; height: 56px; margin: -28px 0 0 -20px;
+  position: absolute; left: 50%; top: 50%; width: 64px; height: 90px; margin: -45px 0 0 -32px;
   pointer-events: none; z-index: 1;
 }
 .dealer-deck span, .dealer-card-back {
@@ -7682,7 +7685,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.42";
+const APP_VERSION = "v5.43";
 
 let myColor = null;
 let myRoomId = null;
