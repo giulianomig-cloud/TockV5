@@ -2414,6 +2414,10 @@ html[data-skin="bright"]:not([data-theme="dark"]) .reaction-bar .reaction-btn:ac
 .reaction-who { font-size: 0.7rem; font-weight: 800; padding: 1px 8px; border-radius: 10px; background: rgba(0,0,0,0.65); color: #fff; display: inline-block; }
 @keyframes reactionUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 15% { transform: translateY(-20px) scale(1.15); opacity: 1; } 100% { transform: translateY(-190px) scale(1); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .reaction-float { animation-duration: 1.5s; } }
+/* v5.61: passaggi tra schermate (View Transitions): l'elemento che vola e il resto che sfuma. */
+::view-transition-group(vt-hero) { animation-duration: .5s; animation-timing-function: cubic-bezier(.3,.7,.2,1); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+.reaction-mini { position: fixed; bottom: 22%; z-index: 9998; pointer-events: none; font-size: 1.9rem; margin-left: .6rem; filter: drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
 .chat-fab-row { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-bottom: 10px; }
 .chat-preview {
   flex: 1;
@@ -3059,8 +3063,11 @@ html:not([data-skin]) .dealer-pile .card-btn.dealer-under { z-index: 3; filter: 
 .bx-play.cf { flex-direction: column; gap: 8px; padding: 8px; }
 .cf-row { position: relative; height: 48px; display: flex; gap: 6px; justify-content: center; align-items: center; cursor: text; }
 .cf-row.cf-long { gap: 4px; }
-.bx-play .cf-row #room-input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; opacity: 0; font-size: 16px; color: transparent; caret-color: transparent; border: none; background: transparent; z-index: 2; }
-.cf-row.cf-run #room-input { pointer-events: none; }
+/* L'input vero è invisibile sopra le caselle (!important: batte gli stili per id dei campi). */
+.cf-row > input { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; opacity: 0 !important; font-size: 16px !important; color: transparent !important; caret-color: transparent; border: none !important; background: transparent !important; box-shadow: none !important; z-index: 2; }
+.cf-card { background: var(--bx-card); border-radius: 18px; padding: 8px; box-shadow: 0 10px 24px -14px rgba(60,40,10,.45); margin-bottom: 12px; }
+.cf-row.cf-stage { height: 0; overflow: visible; margin: 4px 0 8px; }
+.cf-row.cf-run > input { pointer-events: none; }
 .cf-box { position: relative; flex: 1 1 0; max-width: 40px; min-width: 0; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 1.25rem; color: var(--bx-ink); background: var(--bx-bg); border: 1.5px solid var(--bx-line); transition: border-color .25s, box-shadow .25s, background .25s; }
 .cf-long .cf-box { font-size: 1rem; border-radius: 10px; }
@@ -3077,7 +3084,6 @@ html:not([data-skin]) .dealer-pile .card-btn.dealer-under { z-index: 3; filter: 
 .cf-box.cf-abs { position: absolute; left: 50%; top: 50%; width: 36px; max-width: none; height: 46px; margin: -23px 0 0 -18px; flex: none; }
 .cf-box.cf-warn { border-color: #E8A24A; box-shadow: 0 0 16px rgba(232,162,74,.55); background: rgba(232,162,74,.08); animation: none; }
 .cf-box.cf-okx { border-color: #4FB477; box-shadow: 0 0 20px rgba(79,180,119,.55); background: rgba(79,180,119,.1); animation: none; }
-.cf-box.cf-new { border-color: #D9A93E; box-shadow: 0 0 20px rgba(217,169,62,.55); background: rgba(217,169,62,.12); animation: none; }
 .cf-box.cf-bad { border-color: #D9534F; box-shadow: 0 0 18px rgba(217,83,79,.5); background: rgba(217,83,79,.1); animation: fbShake .45s; }
 .cf-ring { position: absolute; left: 50%; top: 50%; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; border: 2px solid rgba(79,180,119,.85); box-shadow: 0 0 22px rgba(79,180,119,.45), inset 0 0 16px rgba(79,180,119,.2); opacity: 0; pointer-events: none; }
 .cf-orbit { position: absolute; left: 50%; top: 50%; width: 80px; height: 80px; margin: -40px 0 0 -40px; opacity: 0; pointer-events: none; }
@@ -3085,11 +3091,8 @@ html:not([data-skin]) .dealer-pile .card-btn.dealer-under { z-index: 3; filter: 
 .cf-check { position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; margin: -12px 0 0 -12px; pointer-events: none; }
 .cf-check path { stroke: #2F9E5F; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 30; stroke-dashoffset: 30; }
 :root[data-theme="dark"] .cf-check path { stroke: #8FE0A8; }
-.cf-row:has(.cf-new) .cf-check path { stroke: #B8862A; }
 .bx-hero.cf-hero-ok { box-shadow: inset 0 0 0 2px rgba(79,180,119,.45); transition: box-shadow .6s; }
-.bx-hero.cf-hero-new { box-shadow: inset 0 0 0 2px rgba(217,169,62,.5); transition: box-shadow .6s; }
 .bx-hero h1 .cf-g { background: linear-gradient(135deg, #5CC489, #2F9E5F); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.bx-hero h1 .cf-gold { background: linear-gradient(135deg, #E2B85A, #A87D22); -webkit-background-clip: text; background-clip: text; color: transparent; }
 /* Pulsanti "con esito" (fbBusy / fbOk / fbFail). */
 .fb-spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -2px; margin-right: 8px; opacity: .75; animation: fbSpin .7s linear infinite; }
 .fb-busy { cursor: progress; }
@@ -3101,8 +3104,6 @@ html:not([data-skin]) .dealer-pile .card-btn.dealer-under { z-index: 3; filter: 
 @keyframes fbSpin { to { transform: rotate(360deg); } }
 .fb-ok { background: linear-gradient(135deg, #9BE8B4, #4FB477) !important; border-color: transparent !important; box-shadow: 0 10px 22px -12px rgba(79,180,119,.8) !important; }
 .fb-ok, .fb-ok * { color: #10261A !important; }
-.fb-ok.fb-gold { background: var(--bx-btn-bg) !important; box-shadow: 0 10px 22px -12px rgba(168,125,34,.7) !important; }
-.fb-ok.fb-gold, .fb-ok.fb-gold * { color: var(--bx-btn-ink) !important; }
 .fb-fail { background: linear-gradient(135deg, #F19A97, #D9534F) !important; border-color: transparent !important; animation: fbShake .45s; }
 .fb-fail, .fb-fail * { color: #fff !important; }
 @keyframes fbShake { 0%,100% { transform: none; } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(2px); } }
@@ -7987,7 +7988,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.57";
+const APP_VERSION = "v5.61";
 
 let myColor = null;
 let myRoomId = null;
@@ -8146,7 +8147,7 @@ function renderLobby() {
           el("div", { class: "cf-row", onclick: () => roomInput.focus() }, roomInput),
           el("button", { id: "continue-btn", onclick: continueFromRoomCode }, "Gioca →"))),
       el("div", { class: "bx-bento" },
-        el("button", { class: "bx-card bx-lb", onclick: renderLeaderboardScreen },
+        el("button", { class: "bx-card bx-lb", onclick: (ev) => vtGo(ev.currentTarget, ".lobby-card", renderLeaderboardScreen) },
           el("span", { class: "bx-k" }, "🏆 Classifica"), el("span", { class: "bx-t" }, "Chi vince di più"), podium),
         el("button", { class: "bx-card", onclick: openTutorial },
           el("span", { class: "bx-k" }, "🎓 Impara"),
@@ -8193,7 +8194,7 @@ async function fillActiveTournamentsList() {
     wrap.appendChild(
       el(
         "button",
-        { class: "tourney-row" + (t.stato === "concluso" ? " tourney-done" : ""), onclick: () => openTournamentByCode(t.code) },
+        { class: "tourney-row" + (t.stato === "concluso" ? " tourney-done" : ""), onclick: (ev) => vtGo(ev.currentTarget, ".lobby-card", () => openTournamentByCode(t.code)) },
         el(
           "div",
           { class: "tourney-row-main" },
@@ -8260,7 +8261,7 @@ async function renderLeaderboardScreen() {
       el("h2", { style: "margin:0 0 2px;" }, "Classifica generale"),
       tabs,
       body,
-      el("button", { class: "primary", style: "margin-top:14px;", onclick: renderLobby }, "Torna alla home")
+      el("button", { class: "primary", style: "margin-top:14px;", onclick: () => vtGo(document.querySelector(".lobby-card"), ".bx-lb", renderLobby) }, "Torna alla home")
     )
   );
 
@@ -8341,7 +8342,13 @@ function renderTournamentCreateScreen() {
   root.innerHTML = "";
   const savedPlayer = getSavedPlayerShortcut();
   const nameField = buildRubricaNameInput("torneo-organizer-name", myName || (savedPlayer && savedPlayer.nome) || "");
-  const codeInput = el("input", { id: "torneo-code-input", placeholder: "codice torneo (es. TORNEO1)" });
+  const codeInput = el("input", { id: "torneo-code-input", placeholder: "codice torneo (es. TORNEO1)", autocapitalize: "characters", autocomplete: "off", spellcheck: "false", "aria-label": "Codice del torneo" });
+  // v5.58: codice a caselle come in home (stessa animazione alla creazione).
+  const codeRow = el("div", { class: "cf-row", onclick: () => codeInput.focus() }, codeInput);
+  const redrawCode = () => codeBoxesDraw(codeRow);
+  codeInput.addEventListener("input", redrawCode);
+  codeInput.addEventListener("focus", redrawCode);
+  codeInput.addEventListener("blur", redrawCode);
   let formatoScelto = "coppie_fisse";
   const formatBtns = {};
   function selectFormato(f) {
@@ -8371,11 +8378,12 @@ function renderTournamentCreateScreen() {
       el("p", { class: "step-label" }, "Il tuo nome"),
       nameField.wrap,
       el("p", { class: "step-label" }, "Codice del torneo"),
-      codeInput,
+      el("div", { class: "cf-card" }, codeRow),
       el("button", { class: "primary", onclick: (ev) => submitCreateTournament(codeInput, () => formatoScelto, ev.currentTarget) }, "Crea torneo"),
       el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: renderLobby }, backChevronIcon(), "Annulla")
     )
   );
+  codeBoxesDraw(codeRow);
 }
 
 async function submitCreateTournament(codeInput, getFormato, btn) {
@@ -8383,7 +8391,10 @@ async function submitCreateTournament(codeInput, getFormato, btn) {
   const typed = $("#torneo-organizer-name").value.trim();
   if (!code) return showToast("Inserisci un codice per il torneo.");
   if (!typed) return showToast("Inserisci il tuo nome.");
-  fbBusy(btn, "Creo il torneo…");
+  const row = codeInput.closest(".cf-row");
+  if (row && row.classList.contains("cf-run")) return; // animazione già partita
+  const card = codeInput.closest(".lobby-card");
+  const fx = codeFxStart({ row, go: btn, title: card && card.querySelector(".rj-title"), sub: card && card.querySelector(".rj-text"), busy: "Creo il torneo…" });
 
   let created, player;
   try {
@@ -8394,15 +8405,15 @@ async function submitCreateTournament(codeInput, getFormato, btn) {
     created = await createTournament(code, getFormato());
   } catch (e) {
     console.error(e);
-    fbFail(btn, "Riprova");
-    return showToast("Non riesco a creare il torneo, riprova.");
+    showToast("Non riesco a creare il torneo, riprova.");
+    return fx.finish("fail", null, null, "Riprova");
   }
   if (!created.ok) {
-    fbFail(btn, "Codice già usato");
-    return showToast(`Il codice "${code}" è già in uso (stanza o torneo). Scegline un altro.`);
+    showToast(`Il codice "${code}" è già in uso (stanza o torneo). Scegline un altro.`);
+    return fx.finish("fail", null, null, "Codice già usato");
   }
   await joinTournament(code, player.id, player.nome, null);
-  if (btn) { fbOk(btn, "Torneo creato"); await fbWait(750); }
+  await fx.finish("ok", ["🏆 Torneo", "creato!"], "Ti porto alla pagina del torneo.", "Torneo creato");
   renderTournamentLobby(code);
 }
 
@@ -8510,7 +8521,8 @@ async function submitJoinTournament(code, tournament, btn) {
     fbFail(btn, "Riprova");
     return showToast("Non riesco a iscriverti, riprova.");
   }
-  if (btn) { fbOk(btn, "Sei iscritto!"); await fbWait(750); }
+  const card = btn && btn.closest(".lobby-card");
+  await cfCelebrate(btn, card && card.querySelector(".rj-title"), null, ["Sei", "iscritto!"], null, "Sei iscritto!");
   renderTournamentLobby(code);
 }
 
@@ -8942,7 +8954,10 @@ function fbBusy(btn, text) {
   fbSet(btn, "fb-busy", el("span", { class: "fb-spin", "aria-hidden": "true" }), text);
   btn.disabled = true;
 }
-function fbOk(btn, text) { fbSet(btn, "fb-ok", null, "✓ " + (text || "Fatto")); }
+function fbOk(btn, text, silent) {
+  fbSet(btn, "fb-ok", null, "✓ " + (text || "Fatto"));
+  if (btn && !silent) { try { playSound("fbOk"); } catch (e) {} }
+}
 function fbReset(btn) {
   if (!btn || btn._fbOrig === undefined) return;
   btn.classList.remove("fb-busy", "fb-ok", "fb-fail");
@@ -8953,12 +8968,13 @@ function fbReset(btn) {
 }
 function fbFail(btn, text) {
   if (!btn) return;
+  try { playSound("fbFail"); } catch (e) {}
   fbSet(btn, "fb-fail", null, text || "Riprova");
   setTimeout(() => fbReset(btn), 1600);
 }
 const fbWait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// v5.57: codice stanza "a caselle" nella home. L'input vero resta (invisibile)
+// v5.57: codice stanza "a caselle" nella home (dalla v5.58 anche in Organizza torneo). L'input vero resta (invisibile)
 // sopra le caselle, così tastiera, incolla e ?room=... funzionano come prima;
 // le caselle si ridisegnano a ogni lettera.
 function codeBoxesDraw(row) {
@@ -8972,28 +8988,32 @@ function codeBoxesDraw(row) {
   [...v].forEach((c, i) => row.appendChild(el("div", { class: "cf-box filled" }, i >= prev.length || prev[i] !== c ? el("span", { class: "ch" }, c) : c)));
   if (focused && v.length < 14) row.appendChild(el("div", { class: "cf-box active" }));
   row.classList.toggle("cf-long", v.length > 8);
+  if (row._shown !== undefined && v.length > prev.length) { try { playSound("cfKey"); } catch (e) {} }
   row._shown = v;
 }
 
-// Animazione dopo "Gioca": le caselle si mettono in cerchio, girano e si
-// fondono in una sola al centro (mentre l'app cerca il codice su Firebase);
-// poi finish() mostra l'esito: verde con cerchi che si allargano e ✓ (stanza
-// o torneo trovati), oro (stanza nuova) o rosso che trema (errore).
-function codeFxStart() {
-  const row = document.querySelector(".cf-row");
-  const go = document.getElementById("continue-btn");
+// Animazione dopo "Gioca" (v5.57; dalla v5.58 riusata anche per "Crea
+// torneo"): le caselle si mettono in cerchio, girano e si fondono in una
+// sola al centro mentre l'app aspetta Firebase; poi finish() mostra l'esito:
+// verde con cerchi che si allargano e ✓, oppure rosso che trema (errore,
+// e le caselle tornano come prima). opts: row (.cf-row), go (pulsante),
+// title/sub (scritte che cambiano con l'esito), busy (testo della rotellina).
+function codeFxStart(opts) {
+  const { row, go, title, sub, busy } = opts;
   const input = row && row.querySelector("input");
   if (input) input.blur(); // chiude la tastiera (e ridisegna le caselle senza quella attiva)
   const boxes = row ? [...row.querySelectorAll(".cf-box.filled")] : [];
   const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  fbBusy(go, "Cerco la stanza…");
+  fbBusy(go, busy);
   if (!row || !boxes.length || reduce || !row.animate) {
-    return { finish: async (kind, h, sub, label) => { if (kind === "fail") fbFail(go, label); else { fbOk(go, label); await fbWait(500); } } };
+    return { finish: async (kind, h, subText, label) => { if (kind === "fail") fbFail(go, label); else { fbOk(go, label); await fbWait(500); } } };
   }
   row.querySelectorAll(".cf-box.active, .cf-hint").forEach((n) => n.remove());
   const rr = row.getBoundingClientRect();
   const pos = boxes.map((x) => { const r = x.getBoundingClientRect(); return [r.left + r.width / 2 - (rr.left + rr.width / 2), r.top + r.height / 2 - (rr.top + rr.height / 2)]; });
   row.classList.add("cf-run");
+  try { playSound("cfWhoosh"); } catch (e) {}
+  [520, 750, 980, 1210].forEach((ms) => setTimeout(() => { if (row.isConnected) { try { playSound("cfTick"); } catch (e) {} } }, ms));
   row.animate([{ height: rr.height + "px" }, { height: "150px" }], { duration: 450, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" });
   const spin = el("div", { class: "cf-spinwrap" });
   row.appendChild(spin);
@@ -9020,7 +9040,7 @@ function codeFxStart() {
     boxes[0].classList.add("cf-warn");
   });
   return {
-    async finish(kind, h, sub, label) {
+    async finish(kind, h, subText, label) {
       await merged;
       await fbWait(350);
       const c = boxes[0];
@@ -9029,48 +9049,93 @@ function codeFxStart() {
         c.classList.add("cf-bad");
         fbFail(go, label);
         await fbWait(900);
-        renderLobby();
+        // Le caselle tornano come prima (il codice resta scritto).
+        row.getAnimations({ subtree: true }).forEach((a) => a.cancel());
+        spin.remove();
+        row.classList.remove("cf-run");
+        codeBoxesDraw(row);
         return;
       }
-      c.classList.add(kind === "new" ? "cf-new" : "cf-okx");
-      const hero = document.querySelector(".bx-hero");
-      if (hero) hero.classList.add(kind === "new" ? "cf-hero-new" : "cf-hero-ok");
-      if (kind !== "new") {
-        const ring = el("div", { class: "cf-ring" }), ring2 = el("div", { class: "cf-ring" });
-        const orb = el("div", { class: "cf-orbit" }, el("i", { style: "left:37px;top:-2px" }), el("i", { style: "right:-2px;top:37px" }), el("i", { style: "left:37px;bottom:-2px" }), el("i", { style: "left:-2px;top:37px" }));
-        row.append(ring, ring2, orb);
-        ring.animate([{ opacity: 0, transform: "scale(.4)" }, { opacity: 1, transform: "scale(1)", offset: 0.4 }, { opacity: 0, transform: "scale(1.9)" }], { duration: 1300, easing: "ease-out" });
-        setTimeout(() => ring2.animate([{ opacity: 0, transform: "scale(.4)" }, { opacity: 0.8, transform: "scale(1)", offset: 0.4 }, { opacity: 0, transform: "scale(2.3)" }], { duration: 1400, easing: "ease-out" }), 350);
-        orb.animate([{ opacity: 0, transform: "rotate(0) scale(.6)" }, { opacity: 1, transform: "rotate(140deg) scale(1)", offset: 0.5 }, { opacity: 0, transform: "rotate(280deg) scale(1.3)" }], { duration: 1300, easing: "ease-in-out" });
-      }
-      if (kind === "new") fbSet(go, "fb-ok", null, label); else fbOk(go, label);
-      go.classList.toggle("fb-gold", kind === "new");
-      const swap = (node, build) => {
-        if (!node) return;
-        node.animate([{ opacity: 1, filter: "blur(0)" }, { opacity: 0, filter: "blur(4px)" }], { duration: 280, fill: "forwards" }).finished.then(() => {
-          node.innerHTML = "";
-          build(node);
-          node.animate([{ opacity: 0, filter: "blur(4px)", transform: "translateY(6px)" }, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: 380, fill: "forwards" });
-        });
-      };
-      swap(hero && hero.querySelector("h1"), (n) => n.append(h[0], el("br"), el("span", { class: kind === "new" ? "cf-gold" : "cf-g" }, h[1])));
-      swap(hero && hero.querySelector("p"), (n) => n.append(sub));
-      await fbWait(420);
-      const ck = el("div", { class: "cf-check" });
-      ck.innerHTML = kind === "new" ? '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 6v12M6 12h12"/></svg>' : '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 12.5l5 5L19 8"/></svg>';
-      row.appendChild(ck);
-      ck.querySelector("path").animate([{ strokeDashoffset: 30 }, { strokeDashoffset: 0 }], { duration: 450, easing: "ease-out", fill: "forwards" });
-      await fbWait(1100);
+      c.classList.add("cf-okx");
+      await cfSuccess(row, go, title, sub, h, subText, label);
     },
   };
 }
 
+// Esito positivo (cerchi verdi che si allargano, puntini, ✓ disegnata, pulsante
+// verde, scritte che cambiano). Usato dalle caselle del codice e, da solo,
+// dall'iscrizione al torneo (cfCelebrate).
+async function cfSuccess(row, go, title, sub, h, subText, label) {
+  const ring = el("div", { class: "cf-ring" }), ring2 = el("div", { class: "cf-ring" });
+  const orb = el("div", { class: "cf-orbit" }, el("i", { style: "left:37px;top:-2px" }), el("i", { style: "right:-2px;top:37px" }), el("i", { style: "left:37px;bottom:-2px" }), el("i", { style: "left:-2px;top:37px" }));
+  row.append(ring, ring2, orb);
+  ring.animate([{ opacity: 0, transform: "scale(.4)" }, { opacity: 1, transform: "scale(1)", offset: 0.4 }, { opacity: 0, transform: "scale(1.9)" }], { duration: 1300, easing: "ease-out" });
+  setTimeout(() => ring2.animate([{ opacity: 0, transform: "scale(.4)" }, { opacity: 0.8, transform: "scale(1)", offset: 0.4 }, { opacity: 0, transform: "scale(2.3)" }], { duration: 1400, easing: "ease-out" }), 350);
+  orb.animate([{ opacity: 0, transform: "rotate(0) scale(.6)" }, { opacity: 1, transform: "rotate(140deg) scale(1)", offset: 0.5 }, { opacity: 0, transform: "rotate(280deg) scale(1.3)" }], { duration: 1300, easing: "ease-in-out" });
+  fbOk(go, label, true);
+  try { playSound("cfSuccess"); } catch (e) {}
+  const hero = document.querySelector(".bx-hero");
+  if (hero && hero.contains(row)) hero.classList.add("cf-hero-ok");
+  const swap = (node, build) => {
+    if (!node) return;
+    node.animate([{ opacity: 1, filter: "blur(0)" }, { opacity: 0, filter: "blur(4px)" }], { duration: 280, fill: "forwards" }).finished.then(() => {
+      node.innerHTML = "";
+      build(node);
+      node.animate([{ opacity: 0, filter: "blur(4px)", transform: "translateY(6px)" }, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: 380, fill: "forwards" });
+    });
+  };
+  if (h) swap(title, (nd) => nd.append(h[0], hero && hero.contains(title) ? el("br") : " ", el("span", { class: "cf-g" }, h[1])));
+  if (subText) swap(sub, (nd) => nd.append(subText));
+  await fbWait(420);
+  const ck = el("div", { class: "cf-check" });
+  ck.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 12.5l5 5L19 8"/></svg>';
+  row.appendChild(ck);
+  ck.querySelector("path").animate([{ strokeDashoffset: 30 }, { strokeDashoffset: 0 }], { duration: 450, easing: "ease-out", fill: "forwards" });
+  await fbWait(1100);
+}
+
+// Solo l'esito positivo, senza caselle (iscrizione al torneo): un riquadro
+// si apre sopra il pulsante con la casella verde, i cerchi e la ✓.
+async function cfCelebrate(go, title, sub, h, subText, label) {
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!go || !go.parentNode || reduce || !go.animate) { fbOk(go, label); await fbWait(600); return; }
+  const row = el("div", { class: "cf-row cf-run cf-stage" }, el("div", { class: "cf-box cf-abs cf-okx" }));
+  go.parentNode.insertBefore(row, go);
+  row.animate([{ height: "0px", opacity: 0 }, { height: "150px", opacity: 1 }], { duration: 400, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" });
+  await fbWait(250);
+  await cfSuccess(row, go, title, sub, h, subText, label);
+}
+
+// v5.61: passaggi tra schermate con un "elemento che vola" (View Transitions
+// del browser): fromEl nella schermata di partenza diventa toSel in quella
+// nuova (la casella verde del codice → l'etichetta "STANZA TORVA1", la
+// scheda del torneo → la pagina del torneo, il podio → la classifica),
+// mentre il resto sfuma. Sui telefoni che non lo supportano (o con "riduci
+// movimento") si cambia schermata come prima.
+const VT_TO_ROOM = ".room-tag, .room-team-room";
+function vtGo(fromEl, toSel, render) {
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!document.startViewTransition || reduce || !fromEl || !fromEl.isConnected) return render();
+  fromEl.style.viewTransitionName = "vt-hero";
+  let toEl = null;
+  const t = document.startViewTransition(async () => {
+    fromEl.style.viewTransitionName = "";
+    await render();
+    toEl = document.querySelector(toSel);
+    if (toEl) toEl.style.viewTransitionName = "vt-hero";
+  });
+  t.finished.finally(() => { if (toEl) toEl.style.viewTransitionName = ""; });
+  return t.updateCallbackDone.catch(() => {});
+}
+
 async function continueFromRoomCode() {
-  if (document.querySelector(".cf-row.cf-run")) return; // animazione già partita
+  if (document.querySelector(".bx-hero .cf-row.cf-run")) return; // animazione già partita
   unlockAudio();
   const roomId = $("#room-input").value.trim().toUpperCase().replace(/\s/g, "");
   if (!roomId) return showToast("Inserisci un codice stanza.");
-  const fx = document.querySelector(".cf-row") ? codeFxStart() : null;
+  const hero = document.querySelector(".bx-hero");
+  const fxRow = document.querySelector(".bx-hero .cf-row");
+  const fx = fxRow ? codeFxStart({ row: fxRow, go: document.getElementById("continue-btn"), title: hero.querySelector("h1"), sub: hero.querySelector("p"), busy: "Cerco la stanza…" }) : null;
 
   // Stanze e tornei condividono lo stesso spazio dei nomi (vedi roadmap,
   // "Punto di ingresso nell'app") — chi scrive un codice esistente non
@@ -9082,7 +9147,7 @@ async function continueFromRoomCode() {
     const codeSnap = await codesRef().child(roomId).get();
     if (codeSnap.val() === "tournament") {
       if (fx) await fx.finish("ok", ["Torneo", "trovato!"], "Ti porto alla pagina del torneo.", "Torneo trovato");
-      openTournamentByCode(roomId);
+      vtGo(fx && fxRow.querySelector(".cf-okx"), ".room-tag, .t-head h1", () => openTournamentByCode(roomId));
       return;
     }
   } catch (e) {
@@ -9102,12 +9167,13 @@ async function continueFromRoomCode() {
   }
 
   if (!snap.exists()) {
-    if (fx) await fx.finish("new", ["Stanza", "nuova!"], "Non esiste ancora: la crei tu.", "Crea la stanza");
-    renderModeChoice(roomId);
+    if (fx) await fx.finish("ok", ["Stanza", "nuova!"], "Non esiste ancora: la crei tu.", "Stanza nuova");
+    vtGo(fx && fxRow.querySelector(".cf-okx"), VT_TO_ROOM, () => renderModeChoice(roomId));
     return;
   }
 
   const existing = normalizeState(snap.val());
+  const heroGo = (render) => vtGo(fx && fxRow.querySelector(".cf-okx"), VT_TO_ROOM, render);
   if (fx) {
     const nGioc = COLORS.filter((c) => existing.players && existing.players[c] && !existing.players[c].isBot).length;
     await fx.finish("ok", ["Stanza", "trovata!"], nGioc ? `${nGioc} ${nGioc === 1 ? "giocatore" : "giocatori"} al tavolo.` : "Al momento è vuota.", "Stanza trovata");
@@ -9127,8 +9193,7 @@ async function continueFromRoomCode() {
       // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
       // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
       // ("Cannot set properties of null", visto su un tavolo di torneo).
-      renderGameShell();
-      watchRoom(roomId, onStateChange);
+      heroGo(() => { renderGameShell(); watchRoom(roomId, onStateChange); });
       return;
     }
   }
@@ -9152,15 +9217,14 @@ async function continueFromRoomCode() {
   // sta rientrando da un dispositivo diverso — offriglielo prima di
   // mandarlo dritto alla lobby/estrazione come fosse nuovo.
   if (existing.players && Object.keys(existing.players).length > 0) {
-    renderNameRecoveryScreen(roomId, existing.players);
+    heroGo(() => renderNameRecoveryScreen(roomId, existing.players));
     return;
   }
 
-  if (existing.roomMode === "draw") {
-    renderDraftNameScreen(roomId);
-  } else {
-    renderManualLobby(roomId, existing.players || {});
-  }
+  heroGo(() => {
+    if (existing.roomMode === "draw") renderDraftNameScreen(roomId);
+    else renderManualLobby(roomId, existing.players || {});
+  });
 }
 
 // Testata delle schermate "secondarie" (v5.51): logo piccolo a sinistra e,
@@ -9750,6 +9814,7 @@ async function selectColor(c, btn) {
     }
     reserved = true;
     _seatJustTaken = c;
+    try { playSound("fbOk"); } catch (e) {}
   }
   const prevColor = myColor;
   myColor = c;
@@ -11275,6 +11340,19 @@ const SOUND_RECIPES = {
   cardFlick: () => { noiseBurst(0, 120, 0.32, 5200, 2600, "bandpass", 0.04, 0.9); noiseBurst(0.11, 14, 0.9, 1900, 1900, "bandpass", 0.002, 0.8); tone(150, 0.11, 45, "sine", 0.22, 85); },
   // scoppiettio del fuoco (carta bruciata)
   burn: () => { noiseBurst(0, 500, 0.5, 300, 1500); for (let k = 0; k < 14; k++) noiseBurst(0.1 + Math.random() * 0.9, 12, 0.9, 4000, 4000); },
+  // v5.59: suoni delle animazioni "Glassy OTP" (presi dal video dell'utente).
+  // Ogni lettera scritta nelle caselle: "tic" secco con un piccolo squillo.
+  cfKey: () => { noiseBurst(0, 18, 0.9, 3500, 3500, "bandpass", 0.002, 1.2); tone(1900, 0, 90, "sine", 0.22, 0, [[1, 1, 30]]); },
+  // Pulsante premuto, le caselle partono: fruscio che sale.
+  cfWhoosh: () => { noiseBurst(0, 420, 0.55, 500, 3200, "bandpass", 0.22, 0.9); tone(250, 0, 420, "sine", 0.18, 300); },
+  // Attesa (le caselle girano): colpetto sordo.
+  cfTick: () => { noiseBurst(0, 22, 0.9, 1300, 1300, "bandpass", 0.002, 1.5); tone(170, 0, 45, "sine", 0.3, 95); },
+  // Esito positivo con cerchi e ✓: arpeggio a campanella Do-Mi-Sol-Do.
+  cfSuccess: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.09, 900, "sine", 0.24, 0, BELL)); },
+  // Pulsante diventato verde: due note di campanello.
+  fbOk: () => { tone(784, 0, 380, "sine", 0.22, 0, BELL); tone(1047, 0.08, 520, "sine", 0.22, 0, BELL); },
+  // Pulsante rosso (errore, "Già preso"): due note morbide che scendono.
+  fbFail: () => { tone(330, 0, 220, "triangle", 0.3, 220); tone(247, 0.12, 300, "triangle", 0.26, 150); },
 };
 
 // Called from every interactive tap in the game (a card, sending a chat
@@ -11312,6 +11390,12 @@ const SOUND_RECIPES_8BIT = {
   chatMessage: () => { beep(1568, 0, 60, "square", 0.12); },
   victory: () => { [[523, 0, 110], [523, 0.12, 110], [523, 0.24, 110], [659, 0.36, 330], [415, 0.72, 110], [466, 0.84, 110], [523, 0.96, 110], [466, 1.08, 110], [523, 1.2, 480]].forEach(([f, t, d]) => beep(f, t, d, "square", 0.17)); },
   burn: () => { noiseBurst(0, 450, 0.5, 500, 1800); tone(900, 0, 450, "square", 0.1, 120); for (let k = 0; k < 10; k++) noiseBurst(0.05 + Math.random() * 0.8, 15, 0.8, 4500, 4500); },
+  cfKey: () => { beep(1568, 0, 25, "square", 0.08); },
+  cfWhoosh: () => { [262, 330, 392, 523].forEach((f, i) => beep(f, i * 0.05, 50, "square", 0.1)); },
+  cfTick: () => { beep(220, 0, 30, "square", 0.1); },
+  cfSuccess: () => { [523, 659, 784, 1047].forEach((f, i) => beep(f, i * 0.08, i === 3 ? 320 : 90, "square", 0.15)); },
+  fbOk: () => { beep(784, 0, 70, "square", 0.14); beep(1047, 0.07, 160, "square", 0.14); },
+  fbFail: () => { beep(330, 0, 100, "square", 0.14); beep(220, 0.1, 200, "square", 0.14); },
 };
 
 function playSound(name) {
@@ -15646,8 +15730,33 @@ function showReactionsFrom(state) {
       );
       document.body.appendChild(node);
       setTimeout(() => node.remove(), 2300);
+      if (m.text !== NUDGE_TEXT) reactionBurst(m.text, node);
     }, i * 250);
   });
+}
+
+// v5.60: "come i cuori nelle dirette" — insieme all'emoji grande ne salgono
+// altre più piccole che ondeggiano a destra e sinistra e svaniscono.
+function reactionBurst(emoji, from) {
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !document.body.animate) return;
+  const left = from && from.style.left ? from.style.left : "50%";
+  for (let k = 0; k < 7; k++) {
+    const mini = el("div", { class: "reaction-mini", style: `left:${left}` }, emoji);
+    document.body.appendChild(mini);
+    const rise = 220 + Math.random() * 120, sway = 14 + Math.random() * 16, dir = Math.random() < 0.5 ? -1 : 1;
+    const dx = (Math.random() - 0.5) * 50, size = 0.55 + Math.random() * 0.45;
+    const a = mini.animate(
+      [
+        { transform: `translate(${dx}px, 0) scale(${size * 0.4})`, opacity: 0 },
+        { transform: `translate(${dx + dir * sway}px, -${rise * 0.25}px) scale(${size})`, opacity: 1, offset: 0.2 },
+        { transform: `translate(${dx - dir * sway}px, -${rise * 0.55}px) scale(${size})`, opacity: 0.9, offset: 0.55 },
+        { transform: `translate(${dx + dir * sway * 0.6}px, -${rise}px) scale(${size * 0.85})`, opacity: 0 },
+      ],
+      { duration: 1700 + Math.random() * 700, delay: 120 + k * 110, easing: "ease-out", fill: "both" }
+    );
+    a.finished.then(() => mini.remove(), () => mini.remove());
+  }
 }
 
 function chatBubbleIconSvg() {
