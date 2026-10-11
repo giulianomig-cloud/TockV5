@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.68**.
+- Versione attuale: **v5.69**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -159,7 +159,7 @@
 - Interruttore del tema a pillola (v5.68, da un video dell'utente): in home in alto a destra, al posto
   del tastino 🌙 (nelle Impostazioni resta com'era). Verso lo scuro: una pedina esce dal ☀️, saltella,
   si apre un buco nero e ci cade dentro (suono `captureBonk`), la pillola diventa blu notte con 🌙;
-  al contrario la pedina esce dal buco (`pawnOut`) e torna al pomello. `themePill` / `animateThemePill`.
+  al contrario (v5.69, come nel video) il buco è BIANCO e luminoso, la pedina ne esce (`pawnOut`) e torna al pomello. `themePill` / `animateThemePill`.
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Animazioni dei menu portate nel GIOCO (v5.65, scelti i gruppi 1 e 2 dai video di prova):

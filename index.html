@@ -918,6 +918,7 @@ body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
 .theme-pill.tp-dark .tp-knob { background: #343A55; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
 .theme-pill .tp-hole { position: absolute; right: 9px; bottom: 9px; width: 18px; height: 6px; border-radius: 50%; background: #1D1712; transform: scaleX(0); }
 .theme-pill.tp-dark .tp-hole { background: #05060B; }
+.theme-pill .tp-hole.tp-glow { background: #FFFBEF; box-shadow: 0 0 7px 3px rgba(255,236,170,.85), 0 0 14px 6px rgba(255,236,170,.35); transition: background .2s ease, box-shadow .2s ease; }
 .theme-pill .tp-pawn { position: absolute; left: 19px; bottom: 11px; width: 13px; height: 13px; pointer-events: none; z-index: 2; }
 .theme-pill .tp-pawn svg { display: block; filter: drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
 .bx-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 22px 18px 18px; background: var(--bx-hero); }
@@ -8049,7 +8050,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.68";
+const APP_VERSION = "v5.69";
 
 let myColor = null;
 let myRoomId = null;
@@ -11226,6 +11227,8 @@ async function animateThemePill(pill) {
   const pawn = el("span", { class: "tp-pawn" }, pipIcon(myColor || "red", 0, 13));
   pill.appendChild(pawn);
   const X = 31; // dal pomello al buco
+  // v5.69: tornando alla luce il buco è bianco e luminoso (la luce esce da lì), come nel video
+  if (!toDark) hole.classList.add("tp-glow");
   try {
     hole.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: 220, fill: "forwards", easing: "ease-out" });
     const hops = [];
@@ -11248,8 +11251,9 @@ async function animateThemePill(pill) {
       await pawn.animate(hops.concat([{ transform: "translate(0,0) scale(0)" }]), { duration: 820, fill: "forwards", easing: "linear" }).finished;
     }
     toggleTheme();
-    hole.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }], { duration: 220, fill: "forwards", easing: "ease-in" });
+    await hole.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }], { duration: 220, fill: "forwards", easing: "ease-in" }).finished;
   } finally {
+    hole.classList.remove("tp-glow");
     pawn.remove();
     _themePillBusy = false;
   }
