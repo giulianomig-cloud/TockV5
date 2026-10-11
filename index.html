@@ -1877,6 +1877,15 @@ html.fx3d .center-discard .card-btn.center-card { transform: none; }
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
 .toast-overlay.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+/* Con un menu di scelta aperto (es. "Distribuisci il 7") l'avviso in basso
+   copriva il tasto Conferma: in quel caso va in alto, sotto la notch. */
+body:has(#picker-wrap.picker-overlay) .toast-overlay {
+  top: 0; bottom: auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 24px) 18px 0;
+  transform: translateY(-14px);
+}
+body:has(#picker-wrap.picker-overlay) .toast-overlay.show { transform: translateY(0); }
+body:has(#picker-wrap.picker-overlay) .toast-box { margin-bottom: 0; }
 .toast-box {
   width: 100%;
   background: var(--ink);
@@ -2289,8 +2298,10 @@ html[data-skin="bright"]:not([data-theme="dark"]) .reaction-bar .reaction-btn:ac
   color: var(--muted-3); margin-bottom: 6px;
 }
 .win-pawns { display: flex; align-items: flex-end; justify-content: center; gap: 5px; margin: 2px 0 10px; height: 44px; }
-.win-hop { display: inline-block; animation: winHop 1.05s cubic-bezier(.3,.7,.4,1) infinite; transform-origin: 50% 100%; }
-@keyframes winHop { 0%, 100% { transform: translateY(0) scale(1.12, .88); } 35% { transform: translateY(-16px) scale(.94, 1.08); } 60% { transform: translateY(-16px) scale(.94, 1.08); } 85% { transform: translateY(0) scale(1.1, .9); } }
+/* Solo il salto: lo schiacciamento (scale) le faceva sembrare ovali
+   ("le pedine sono deformate non rimangono circolari" — segnalato). */
+.win-hop { display: inline-block; flex-shrink: 0; line-height: 0; animation: winHop 1.05s cubic-bezier(.3,.7,.4,1) infinite; }
+@keyframes winHop { 0%, 100% { transform: translateY(0); } 35%, 60% { transform: translateY(-16px); } }
 html[data-skin="arcade"] .win-hop { animation-timing-function: steps(5, end); }
 @media (prefers-reduced-motion: reduce) { .win-hop { animation: none; } }
 .win-team-dots { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
@@ -4714,6 +4725,9 @@ let app, db;
 function initFirebase() {
   app = firebase.initializeApp(FIREBASE_CONFIG);
   db = firebase.database();
+  // Differenza fra l'orologio del telefono e quello del server: serve a
+  // confrontare gli orari scritti da telefoni diversi (vedi serverNow).
+  try { db.ref(".info/serverTimeOffset").on("value", (s) => { serverTimeOffset = Number(s.val()) || 0; }); } catch (e) {}
   // Ogni lettura .get() ha un tetto di 20 s: se il server non risponde si
   // ottiene un errore leggibile invece di restare in attesa all'infinito.
   try {
@@ -4729,6 +4743,14 @@ function initFirebase() {
       proto.__timeoutPatched = true;
     }
   } catch (e) { console.warn("patch get", e); }
+}
+
+// Ora "del server": gli orologi dei telefoni possono essere sfasati anche di
+// minuti, e una prenotazione di colore scritta da un telefono "avanti"
+// sembrava già scaduta a un altro (così due persone sceglievano lo stesso).
+let serverTimeOffset = 0;
+function serverNow() {
+  return Date.now() + serverTimeOffset;
 }
 
 function roomRef(roomId) {
@@ -7609,7 +7631,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.39";
+const APP_VERSION = "v5.40";
 
 let myColor = null;
 let myRoomId = null;
@@ -9086,6 +9108,10 @@ function renderManualLobby(roomId, existingPlayers) {
         renderLobbyColorSection(roomId, (state && state.players) || {}, (state && state.pending) || {});
       })
       .catch(() => {});
+    // Chi ha scelto un colore e ci pensa su (es. scrive il nome) tiene viva
+    // la prenotazione: altrimenti dopo 45 s il colore tornava "Libero" agli
+    // occhi degli altri, pur avendo ancora il ✓ sul proprio telefono.
+    if (myColor && Date.now() - lastPendingRefresh > 15000) reserveColorPending(roomId, myColor);
   }, 4000);
 }
 
@@ -9125,6 +9151,14 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
   // aggiornata (da un'azione tua su un bot, o ora anche da un altro
   // giocatore) — si azzera solo se quel colore è stato davvero preso.
   if (myColor && existingPlayers && existingPlayers[myColor]) myColor = null;
+  // Un altro telefono ha prenotato per primo il colore che avevi scelto
+  // (due tocchi quasi insieme): la tua scelta si annulla, così il ✓ resta
+  // a uno solo ("due giocatori selezionano lo stesso colore" — segnalato).
+  if (myColor && pendingByOther(roomId, pending, myColor)) {
+    const lost = myColor;
+    myColor = null;
+    showToast(`${colorLabel(lost)} lo ha appena scelto un altro giocatore. Scegli un altro colore.`);
+  }
 
   // Le pedine sono raggruppate per squadra (TEAM_OF) invece che in una
   // semplice griglia 2x2, con un badge "VS" al centro tra i due gruppi. I
@@ -9152,7 +9186,7 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
     // si può cliccarci sopra proprio mentre un altro sta decidendo; è
     // comunque solo una protezione "morbida" lato interfaccia — la vera
     // assegnazione resta protetta dalla transazione in joinManualRoom.
-    const pendingOther = !occupant && !mine && freshPendingColor(pending, c);
+    const pendingOther = !occupant && !mine && pendingByOther(roomId, pending, c);
     let inner;
     if (occupant) {
       inner = [
@@ -9191,7 +9225,7 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
     // Un altro giocatore lo sta scegliendo proprio ora: niente pulsanti
     // "assegna al computer" qui, per non invitare a scatenare proprio in
     // quel momento una corsa fra bot e umano sullo stesso colore.
-    if (!taken && freshPendingColor(pending, c)) {
+    if (!taken && pendingByOther(roomId, pending, c)) {
       return el("div", { class: "bot-cell-assign" }, el("div", { class: "bot-assign-label pending-hint" }, "Un altro giocatore lo sta scegliendo…"));
     }
     if (!taken) {
@@ -9222,7 +9256,7 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
   // div sotto) invece di un'unica card come nel mockup.
   const colorCell = (c) => {
     const occupant = existingPlayers && existingPlayers[c];
-    const pendingOther = !occupant && myColor !== c && freshPendingColor(pending, c);
+    const pendingOther = !occupant && myColor !== c && pendingByOther(roomId, pending, c);
     const state = occupant ? "cc-taken" : myColor === c ? "cc-mine" : pendingOther ? "cc-pending" : "cc-free";
     return el("div", { class: `color-cell cc-${c} ${state}` }, colorBtn(c), botCell(c));
   };
@@ -9424,6 +9458,13 @@ async function joinManualRoom(roomId) {
           blockedReason = { kind: "color", by: existing.name || colorLabel(myColor) };
           return undefined; // annulla il tentativo, non scrivere nulla
         }
+        // Il colore è libero ma un altro telefono lo ha prenotato per primo
+        // ed è ancora lì a scegliere: non si entra al suo posto.
+        const pend = state.pending && state.pending[myColor];
+        if (!existing && pend && pend.token !== claimToken && freshPendingColor(state.pending, myColor)) {
+          blockedReason = { kind: "pending" };
+          return undefined;
+        }
         // Due colori diversi con lo stesso nome mandano in confusione il
         // rientro-per-nome più avanti (non saprebbe a quale colore restituire
         // il posto), quindi lo blocchiamo già qui.
@@ -9452,6 +9493,15 @@ async function joinManualRoom(roomId) {
 
   if (blockedReason && blockedReason.kind === "color") {
     showToast(`Il colore ${colorLabel(myColor)} è già stato scelto da ${blockedReason.by} in questa stanza. Scegline un altro, oppure rientra usando esattamente lo stesso nome per riprenderlo.`);
+    return;
+  }
+  if (blockedReason && blockedReason.kind === "pending") {
+    // Si torna alla scelta del colore (l'ascolto della lobby era già stato
+    // staccato in cima) con il nome già scritto.
+    const snapVal = result && result.snapshot && result.snapshot.val();
+    myColor = null;
+    renderManualLobby(roomId, (snapVal && snapVal.players) || {});
+    showToast("Questo colore lo sta già scegliendo un altro giocatore. Scegline un altro.");
     return;
   }
   if (blockedReason && blockedReason.kind === "name") {
@@ -9644,11 +9694,35 @@ function getOrCreateClaimToken(roomId, color) {
 // uno dei due non perdeva la transazione finale). Un fallimento di
 // scrittura qui non deve mai bloccare nulla — nel peggiore dei casi
 // l'avviso semplicemente non compare.
+// Con una transazione: la prenotazione si prende (o si rinnova) solo se è
+// libera, scaduta o già nostra — mai sovrascrivendo quella fresca di un
+// altro telefono. Prima era un semplice set(): l'ultimo a toccare vinceva
+// la prenotazione ma il primo restava col suo ✓, e i due telefoni
+// mostravano entrambi lo stesso colore come proprio.
+let lastPendingRefresh = 0;
 function reserveColorPending(roomId, color) {
   try {
     const token = getOrCreateClaimToken(roomId, color);
-    roomRef(roomId).child("pending").child(color).set({ token, ts: Date.now() }).catch(() => {});
+    lastPendingRefresh = Date.now();
+    roomRef(roomId)
+      .child("pending")
+      .child(color)
+      .transaction((current) => {
+        if (current && current.token !== token && freshPendingColor({ x: current }, "x")) return undefined;
+        return { token, ts: serverNow() };
+      })
+      .catch(() => {});
   } catch (e) {}
+}
+
+// La prenotazione di questo colore è di un ALTRO telefono (ed è ancora valida).
+function pendingByOther(roomId, pending, c) {
+  if (!freshPendingColor(pending, c)) return false;
+  try {
+    return pending[c].token !== getOrCreateClaimToken(roomId, c);
+  } catch (e) {
+    return true;
+  }
 }
 
 // Libera una prenotazione SOLO se è la nostra (stesso token, verificato con
@@ -9674,7 +9748,7 @@ function releaseColorPending(roomId, color) {
 const PENDING_COLOR_TTL_MS = 45000;
 function freshPendingColor(pending, c) {
   const p = pending && pending[c];
-  return !!(p && p.token && typeof p.ts === "number" && Date.now() - p.ts < PENDING_COLOR_TTL_MS);
+  return !!(p && p.token && typeof p.ts === "number" && serverNow() - p.ts < PENDING_COLOR_TTL_MS);
 }
 
 // A room-scoped (not per-color) token used only during il flusso
