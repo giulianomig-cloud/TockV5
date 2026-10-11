@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.43**.
+- Versione attuale: **v5.44**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -68,6 +68,8 @@
 - Estrazione del mazziere (v5.42-43): mazzetto coperto al centro grande come le carte (64x90), ogni carta vola e si gira, suono a
   ogni carta e "ding" all'Asso, scritta finale con il nome. Scartati: accelerare/rallentare il ritmo,
   bordo che gira a chi tocca pescare, effetto speciale sull'Asso.
+  Dalla v5.44 la carta arriva già scoperta (niente giro: quello "piatto" non piaceva, scartati anche
+  il giro 3D e "coperta poi si gira"); suono della carta (`cardFlick`) = "scivola e si appoggia".
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
 - Alcuni giocatori usano l'app con il **traduttore di Chrome** (es. in spagnolo): avvolge i testi

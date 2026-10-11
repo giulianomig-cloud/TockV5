@@ -653,7 +653,7 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 /* Mazzetto coperto al centro dei 4 riquadri: ogni carta parte da qui, vola
-   verso chi la pesca e si gira (vedi animateDealerDraw). */
+   verso chi la pesca già scoperta (vedi animateDealerDraw). */
 /* Mazzetto grande quanto le carte scoperte (64x90): le colonne si
    allargano per fargli posto e i nomi restano su una riga. */
 .dealer-draw-grid { position: relative; column-gap: 66px; }
@@ -662,7 +662,7 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
   position: absolute; left: 50%; top: 50%; width: 64px; height: 90px; margin: -45px 0 0 -32px;
   pointer-events: none; z-index: 1;
 }
-.dealer-deck span, .dealer-card-back {
+.dealer-deck span {
   background: repeating-linear-gradient(45deg, rgba(255,255,255,.16) 0 4px, transparent 4px 8px), linear-gradient(135deg, #B8434B, #7E2730);
   border: 2px solid #fff; border-radius: 6px; box-shadow: 0 2px 5px rgba(36,28,21,.3);
 }
@@ -670,8 +670,7 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
 .dealer-deck span:nth-child(1) { transform: translate(3px, 3px) rotate(4deg); }
 .dealer-deck span:nth-child(2) { transform: translate(1.5px, 1.5px) rotate(-3deg); }
 .dealer-slot .card-btn { position: relative; }
-.dealer-card-back { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
-html[data-skin="arcade"] .dealer-deck span, html[data-skin="arcade"] .dealer-card-back {
+html[data-skin="arcade"] .dealer-deck span {
   background: repeating-linear-gradient(0deg, rgba(255,43,214,.35) 0 2px, transparent 2px 6px), #1a0c3a;
   border: 2px solid #ff2bd6; border-radius: 2px; box-shadow: 0 0 8px rgba(255,43,214,.6);
 }
@@ -7685,7 +7684,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.43";
+const APP_VERSION = "v5.44";
 
 let myColor = null;
 let myRoomId = null;
@@ -10899,19 +10898,19 @@ function tone(freq, startDelay, durMs, type, gainPeak, freqEnd, partials) {
     osc.start(t0); osc.stop(t0 + Math.max(0.03, dd) + 0.03);
   });
 }
-function noiseBurst(startDelay, durMs, gainPeak, fromHz, toHz) {
+function noiseBurst(startDelay, durMs, gainPeak, fromHz, toHz, filterType, attackS, q) {
   if (!audioCtx) return;
   const t0 = audioCtx.currentTime + startDelay, d = durMs / 1000;
   const len = Math.max(1, Math.floor(audioCtx.sampleRate * d));
   const b = audioCtx.createBuffer(1, len, audioCtx.sampleRate), ch = b.getChannelData(0);
   for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
   const src = audioCtx.createBufferSource(); src.buffer = b;
-  const f = audioCtx.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 1.2;
+  const f = audioCtx.createBiquadFilter(); f.type = filterType || "bandpass"; f.Q.value = q || 1.2;
   f.frequency.setValueAtTime(fromHz, t0);
   if (toHz && toHz !== fromHz) f.frequency.exponentialRampToValueAtTime(toHz, t0 + d);
   const g = audioCtx.createGain();
   g.gain.setValueAtTime(0, t0);
-  g.gain.linearRampToValueAtTime(gainPeak, t0 + 0.006);
+  g.gain.linearRampToValueAtTime(gainPeak, t0 + (attackS || 0.006));
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
   src.connect(f); f.connect(g); g.connect(audioCtx.destination);
   src.start(t0);
@@ -10942,7 +10941,9 @@ const SOUND_RECIPES = {
   // mangiato un compagno (o te stesso): "oops" che scende, un po' buffo
   oops: () => { tone(520, 0, 130, "triangle", 0.4, 360); tone(390, 0.14, 150, "triangle", 0.4, 260); tone(260, 0.3, 320, "triangle", 0.4, 140); },
   // carta che scatta sul tavolo
-  cardFlick: () => { noiseBurst(0, 55, 0.8, 2500, 5000); tone(210, 0.02, 60, "sine", 0.22, 120); },
+  // Carta che scivola sul tavolo e si appoggia: fruscio che parte morbido,
+  // poi un tocco leggero quando si ferma (scelto fra 4 proposte, v5.44).
+  cardFlick: () => { noiseBurst(0, 120, 0.32, 5200, 2600, "bandpass", 0.04, 0.9); noiseBurst(0.11, 14, 0.9, 1900, 1900, "bandpass", 0.002, 0.8); tone(150, 0.11, 45, "sine", 0.22, 85); },
   // scoppiettio del fuoco (carta bruciata)
   burn: () => { noiseBurst(0, 500, 0.5, 300, 1500); for (let k = 0; k < 14; k++) noiseBurst(0.1 + Math.random() * 0.9, 12, 0.9, 4000, 4000); },
 };
@@ -12869,8 +12870,8 @@ function renderDealerDrawScreen(state) {
   animateDealerDraw(state.dealerDraw.sequence, dealerNames);
 }
 
-// Ogni carta parte coperta dal mazzetto al centro, vola verso chi la pesca
-// e si gira, con il suono della carta; all'Asso di Cuori il "ding". Stesso
+// Ogni carta parte dal mazzetto al centro e scivola già scoperta verso chi
+// la pesca, con il suono della carta; all'Asso di Cuori il "ding". Stesso
 // ritmo di prima (una carta ogni 550 ms).
 function flyDealerCard(btn) {
   const deck = document.getElementById("dealer-deck");
@@ -12878,20 +12879,16 @@ function flyDealerCard(btn) {
   if (!deck || reduce || !btn.animate) { btn.classList.add("dealer-card-pop"); return; }
   const d = deck.getBoundingClientRect(), b = btn.getBoundingClientRect();
   const dx = d.left + d.width / 2 - (b.left + b.width / 2), dy = d.top + d.height / 2 - (b.top + b.height / 2);
-  const back = el("div", { class: "dealer-card-back" });
-  btn.appendChild(back);
-  const steps = isArcade() ? "steps(6, end)" : "ease-out";
+  // Arriva già scoperta (niente giro: quello "piatto" a metà strada non
+  // piaceva): scivola dal mazzetto con una leggera rotazione e si assesta.
   btn.animate(
     [
-      { transform: `translate(${dx}px, ${dy}px) scale(0.62) rotate(-10deg)` },
-      { transform: "translate(0, 0) scale(1) rotate(0deg)", offset: 0.55 },
-      { transform: "scaleX(0.04)", offset: 0.77 },
-      { transform: "scaleX(1)" },
+      { transform: `translate(${dx}px, ${dy}px) rotate(-14deg) scale(0.9)` },
+      { transform: "translate(0, 0) rotate(2deg) scale(1.03)", offset: 0.8 },
+      { transform: "translate(0, 0) rotate(0deg) scale(1)" },
     ],
-    { duration: 460, easing: steps }
+    { duration: 420, easing: isArcade() ? "steps(6, end)" : "cubic-bezier(.2,.8,.3,1)" }
   );
-  back.animate([{ opacity: 1 }, { opacity: 1, offset: 0.77 }, { opacity: 0, offset: 0.78 }, { opacity: 0 }], { duration: 460, fill: "forwards" })
-    .finished.then(() => back.remove()).catch(() => back.remove());
 }
 
 async function animateDealerDraw(sequence, names) {
