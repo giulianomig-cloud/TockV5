@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.56**.
+- Versione attuale: **v5.57**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -118,6 +118,15 @@
   fa una curva girando e si posa un po' storta sul mucchietto (restano le ultime 4); chi vince ha bordo
   oro + etichetta "👑 Mazziere", gli altri riquadri si attenuano. Scartate: "B · Ventaglio" e
   "C · Sollevata". Negli altri stili l'estrazione resta com'era.
+- Animazioni "Glassy OTP" (v5.57, da un video TikTok dell'utente): in home il codice stanza si scrive in
+  caselle (una per lettera, input vero invisibile sopra; casella attiva oro che "respira", lettera con
+  saltello). Dopo "Gioca": rotellina "Cerco la stanza…", le caselle si mettono in cerchio, girano e si
+  fondono in una (mentre si cerca su Firebase), poi l'esito: verde con cerchi e ✓ "Stanza trovata!" /
+  "Torneo trovato!", oro con + "Stanza nuova!", rosso che trema "Nessuna connessione".
+  Pulsanti "con esito" (`fbBusy` / `fbOk` / `fbFail`): rotellina → verde ✓ / rosso che trema e poi torna
+  com'era. Usati su: Siediti (aspetta la prenotazione del colore: "Già preso" se un altro telefono è
+  arrivato prima), Iscriviti, Crea torneo, Sono io, Diventa/Passa organizzatore, Condividi l'invito.
+  Il cerchio verde con ✓ solo per i momenti importanti (codice in home).
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,

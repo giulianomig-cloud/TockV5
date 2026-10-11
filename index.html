@@ -3053,6 +3053,63 @@ html:not([data-skin]) .dealer-draw-grid:has(.dealer-winner) .dealer-slot:not(.de
 html:not([data-skin]) .dealer-pile { position: relative; width: 64px; height: 90px; }
 html:not([data-skin]) .dealer-pile .card-btn { position: absolute; left: 0; top: 0; }
 html:not([data-skin]) .dealer-pile .card-btn.dealer-under { z-index: 3; filter: brightness(.97); }
+/* v5.57: codice stanza "a caselle" in home + animazione dopo "Gioca"
+   (caselle in cerchio che si fondono, cerchi verdi e ✓) e pulsanti "con
+   esito" (rotellina → verde ✓ / rosso che trema), idea "Glassy OTP". */
+.bx-play.cf { flex-direction: column; gap: 8px; padding: 8px; }
+.cf-row { position: relative; height: 48px; display: flex; gap: 6px; justify-content: center; align-items: center; cursor: text; }
+.cf-row.cf-long { gap: 4px; }
+.bx-play .cf-row #room-input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; opacity: 0; font-size: 16px; color: transparent; caret-color: transparent; border: none; background: transparent; z-index: 2; }
+.cf-row.cf-run #room-input { pointer-events: none; }
+.cf-box { position: relative; flex: 1 1 0; max-width: 40px; min-width: 0; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.25rem; color: var(--bx-ink); background: var(--bx-bg); border: 1.5px solid var(--bx-line); transition: border-color .25s, box-shadow .25s, background .25s; }
+.cf-long .cf-box { font-size: 1rem; border-radius: 10px; }
+.cf-box.filled { border-color: #D9A93E; background: rgba(217,169,62,.08); }
+.cf-box.active { border-color: #D9A93E; animation: cfBreathe 1.6s ease-in-out infinite; }
+.cf-box.active::after { content: ""; width: 2px; height: 22px; border-radius: 2px; background: #C99A3A; animation: cfBlink 1s steps(1) infinite; }
+.cf-box .ch { display: inline-block; animation: cfPop .32s cubic-bezier(.2,1.6,.4,1); }
+.cf-hint { position: absolute; left: 12px; right: 12px; text-align: center; color: var(--bx-sub); font-weight: 600; font-size: .9rem; pointer-events: none; }
+@keyframes cfBreathe { 0%,100% { box-shadow: 0 0 0 3px rgba(217,169,62,.14), 0 0 14px rgba(217,169,62,.25); } 50% { box-shadow: 0 0 0 5px rgba(217,169,62,.08), 0 0 22px rgba(217,169,62,.45); } }
+@keyframes cfBlink { 50% { opacity: 0; } }
+@keyframes cfPop { 0% { transform: scale(.3) translateY(6px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.bx-play.cf #continue-btn { display: block; text-align: center; padding: 14px 20px; }
+.cf-spinwrap { position: absolute; inset: 0; pointer-events: none; }
+.cf-box.cf-abs { position: absolute; left: 50%; top: 50%; width: 36px; max-width: none; height: 46px; margin: -23px 0 0 -18px; flex: none; }
+.cf-box.cf-warn { border-color: #E8A24A; box-shadow: 0 0 16px rgba(232,162,74,.55); background: rgba(232,162,74,.08); animation: none; }
+.cf-box.cf-okx { border-color: #4FB477; box-shadow: 0 0 20px rgba(79,180,119,.55); background: rgba(79,180,119,.1); animation: none; }
+.cf-box.cf-new { border-color: #D9A93E; box-shadow: 0 0 20px rgba(217,169,62,.55); background: rgba(217,169,62,.12); animation: none; }
+.cf-box.cf-bad { border-color: #D9534F; box-shadow: 0 0 18px rgba(217,83,79,.5); background: rgba(217,83,79,.1); animation: fbShake .45s; }
+.cf-ring { position: absolute; left: 50%; top: 50%; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; border: 2px solid rgba(79,180,119,.85); box-shadow: 0 0 22px rgba(79,180,119,.45), inset 0 0 16px rgba(79,180,119,.2); opacity: 0; pointer-events: none; }
+.cf-orbit { position: absolute; left: 50%; top: 50%; width: 80px; height: 80px; margin: -40px 0 0 -40px; opacity: 0; pointer-events: none; }
+.cf-orbit i { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #4FB477; box-shadow: 0 0 8px #6FD394; }
+.cf-check { position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; margin: -12px 0 0 -12px; pointer-events: none; }
+.cf-check path { stroke: #2F9E5F; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 30; stroke-dashoffset: 30; }
+:root[data-theme="dark"] .cf-check path { stroke: #8FE0A8; }
+.cf-row:has(.cf-new) .cf-check path { stroke: #B8862A; }
+.bx-hero.cf-hero-ok { box-shadow: inset 0 0 0 2px rgba(79,180,119,.45); transition: box-shadow .6s; }
+.bx-hero.cf-hero-new { box-shadow: inset 0 0 0 2px rgba(217,169,62,.5); transition: box-shadow .6s; }
+.bx-hero h1 .cf-g { background: linear-gradient(135deg, #5CC489, #2F9E5F); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bx-hero h1 .cf-gold { background: linear-gradient(135deg, #E2B85A, #A87D22); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* Pulsanti "con esito" (fbBusy / fbOk / fbFail). */
+.fb-spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -2px; margin-right: 8px; opacity: .75; animation: fbSpin .7s linear infinite; }
+.fb-busy { cursor: progress; }
+.fb-busy, .fb-ok, .fb-fail { opacity: 1 !important; }
+.room-chip.fb-busy, .room-chip.fb-fail { min-width: 64px; }
+.fb-busy .fb-spin:last-child { margin-right: 0; }
+/* Alcuni pulsanti colorano tutti i figli (es. ".room-chip-sit *"): la rotellina resta sempre visibile. */
+.fb-spin { background: transparent !important; border-color: currentColor !important; border-right-color: transparent !important; }
+@keyframes fbSpin { to { transform: rotate(360deg); } }
+.fb-ok { background: linear-gradient(135deg, #9BE8B4, #4FB477) !important; border-color: transparent !important; box-shadow: 0 10px 22px -12px rgba(79,180,119,.8) !important; }
+.fb-ok, .fb-ok * { color: #10261A !important; }
+.fb-ok.fb-gold { background: var(--bx-btn-bg) !important; box-shadow: 0 10px 22px -12px rgba(168,125,34,.7) !important; }
+.fb-ok.fb-gold, .fb-ok.fb-gold * { color: var(--bx-btn-ink) !important; }
+.fb-fail { background: linear-gradient(135deg, #F19A97, #D9534F) !important; border-color: transparent !important; animation: fbShake .45s; }
+.fb-fail, .fb-fail * { color: #fff !important; }
+@keyframes fbShake { 0%,100% { transform: none; } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(2px); } }
+.rj-go.fb-busy, .rj-go.fb-ok, .rj-go.fb-fail { padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.room-seat.rs-pop .room-dot { animation: cfPop .32s cubic-bezier(.2,1.6,.4,1), fbDotOk .9s ease-out; }
+@keyframes fbDotOk { 0% { box-shadow: 0 0 0 0 rgba(79,180,119,.7); } 100% { box-shadow: 0 0 0 12px rgba(79,180,119,0); } }
+@media (prefers-reduced-motion: reduce) { .cf-box.active, .cf-box .ch, .fb-fail, .cf-box.cf-bad, .room-seat.rs-pop .room-dot { animation: none; } }
 </style>
 </head>
 <body>
@@ -7930,7 +7987,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.56";
+const APP_VERSION = "v5.57";
 
 let myColor = null;
 let myRoomId = null;
@@ -8058,7 +8115,16 @@ function renderLobby() {
     id: "room-input",
     placeholder: "Codice stanza",
     value: myRoomId || "",
+    autocapitalize: "characters",
+    autocomplete: "off",
+    spellcheck: "false",
+    "aria-label": "Codice stanza",
   });
+  const redrawBoxes = () => codeBoxesDraw(roomInput.parentNode);
+  roomInput.addEventListener("input", redrawBoxes);
+  roomInput.addEventListener("focus", redrawBoxes);
+  roomInput.addEventListener("blur", redrawBoxes);
+  roomInput.addEventListener("keydown", (e) => { if (e.key === "Enter") continueFromRoomCode(); });
   const tutTotal = TUT_LESSONS.length;
   const tutFatte = tutDone().filter((id) => TUT_LESSONS.some((l) => l.id === id)).length;
   const podium = el("div", { class: "bx-pod" }, el("span", { class: "bx-muted" }, "Carico…"));
@@ -8076,9 +8142,9 @@ function renderLobby() {
       el("div", { class: "bx-hero" },
         el("h1", {}, "Pronto per", el("br"), "una partita?"),
         el("p", {}, "Scrivi il codice della stanza: se non esiste, la crei tu."),
-        el("div", { class: "bx-play" },
-          roomInput,
-          el("button", { id: "continue-btn", onclick: continueFromRoomCode }, "Gioca"))),
+        el("div", { class: "bx-play cf" },
+          el("div", { class: "cf-row", onclick: () => roomInput.focus() }, roomInput),
+          el("button", { id: "continue-btn", onclick: continueFromRoomCode }, "Gioca →"))),
       el("div", { class: "bx-bento" },
         el("button", { class: "bx-card bx-lb", onclick: renderLeaderboardScreen },
           el("span", { class: "bx-k" }, "🏆 Classifica"), el("span", { class: "bx-t" }, "Chi vince di più"), podium),
@@ -8095,6 +8161,7 @@ function renderLobby() {
   );
   fillActiveTournamentsList();
   fillHomePodium(podium);
+  codeBoxesDraw(roomInput.parentNode);
 }
 
 // Carica i tornei attivi e riempie #tourney-list-wrap in home — chiamata
@@ -8305,33 +8372,37 @@ function renderTournamentCreateScreen() {
       nameField.wrap,
       el("p", { class: "step-label" }, "Codice del torneo"),
       codeInput,
-      el("button", { class: "primary", onclick: () => submitCreateTournament(codeInput, () => formatoScelto) }, "Crea torneo"),
+      el("button", { class: "primary", onclick: (ev) => submitCreateTournament(codeInput, () => formatoScelto, ev.currentTarget) }, "Crea torneo"),
       el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: renderLobby }, backChevronIcon(), "Annulla")
     )
   );
 }
 
-async function submitCreateTournament(codeInput, getFormato) {
+async function submitCreateTournament(codeInput, getFormato, btn) {
   const code = codeInput.value.trim().toUpperCase();
   const typed = $("#torneo-organizer-name").value.trim();
   if (!code) return showToast("Inserisci un codice per il torneo.");
   if (!typed) return showToast("Inserisci il tuo nome.");
-  const player = await resolvePlayerName(typed);
-  myName = player.nome;
-  myPlayerId = player.id;
-  savePlayerShortcut(player.id, player.nome);
+  fbBusy(btn, "Creo il torneo…");
 
-  let created;
+  let created, player;
   try {
+    player = await resolvePlayerName(typed);
+    myName = player.nome;
+    myPlayerId = player.id;
+    savePlayerShortcut(player.id, player.nome);
     created = await createTournament(code, getFormato());
   } catch (e) {
     console.error(e);
+    fbFail(btn, "Riprova");
     return showToast("Non riesco a creare il torneo, riprova.");
   }
   if (!created.ok) {
+    fbFail(btn, "Codice già usato");
     return showToast(`Il codice "${code}" è già in uso (stanza o torneo). Scegline un altro.`);
   }
   await joinTournament(code, player.id, player.nome, null);
+  if (btn) { fbOk(btn, "Torneo creato"); await fbWait(750); }
   renderTournamentLobby(code);
 }
 
@@ -8406,7 +8477,7 @@ function renderTournamentJoinScreen(code, tournament) {
         : "",
       pieno
         ? el("button", { class: "primary", disabled: true }, "Torneo al completo")
-        : el("button", { class: "primary", onclick: () => submitJoinTournament(code, tournament) }, "Iscriviti"),
+        : el("button", { class: "primary", onclick: (ev) => submitJoinTournament(code, tournament, ev.currentTarget) }, "Iscriviti"),
       // Anche senza iscriversi si può aprire la pagina del torneo (tavoli,
       // classifica) e da lì, in fondo, "Diventa organizzatore da questo
       // dispositivo" — prima da qui non c'era modo di arrivarci.
@@ -8417,21 +8488,29 @@ function renderTournamentJoinScreen(code, tournament) {
   );
 }
 
-async function submitJoinTournament(code, tournament) {
+async function submitJoinTournament(code, tournament, btn) {
   const typed = $("#torneo-join-name").value.trim();
   if (!typed) return showToast("Inserisci il tuo nome.");
+  fbBusy(btn, "Ti iscrivo…");
 
-  const player = await resolvePlayerName(typed);
-  myName = player.nome;
-  myPlayerId = player.id;
-  savePlayerShortcut(player.id, player.nome);
-
-  const result = await joinTournament(code, player.id, player.nome, null);
+  let result;
+  try {
+    const player = await resolvePlayerName(typed);
+    myName = player.nome;
+    myPlayerId = player.id;
+    savePlayerShortcut(player.id, player.nome);
+    result = await joinTournament(code, player.id, player.nome, null);
+  } catch (e) {
+    console.error(e);
+    result = { ok: false };
+  }
   if (!result.ok) {
-    if (result.reason === "full") return showToast("Questo torneo ha già raggiunto il limite di 8 iscritti.");
-    if (result.reason === "notFound") return showToast("Questo torneo non esiste più.");
+    if (result.reason === "full") { fbFail(btn, "Torneo pieno"); return showToast("Questo torneo ha già raggiunto il limite di 8 iscritti."); }
+    if (result.reason === "notFound") { fbFail(btn, "Non esiste più"); return showToast("Questo torneo non esiste più."); }
+    fbFail(btn, "Riprova");
     return showToast("Non riesco a iscriverti, riprova.");
   }
+  if (btn) { fbOk(btn, "Sei iscritto!"); await fbWait(750); }
   renderTournamentLobby(code);
 }
 
@@ -8564,16 +8643,16 @@ function renderTournamentLobby(code) {
     // 6) Strumenti
     body.appendChild(el("div", { class: "t-sec" }, el("b", {}, isOrganizer ? "Gestione" : "Altro")));
     const tools = el("div", { class: "t-tools" });
-    tools.appendChild(el("button", { class: "secondary", style: "width:100%", onclick: () => shareTournamentInviteLink(code) }, "🔗 Condividi l'invito"));
+    tools.appendChild(el("button", { class: "secondary", style: "width:100%", onclick: (ev) => shareTournamentInviteLink(code, ev.currentTarget) }, "🔗 Condividi l'invito"));
     if (isOrganizer) {
       const altri = iscritti.filter((p) => !p.isBot && p.id !== myPlayerId);
       if (altri.length > 0 && aperto) {
         tools.appendChild(el("div", { class: "t-tool-row" }, el("select", { id: "pass-organizer-select" }, altri.map((u) => el("option", { value: u.id }, u.nome))),
-          el("button", { class: "t-chipbtn", onclick: () => handlePassOrganizer(code, document.getElementById("pass-organizer-select").value, t) }, "👑 Passa l'organizzazione")));
+          el("button", { class: "t-chipbtn", onclick: (ev) => handlePassOrganizer(code, document.getElementById("pass-organizer-select").value, t, ev.currentTarget) }, "👑 Passa l'organizzazione")));
       }
       tools.appendChild(el("button", { class: "t-danger-link", onclick: () => handleDeleteTournament(code) }, "🗑️ Elimina torneo"));
     } else {
-      tools.appendChild(el("button", { class: "secondary", style: "width:100%", onclick: () => handleReclaimOrganizer(code) }, "👑 Diventa organizzatore da questo dispositivo"));
+      tools.appendChild(el("button", { class: "secondary", style: "width:100%", onclick: (ev) => handleReclaimOrganizer(code, ev.currentTarget) }, "👑 Diventa organizzatore da questo dispositivo"));
       tools.appendChild(el("p", { class: "t-note", style: "margin-top:-4px" }, "Usalo se hai creato tu questo torneo ma da qui non risulti organizzatore (es. hai aperto il link da WhatsApp invece che dal browser)."));
     }
     body.appendChild(tools);
@@ -8736,15 +8815,19 @@ async function handleRemovePlayer(code, playerId, nome, t) {
   showToast(`${nome} non è più iscritto.`);
 }
 
-async function handlePassOrganizer(code, playerId, t) {
+async function handlePassOrganizer(code, playerId, t, btn) {
   const p = t.iscritti && t.iscritti[playerId];
   if (!p) return;
   if (!confirm(`Passare l'organizzazione del torneo a ${p.nome}? Da subito tu non potrai più gestirlo (finché non te la ripassa).`)) return;
-  const result = await passOrganizer(code, playerId);
+  fbBusy(btn, "Un attimo…");
+  let result;
+  try { result = await passOrganizer(code, playerId); } catch (e) { result = { ok: false }; }
   if (!result.ok) {
+    fbFail(btn, "Riprova");
     if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può passare il ruolo.");
     return showToast("Non riesco a passare l'organizzazione, riprova.");
   }
+  fbOk(btn, "Passata");
   showToast(`👑 Organizzazione passata a ${p.nome}.`);
 }
 
@@ -8753,10 +8836,13 @@ async function handlePassOrganizer(code, playerId, t) {
 // browser diverso e ha perso il riconoscimento — vedi commento su
 // reclaimOrganizer). Conferma esplicita perché toglie il controllo a
 // eventuali altri dispositivi che lo avessero.
-async function handleReclaimOrganizer(code) {
+async function handleReclaimOrganizer(code, btn) {
   if (!confirm("Diventare organizzatore di questo torneo da questo dispositivo? Se un altro dispositivo aveva il controllo, lo perderà.")) return;
-  const result = await reclaimOrganizer(code);
-  if (!result.ok) return showToast("Non riesco a diventare organizzatore, riprova.");
+  fbBusy(btn, "Un attimo…");
+  let result;
+  try { result = await reclaimOrganizer(code); } catch (e) { result = { ok: false }; }
+  if (!result.ok) { fbFail(btn, "Riprova"); return showToast("Non riesco a diventare organizzatore, riprova."); }
+  fbOk(btn, "Ora sei l'organizzatore");
   showToast("Ora sei l'organizzatore di questo torneo.");
 }
 
@@ -8790,7 +8876,7 @@ async function joinTournamentTable(roomCode) {
   watchRoom(roomCode, onStateChange);
 }
 
-async function shareTournamentInviteLink(code) {
+async function shareTournamentInviteLink(code, btn) {
   const link = buildTournamentInviteLink(code);
   const text = `Iscriviti al torneo di Tock ${code}: ${link}`;
   try {
@@ -8798,7 +8884,7 @@ async function shareTournamentInviteLink(code) {
   } catch (e) {}
   try {
     await navigator.clipboard.writeText(link);
-    showToast("Link copiato!");
+    if (btn) { fbOk(btn, "Link copiato"); setTimeout(() => fbReset(btn), 1600); } else showToast("Link copiato!");
     return;
   } catch (e) {}
   prompt("Copia questo link per invitare al torneo:", link);
@@ -8838,10 +8924,153 @@ async function shareInviteLink(roomId) {
   prompt("Copia questo link per invitare i tuoi amici:", link);
 }
 
+// v5.57: pulsanti "con esito" (idea presa dall'animazione "Glassy OTP"):
+// mentre l'app aspetta il server il pulsante mostra una rotellina; se va
+// bene diventa verde con ✓, se va male diventa rosso, trema e dopo un
+// attimo torna com'era. Usato dove si aspetta una conferma da Firebase.
+function fbSet(btn, cls, icon, text) {
+  if (!btn) return;
+  if (btn._fbOrig === undefined) btn._fbOrig = [...btn.childNodes];
+  btn.classList.remove("fb-busy", "fb-ok", "fb-fail");
+  btn.classList.add(cls);
+  btn.innerHTML = "";
+  if (icon) btn.appendChild(icon);
+  btn.appendChild(document.createTextNode(text || ""));
+}
+function fbBusy(btn, text) {
+  if (!btn) return;
+  fbSet(btn, "fb-busy", el("span", { class: "fb-spin", "aria-hidden": "true" }), text);
+  btn.disabled = true;
+}
+function fbOk(btn, text) { fbSet(btn, "fb-ok", null, "✓ " + (text || "Fatto")); }
+function fbReset(btn) {
+  if (!btn || btn._fbOrig === undefined) return;
+  btn.classList.remove("fb-busy", "fb-ok", "fb-fail");
+  btn.innerHTML = "";
+  btn._fbOrig.forEach((n) => btn.appendChild(n));
+  btn._fbOrig = undefined;
+  btn.disabled = false;
+}
+function fbFail(btn, text) {
+  if (!btn) return;
+  fbSet(btn, "fb-fail", null, text || "Riprova");
+  setTimeout(() => fbReset(btn), 1600);
+}
+const fbWait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// v5.57: codice stanza "a caselle" nella home. L'input vero resta (invisibile)
+// sopra le caselle, così tastiera, incolla e ?room=... funzionano come prima;
+// le caselle si ridisegnano a ogni lettera.
+function codeBoxesDraw(row) {
+  const input = row && row.querySelector("input");
+  if (!input || row.classList.contains("cf-run")) return; // durante l'animazione non si ridisegna
+  const v = input.value.toUpperCase().replace(/\s/g, "");
+  const prev = row._shown || "";
+  row.querySelectorAll(".cf-box, .cf-hint").forEach((n) => n.remove());
+  const focused = document.activeElement === input;
+  if (!v && !focused) row.appendChild(el("div", { class: "cf-hint" }, "Tocca qui e scrivi il codice"));
+  [...v].forEach((c, i) => row.appendChild(el("div", { class: "cf-box filled" }, i >= prev.length || prev[i] !== c ? el("span", { class: "ch" }, c) : c)));
+  if (focused && v.length < 14) row.appendChild(el("div", { class: "cf-box active" }));
+  row.classList.toggle("cf-long", v.length > 8);
+  row._shown = v;
+}
+
+// Animazione dopo "Gioca": le caselle si mettono in cerchio, girano e si
+// fondono in una sola al centro (mentre l'app cerca il codice su Firebase);
+// poi finish() mostra l'esito: verde con cerchi che si allargano e ✓ (stanza
+// o torneo trovati), oro (stanza nuova) o rosso che trema (errore).
+function codeFxStart() {
+  const row = document.querySelector(".cf-row");
+  const go = document.getElementById("continue-btn");
+  const input = row && row.querySelector("input");
+  if (input) input.blur(); // chiude la tastiera (e ridisegna le caselle senza quella attiva)
+  const boxes = row ? [...row.querySelectorAll(".cf-box.filled")] : [];
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  fbBusy(go, "Cerco la stanza…");
+  if (!row || !boxes.length || reduce || !row.animate) {
+    return { finish: async (kind, h, sub, label) => { if (kind === "fail") fbFail(go, label); else { fbOk(go, label); await fbWait(500); } } };
+  }
+  row.querySelectorAll(".cf-box.active, .cf-hint").forEach((n) => n.remove());
+  const rr = row.getBoundingClientRect();
+  const pos = boxes.map((x) => { const r = x.getBoundingClientRect(); return [r.left + r.width / 2 - (rr.left + rr.width / 2), r.top + r.height / 2 - (rr.top + rr.height / 2)]; });
+  row.classList.add("cf-run");
+  row.animate([{ height: rr.height + "px" }, { height: "150px" }], { duration: 450, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" });
+  const spin = el("div", { class: "cf-spinwrap" });
+  row.appendChild(spin);
+  const n = boxes.length, R = 46, ease = "cubic-bezier(.5,0,.2,1)";
+  boxes.forEach((x, i) => {
+    spin.appendChild(x);
+    x.classList.add("cf-abs");
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+    const cx = Math.cos(a) * R, cy = Math.sin(a) * R;
+    x.animate(
+      [
+        { transform: `translate(${pos[i][0]}px, ${pos[i][1]}px)` },
+        { transform: `translate(${cx}px, ${cy}px) scale(.8)`, offset: 0.35 },
+        { transform: `translate(${cx}px, ${cy}px) scale(.8)`, offset: 0.5 },
+        { transform: "translate(0, 0) scale(.95)" },
+      ],
+      { duration: 1500, easing: ease, fill: "forwards" }
+    );
+  });
+  spin.animate([{ transform: "rotate(0)" }, { transform: "rotate(0)", offset: 0.35 }, { transform: "rotate(180deg)" }], { duration: 1500, easing: ease, fill: "forwards" });
+  const merged = fbWait(1350).then(() => {
+    boxes.forEach((x, i) => { x.textContent = ""; if (i) x.style.visibility = "hidden"; });
+    boxes[0].classList.remove("filled");
+    boxes[0].classList.add("cf-warn");
+  });
+  return {
+    async finish(kind, h, sub, label) {
+      await merged;
+      await fbWait(350);
+      const c = boxes[0];
+      c.classList.remove("cf-warn");
+      if (kind === "fail") {
+        c.classList.add("cf-bad");
+        fbFail(go, label);
+        await fbWait(900);
+        renderLobby();
+        return;
+      }
+      c.classList.add(kind === "new" ? "cf-new" : "cf-okx");
+      const hero = document.querySelector(".bx-hero");
+      if (hero) hero.classList.add(kind === "new" ? "cf-hero-new" : "cf-hero-ok");
+      if (kind !== "new") {
+        const ring = el("div", { class: "cf-ring" }), ring2 = el("div", { class: "cf-ring" });
+        const orb = el("div", { class: "cf-orbit" }, el("i", { style: "left:37px;top:-2px" }), el("i", { style: "right:-2px;top:37px" }), el("i", { style: "left:37px;bottom:-2px" }), el("i", { style: "left:-2px;top:37px" }));
+        row.append(ring, ring2, orb);
+        ring.animate([{ opacity: 0, transform: "scale(.4)" }, { opacity: 1, transform: "scale(1)", offset: 0.4 }, { opacity: 0, transform: "scale(1.9)" }], { duration: 1300, easing: "ease-out" });
+        setTimeout(() => ring2.animate([{ opacity: 0, transform: "scale(.4)" }, { opacity: 0.8, transform: "scale(1)", offset: 0.4 }, { opacity: 0, transform: "scale(2.3)" }], { duration: 1400, easing: "ease-out" }), 350);
+        orb.animate([{ opacity: 0, transform: "rotate(0) scale(.6)" }, { opacity: 1, transform: "rotate(140deg) scale(1)", offset: 0.5 }, { opacity: 0, transform: "rotate(280deg) scale(1.3)" }], { duration: 1300, easing: "ease-in-out" });
+      }
+      if (kind === "new") fbSet(go, "fb-ok", null, label); else fbOk(go, label);
+      go.classList.toggle("fb-gold", kind === "new");
+      const swap = (node, build) => {
+        if (!node) return;
+        node.animate([{ opacity: 1, filter: "blur(0)" }, { opacity: 0, filter: "blur(4px)" }], { duration: 280, fill: "forwards" }).finished.then(() => {
+          node.innerHTML = "";
+          build(node);
+          node.animate([{ opacity: 0, filter: "blur(4px)", transform: "translateY(6px)" }, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: 380, fill: "forwards" });
+        });
+      };
+      swap(hero && hero.querySelector("h1"), (n) => n.append(h[0], el("br"), el("span", { class: kind === "new" ? "cf-gold" : "cf-g" }, h[1])));
+      swap(hero && hero.querySelector("p"), (n) => n.append(sub));
+      await fbWait(420);
+      const ck = el("div", { class: "cf-check" });
+      ck.innerHTML = kind === "new" ? '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 6v12M6 12h12"/></svg>' : '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 12.5l5 5L19 8"/></svg>';
+      row.appendChild(ck);
+      ck.querySelector("path").animate([{ strokeDashoffset: 30 }, { strokeDashoffset: 0 }], { duration: 450, easing: "ease-out", fill: "forwards" });
+      await fbWait(1100);
+    },
+  };
+}
+
 async function continueFromRoomCode() {
+  if (document.querySelector(".cf-row.cf-run")) return; // animazione già partita
   unlockAudio();
-  const roomId = $("#room-input").value.trim().toUpperCase();
+  const roomId = $("#room-input").value.trim().toUpperCase().replace(/\s/g, "");
   if (!roomId) return showToast("Inserisci un codice stanza.");
+  const fx = document.querySelector(".cf-row") ? codeFxStart() : null;
 
   // Stanze e tornei condividono lo stesso spazio dei nomi (vedi roadmap,
   // "Punto di ingresso nell'app") — chi scrive un codice esistente non
@@ -8852,6 +9081,7 @@ async function continueFromRoomCode() {
   try {
     const codeSnap = await codesRef().child(roomId).get();
     if (codeSnap.val() === "tournament") {
+      if (fx) await fx.finish("ok", ["Torneo", "trovato!"], "Ti porto alla pagina del torneo.", "Torneo trovato");
       openTournamentByCode(roomId);
       return;
     }
@@ -8867,15 +9097,21 @@ async function continueFromRoomCode() {
   } catch (e) {
     showToast("Non riesco a contattare il server, riprova.");
     console.error(e);
+    if (fx) await fx.finish("fail", null, null, "Nessuna connessione");
     return;
   }
 
   if (!snap.exists()) {
+    if (fx) await fx.finish("new", ["Stanza", "nuova!"], "Non esiste ancora: la crei tu.", "Crea la stanza");
     renderModeChoice(roomId);
     return;
   }
 
   const existing = normalizeState(snap.val());
+  if (fx) {
+    const nGioc = COLORS.filter((c) => existing.players && existing.players[c] && !existing.players[c].isBot).length;
+    await fx.finish("ok", ["Stanza", "trovata!"], nGioc ? `${nGioc} ${nGioc === 1 ? "giocatore" : "giocatori"} al tavolo.` : "Al momento è vuota.", "Stanza trovata");
+  }
 
   // Rientro: se questo dispositivo ha già un colore assegnato in questa
   // stanza (partita manuale, o estrazione già conclusa), va dritto al
@@ -8905,6 +9141,7 @@ async function continueFromRoomCode() {
     const finita = existing.phase === "finished" ? " (partita già finita)" : "";
     if (!window.confirm("La stanza " + roomId + " è già stata creata" + finita + ". " + chi + "\n\nVuoi entrare?")) {
       myRoomId = null;
+      if (fx) renderLobby();
       return;
     }
   }
@@ -9017,7 +9254,7 @@ function renderNameRecoveryScreen(roomId, players) {
     }
     return el(
       "button",
-      { class: "rj-row", onclick: () => recoverByName(roomId, p.name) },
+      { class: "rj-row", onclick: (ev) => recoverByName(roomId, p.name, ev.currentTarget) },
       dot,
       el("div", { class: "rj-txt" }, el("b", {}, p.name || colorLabel(c)), el("small", {}, `${colorLabel(c)} · squadra ${TEAM_LABEL[TEAM_OF[c]]}`)),
       el("span", { class: "rj-go" }, "Sono io ›")
@@ -9039,9 +9276,13 @@ function renderNameRecoveryScreen(roomId, players) {
   );
 }
 
-async function recoverByName(roomId, chosenName) {
+async function recoverByName(roomId, chosenName, rowBtn) {
   const name = String(chosenName || "").trim();
   if (!name) return showToast("Scrivi il tuo nome.");
+  const go = rowBtn && rowBtn.querySelector(".rj-go");
+  if (rowBtn) rowBtn.disabled = true;
+  fbBusy(go, "Un attimo…");
+  const fail = () => { fbFail(go, "Riprova"); if (rowBtn) setTimeout(() => { rowBtn.disabled = false; }, 1600); };
   try {
     const snap = await roomRef(roomId).get();
     const existing = normalizeState(snap.val());
@@ -9052,6 +9293,7 @@ async function recoverByName(roomId, chosenName) {
         existing.players[c].name.trim().toLowerCase() === name.trim().toLowerCase()
     );
     if (!match) {
+      fail();
       showToast("Non trovo nessun giocatore con questo nome in questa stanza. Controlla di averlo scritto esattamente come la prima volta, oppure continua come nuovo giocatore.");
       return;
     }
@@ -9071,12 +9313,14 @@ async function recoverByName(roomId, chosenName) {
       myPlayerId = claim.playerId;
       savePlayerShortcut(claim.playerId, claim.name);
     }
+    if (go) { fbOk(go, "Bentornato"); await fbWait(650); }
     // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
     // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
     // ("Cannot set properties of null", visto su un tavolo di torneo).
     renderGameShell();
     watchRoom(roomId, onStateChange);
   } catch (e) {
+    fail();
     showToast("Non sono riuscito a farti rientrare: " + describeError(e));
     console.error(e);
   }
@@ -9303,6 +9547,7 @@ document.addEventListener("visibilitychange", () => {
 // tick dell'ascolto Firebase in renderManualLobby.
 let lastColorSectionArgs = null;
 let _roomBotChoice = null; // colore su cui si sta scegliendo il livello del computer
+let _seatJustTaken = null; // v5.57: colore appena preso con "Siediti" (pallino che "pulsa" una volta)
 function renderLobbyColorSection(roomId, existingPlayers, pending) {
   const wrap = $("#color-row-wrap");
   if (!wrap) return; // non siamo più su questa schermata (es. si è già entrati)
@@ -9363,13 +9608,15 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
       sub = colorLabel(c);
       actions = [
         el("button", { class: "room-chip room-chip-bot", "aria-label": `Computer al posto ${colorLabel(c)}`, onclick: () => { _roomBotChoice = c; redraw(); } }, "🤖"),
-        el("button", { class: "room-chip room-chip-sit", onclick: () => { _roomBotChoice = null; selectColor(c); } }, "Siediti"),
+        el("button", { class: "room-chip room-chip-sit", onclick: (ev) => { _roomBotChoice = null; selectColor(c, ev.currentTarget); } }, "Siediti"),
       ];
     }
     const state = occupant ? (occupant.isBot ? "rs-bot" : "rs-taken") : mine ? "rs-mine" : pendingOther ? "rs-pending" : "rs-free";
+    const pop = mine && _seatJustTaken === c ? " rs-pop" : "";
+    if (pop) _seatJustTaken = null;
     return el(
       "div",
-      { class: `room-seat ${state}`, "data-color": c },
+      { class: `room-seat ${state}${pop}`, "data-color": c },
       el("span", { class: "room-dot", style: `background:var(--${c})` }, mine ? "✓" : ""),
       el("div", { class: "room-seat-text" }, el("span", { class: "room-seat-name" }, name), el("span", { class: "room-seat-sub" }, sub)),
       actions
@@ -9486,8 +9733,24 @@ function playerName(state, c) {
   return n && n.trim() ? n.trim() : colorLabel(c);
 }
 
-function selectColor(c) {
+async function selectColor(c, btn) {
   const roomId = lastColorSectionArgs && lastColorSectionArgs.roomId;
+  // v5.57: con il pulsante "Siediti" si aspetta l'esito della prenotazione
+  // (rotellina): se un altro telefono è arrivato prima, il pulsante diventa
+  // rosso "Già preso" e il posto non si prende. Se la rete non risponde
+  // entro 4 s si va avanti come prima (la conferma vera resta joinManualRoom).
+  let reserved = false;
+  if (btn && roomId) {
+    fbBusy(btn, "");
+    const ok = await Promise.race([reserveColorPending(roomId, c), fbWait(4000).then(() => null)]);
+    if (ok === false) {
+      if (btn.isConnected) fbFail(btn, "Già preso");
+      else showToast(`${colorLabel(c)} lo ha appena scelto un altro giocatore. Scegli un altro colore.`);
+      return;
+    }
+    reserved = true;
+    _seatJustTaken = c;
+  }
   const prevColor = myColor;
   myColor = c;
   // Prenota SUBITO il colore appena scelto (best-effort, non protetto da
@@ -9499,7 +9762,7 @@ function selectColor(c) {
   // occhi degli altri).
   if (roomId) {
     if (prevColor && prevColor !== c) releaseColorPending(roomId, prevColor);
-    reserveColorPending(roomId, c);
+    if (!reserved) reserveColorPending(roomId, c);
   }
   // Ridisegna l'intera sezione colori invece di limitarsi a spostare la
   // classe "selected" — ora serve perché il riquadro scelto mostra anche il
@@ -9816,15 +10079,20 @@ function reserveColorPending(roomId, color) {
   try {
     const token = getOrCreateClaimToken(roomId, color);
     lastPendingRefresh = Date.now();
-    roomRef(roomId)
+    // Restituisce true (prenotato), false (lo ha già un altro telefono) o
+    // null (errore/rete): serve a "Siediti" per mostrare l'esito sul pulsante.
+    return roomRef(roomId)
       .child("pending")
       .child(color)
       .transaction((current) => {
         if (current && current.token !== token && freshPendingColor({ x: current }, "x")) return undefined;
         return { token, ts: serverNow() };
       })
-      .catch(() => {});
-  } catch (e) {}
+      .then((r) => !!(r && r.committed))
+      .catch(() => null);
+  } catch (e) {
+    return Promise.resolve(null);
+  }
 }
 
 // La prenotazione di questo colore è di un ALTRO telefono (ed è ancora valida).
@@ -16023,7 +16291,7 @@ function applyInviteLinkIfPresent() {
   const roomId = (params.get("room") || "").trim().toUpperCase();
   if (!roomId) return;
   const input = document.getElementById("room-input");
-  if (input) input.value = roomId;
+  if (input) { input.value = roomId; codeBoxesDraw(input.parentNode); }
   try {
     history.replaceState(null, "", location.pathname);
   } catch (e) {
