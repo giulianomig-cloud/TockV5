@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.46**.
+- Versione attuale: **v5.47**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -78,6 +78,11 @@
   giocare, "Organizza un torneo", tornei in un unico riquadro a righe (concluso in fondo, sbiadito),
   tastini in basso con il nome sotto. Il logo scende se il telefono non riserva spazio all'ora
   (sotto l'ora l'iPhone lo sfocava). Scartate: "B · Elenco" e "C · Copertina".
+- Schermata della stanza (v5.47, scelta "C · Squadre" fra 3 proposte): due riquadri, uno per squadra
+  ("Squadra 1 · Rosso + Giallo" VS "Squadra 2 · Verde + Blu"), una riga per colore con pallino, nome
+  e a destra "Siediti" + 🤖 (il 🤖 apre nella riga la scelta Normale / Difficile / ✕) oppure "Libera"
+  per il computer. Qui NON esiste `#picker-wrap`: niente openPicker in questa schermata.
+  Scartate: "A · Compatta" (riquadri 2x2) e "B · Tavolo" (posti intorno a un tavolino).
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
 - Alcuni giocatori usano l'app con il **traduttore di Chrome** (es. in spagnolo): avvolge i testi

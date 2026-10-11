@@ -273,6 +273,28 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
 }
 .lobby-header-row .app-logo-img { width: 130px; max-width: 42vw; }
 
+/* Stanza "C · Squadre" (v5.46) */
+.room-teams { margin-bottom: 16px; }
+.room-team { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; overflow: hidden; }
+.room-team-head { padding: 9px 14px; font-size: .72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-3); background: rgba(201,154,58,.08); }
+.room-seat { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--panel-border); }
+.room-seat.rs-mine { background: rgba(201,154,58,.13); }
+.room-seat.rs-pending .room-seat-name { font-style: italic; color: var(--muted-2); }
+.room-dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .78rem; font-weight: 900; box-shadow: inset 0 -2px 0 rgba(0,0,0,.15); }
+.rs-free .room-dot, .rs-pending .room-dot { opacity: .55; }
+.room-seat-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.room-seat-name { font-weight: 800; color: var(--ink); font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-seat-sub { font-size: .72rem; font-weight: 700; color: var(--muted-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-chip { all: unset; box-sizing: border-box; cursor: pointer; flex-shrink: 0; text-align: center; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--panel-border); background: var(--panel); font-size: .78rem; font-weight: 800; color: var(--ink); white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.room-chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.room-chip-bot { padding: 7px 10px; }
+.room-chip.room-chip-sit, .room-chip.room-chip-sit * { background: var(--gold); border-color: var(--gold); color: var(--ink-on-gold); }
+.room-chip.room-chip-sit { padding: 7px 16px; }
+.room-vs { display: flex; align-items: center; gap: 10px; margin: 8px 0; color: var(--muted-3); font-size: .72rem; font-weight: 900; letter-spacing: .1em; }
+.room-vs::before, .room-vs::after { content: ""; flex: 1; height: 1px; background: var(--panel-border); }
+html.fx3d .room-team { background: linear-gradient(165deg, #FFFFFF 0%, #FBF5E6 60%, #F3E9D0 100%); border-color: #D9CBA8; box-shadow: 0 1px 0 rgba(255,255,255,.95) inset, 0 3px 0 #D2C093, 0 8px 10px -4px rgba(60,40,10,.35); }
+html.fx3d[data-theme="dark"] .room-team { background: linear-gradient(165deg, #30281E 0%, #261F17 100%); border-color: #4F4030; box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 3px 0 #0E0B08, 0 8px 10px -4px rgba(0,0,0,.65); }
+@media (pointer: coarse) { .lobby-card > .lobby-header-row:first-child { margin-top: max(0px, calc(50px - env(safe-area-inset-top, 0px))); } }
 /* "Etichetta" bianca con il codice stanza, come nel mockup — al posto del
    codice infilato nel paragrafo di istruzioni. */
 .room-tag {
@@ -7731,7 +7753,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.46";
+const APP_VERSION = "v5.47";
 
 let myColor = null;
 let myRoomId = null;
@@ -9221,6 +9243,7 @@ document.addEventListener("visibilitychange", () => {
 // scrivendo nel campo sopra. Chiamata sia al primo render sia da ogni
 // tick dell'ascolto Firebase in renderManualLobby.
 let lastColorSectionArgs = null;
+let _roomBotChoice = null; // colore su cui si sta scegliendo il livello del computer
 function renderLobbyColorSection(roomId, existingPlayers, pending) {
   const wrap = $("#color-row-wrap");
   if (!wrap) return; // non siamo più su questa schermata (es. si è già entrati)
@@ -9239,120 +9262,71 @@ function renderLobbyColorSection(roomId, existingPlayers, pending) {
     showToast(`${colorLabel(lost)} lo ha appena scelto un altro giocatore. Scegli un altro colore.`);
   }
 
-  // Le pedine sono raggruppate per squadra (TEAM_OF) invece che in una
-  // semplice griglia 2x2, con un badge "VS" al centro tra i due gruppi. I
-  // colori già presi da un altro giocatore in questa stanza sono disabilitati
-  // e mostrano CHI li ha presi (nome, o "computer") invece di un generico
-  // "(preso)" che non diceva nulla su chi ci fosse già dentro.
-  const takenColors = new Set(Object.keys(existingPlayers || {}));
-  const checkmark = () =>
-    el(
-      "span",
-      { class: "color-card-check" },
-      svgIcon(12, 12, "0 0 24 24", "#FFFFFF", 3.2, [["polyline", { points: "20 6 9 17 4 12" }]])
-    );
-  // Il "corpo" cliccabile del riquadro: pallino + nome/etichetta. Preso da un
-  // altro giocatore -> nome (o "computer") e colore come sottotitolo; è il
-  // tuo colore già scelto (ma non ancora confermato, vedi joinManualRoom) ->
-  // il tuo nome (se scritto) e un segno di spunta; libero -> solo "Libero",
-  // i pulsanti bot stanno sotto nello stesso riquadro.
-  const colorBtn = (c) => {
+  // v5.46 (proposta "C · Squadre"): due riquadri, uno per squadra, con una
+  // riga per colore — pallino, nome/stato e a destra i pulsanti. Libero:
+  // "Siediti" (= selectColor) e 🤖 (sceglie Normale/Difficile e assegna il
+  // computer). Computer: "Libera". Preso da un'altra persona: solo il nome.
+  // Prenotato da un altro telefono in questo momento (vedi
+  // reserveColorPending): "In scelta…", senza pulsanti.
+  // 🤖 apre la scelta del livello DENTRO la riga (qui non c'è il foglio a
+  // comparsa dei picker: #picker-wrap esiste solo nella schermata di gioco).
+  const redraw = () => { if (lastColorSectionArgs) renderLobbyColorSection(lastColorSectionArgs.roomId, lastColorSectionArgs.existingPlayers, lastColorSectionArgs.pending); };
+  if (_roomBotChoice && ((existingPlayers && existingPlayers[_roomBotChoice]) || pendingByOther(roomId, pending, _roomBotChoice))) _roomBotChoice = null;
+  const seatRow = (c) => {
     const occupant = existingPlayers && existingPlayers[c];
     const mine = !occupant && myColor === c;
-    // Qualcun altro lo ha appena selezionato (non ancora confermato con
-    // "Entra nella stanza") — vedi reserveColorPending. Il riquadro viene
-    // disabilitato come per un colore già preso da un umano/bot, così non
-    // si può cliccarci sopra proprio mentre un altro sta decidendo; è
-    // comunque solo una protezione "morbida" lato interfaccia — la vera
-    // assegnazione resta protetta dalla transazione in joinManualRoom.
     const pendingOther = !occupant && !mine && pendingByOther(roomId, pending, c);
-    let inner;
-    if (occupant) {
-      inner = [
-        el("span", { class: "color-card-dot" }),
-        el("div", { class: "color-card-name" }, (occupant.isBot ? "🤖 " : "") + (occupant.name || colorLabel(c))),
-        el("div", { class: "color-card-sub" }, colorLabel(c)),
-      ];
+    let name, sub, actions = [];
+    if (occupant && occupant.isBot) {
+      name = "🤖 Computer";
+      sub = occupant.botLevel === "easy" ? "normale" : "difficile";
+      actions = [el("button", { class: "room-chip", onclick: () => removeBotFromColor(roomId, c, () => {}) }, "Libera")];
+    } else if (occupant) {
+      name = occupant.name || colorLabel(c);
+      sub = colorLabel(c);
     } else if (mine) {
-      const myDisplayName = ($("#name-input") && $("#name-input").value.trim()) || myName || "Tu";
-      inner = [
-        checkmark(),
-        el("span", { class: "color-card-dot" }),
-        el("div", { class: "color-card-name" }, myDisplayName),
-        el("div", { class: "color-card-sub" }, `${colorLabel(c)} · tu`),
-      ];
+      name = ($("#name-input") && $("#name-input").value.trim()) || myName || "Tu";
+      sub = `${colorLabel(c)} · tu`;
     } else if (pendingOther) {
-      inner = [el("span", { class: "color-card-dot" }), el("div", { class: "color-card-free-label" }, "In scelta…")];
+      name = "In scelta…";
+      sub = "Un altro giocatore lo sta scegliendo";
+    } else if (_roomBotChoice === c) {
+      name = colorLabel(c);
+      sub = "🤖 Livello?";
+      const pick = (lv) => { _roomBotChoice = null; assignBotToColor(roomId, c, () => {}, lv); redraw(); };
+      actions = [
+        el("button", { class: "room-chip", onclick: () => pick("easy") }, "Normale"),
+        el("button", { class: "room-chip", onclick: () => pick("hard") }, "Difficile"),
+        el("button", { class: "room-chip room-chip-bot", "aria-label": "Annulla", onclick: () => { _roomBotChoice = null; redraw(); } }, "✕"),
+      ];
     } else {
-      inner = [el("span", { class: "color-card-dot" }), el("div", { class: "color-card-free-label" }, "Libero")];
+      name = "Libero";
+      sub = colorLabel(c);
+      actions = [
+        el("button", { class: "room-chip room-chip-bot", "aria-label": `Computer al posto ${colorLabel(c)}`, onclick: () => { _roomBotChoice = c; redraw(); } }, "🤖"),
+        el("button", { class: "room-chip room-chip-sit", onclick: () => { _roomBotChoice = null; selectColor(c); } }, "Siediti"),
+      ];
     }
+    const state = occupant ? (occupant.isBot ? "rs-bot" : "rs-taken") : mine ? "rs-mine" : pendingOther ? "rs-pending" : "rs-free";
     return el(
-      "button",
-      { class: "color-btn color-" + c, onclick: () => selectColor(c), "data-color": c, disabled: takenColors.has(c) || pendingOther },
-      inner
+      "div",
+      { class: `room-seat ${state}`, "data-color": c },
+      el("span", { class: "room-dot", style: `background:var(--${c})` }, mine ? "✓" : ""),
+      el("div", { class: "room-seat-text" }, el("span", { class: "room-seat-name" }, name), el("span", { class: "room-seat-sub" }, sub)),
+      actions
     );
   };
-  // Ogni posto libero può anche essere affidato al computer invece che a
-  // una persona — comodo per provare/giocare quando non siete in 4. Un
-  // posto già assegnato al computer si può anche liberare di nuovo (mai un
-  // posto occupato da una persona vera). onDone è un no-op: l'ascolto
-  // realtime già attivo su questa schermata si occupa da solo di
-  // ridisegnare non appena Firebase conferma la scrittura.
-  const botCell = (c) => {
-    const taken = existingPlayers && existingPlayers[c];
-    if (!taken && myColor === c) return ""; // è il colore che hai appena scelto tu, niente pulsanti bot
-    // Un altro giocatore lo sta scegliendo proprio ora: niente pulsanti
-    // "assegna al computer" qui, per non invitare a scatenare proprio in
-    // quel momento una corsa fra bot e umano sullo stesso colore.
-    if (!taken && pendingByOther(roomId, pending, c)) {
-      return el("div", { class: "bot-cell-assign" }, el("div", { class: "bot-assign-label pending-hint" }, "Un altro giocatore lo sta scegliendo…"));
-    }
-    if (!taken) {
-      return el(
-        "div",
-        { class: "bot-cell-assign" },
-        el("div", { class: "bot-assign-label" }, "Assegna al computer:"),
-        el(
-          "div",
-          { class: "bot-btn-row" },
-          el("button", { class: "bot-btn", onclick: () => assignBotToColor(roomId, c, () => {}, "easy") }, "🤖 Normale"),
-          el("button", { class: "bot-btn", onclick: () => assignBotToColor(roomId, c, () => {}, "hard") }, "🤖 Difficile")
-        )
-      );
-    }
-    if (taken.isBot) {
-      const lv = taken.botLevel === "easy" ? "normale" : "difficile";
-      return el(
-        "button",
-        { class: "bot-btn bot-btn-remove", onclick: () => removeBotFromColor(roomId, c, () => {}) },
-        `🤖 Libera posto (${lv})`
-      );
-    }
-    return "";
-  };
-  // Il riquadro intero (.color-cell) porta ora bordo/sfondo/posizione dello
-  // stato (preso/tuo/libero) — prima erano due blocchi separati (bottone +
-  // div sotto) invece di un'unica card come nel mockup.
-  const colorCell = (c) => {
-    const occupant = existingPlayers && existingPlayers[c];
-    const pendingOther = !occupant && myColor !== c && pendingByOther(roomId, pending, c);
-    const state = occupant ? "cc-taken" : myColor === c ? "cc-mine" : pendingOther ? "cc-pending" : "cc-free";
-    return el("div", { class: `color-cell cc-${c} ${state}` }, colorBtn(c), botCell(c));
-  };
-  // COLORS è già nell'ordine giusto per riempire la griglia 2x2 riga per
-  // riga (rosso+verde sulla prima riga, giallo+blu sulla seconda) — vedi il
-  // commento su .teams-grid per il perché di una griglia unica.
-  wrap.innerHTML = "";
-  wrap.appendChild(
-    el(
+  const teamCard = (team) => {
+    const cols = COLORS.filter((c) => TEAM_OF[c] === team);
+    return el(
       "div",
-      { class: "teams-grid" },
-      el("div", { class: "team-thread team-thread-a" }),
-      el("div", { class: "team-thread team-thread-b" }),
-      COLORS.map(colorCell),
-      el("div", { class: "vs-badge" }, el("span", {}, "VS"))
-    )
-  );
+      { class: "room-team" },
+      el("div", { class: "room-team-head" }, `Squadra ${team === "A" ? 1 : 2} · ${TEAM_LABEL[team]}`),
+      cols.map(seatRow)
+    );
+  };
+  wrap.innerHTML = "";
+  wrap.appendChild(el("div", { class: "room-teams" }, teamCard("A"), el("div", { class: "room-vs" }, "VS"), teamCard("B")));
 
   const joinBtn = $("#join-btn");
   if (joinBtn) joinBtn.disabled = !myColor;
