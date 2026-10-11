@@ -7984,7 +7984,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.58";
+const APP_VERSION = "v5.59";
 
 let myColor = null;
 let myRoomId = null;
@@ -8950,7 +8950,10 @@ function fbBusy(btn, text) {
   fbSet(btn, "fb-busy", el("span", { class: "fb-spin", "aria-hidden": "true" }), text);
   btn.disabled = true;
 }
-function fbOk(btn, text) { fbSet(btn, "fb-ok", null, "✓ " + (text || "Fatto")); }
+function fbOk(btn, text, silent) {
+  fbSet(btn, "fb-ok", null, "✓ " + (text || "Fatto"));
+  if (btn && !silent) { try { playSound("fbOk"); } catch (e) {} }
+}
 function fbReset(btn) {
   if (!btn || btn._fbOrig === undefined) return;
   btn.classList.remove("fb-busy", "fb-ok", "fb-fail");
@@ -8961,6 +8964,7 @@ function fbReset(btn) {
 }
 function fbFail(btn, text) {
   if (!btn) return;
+  try { playSound("fbFail"); } catch (e) {}
   fbSet(btn, "fb-fail", null, text || "Riprova");
   setTimeout(() => fbReset(btn), 1600);
 }
@@ -8980,6 +8984,7 @@ function codeBoxesDraw(row) {
   [...v].forEach((c, i) => row.appendChild(el("div", { class: "cf-box filled" }, i >= prev.length || prev[i] !== c ? el("span", { class: "ch" }, c) : c)));
   if (focused && v.length < 14) row.appendChild(el("div", { class: "cf-box active" }));
   row.classList.toggle("cf-long", v.length > 8);
+  if (row._shown !== undefined && v.length > prev.length) { try { playSound("cfKey"); } catch (e) {} }
   row._shown = v;
 }
 
@@ -9003,6 +9008,8 @@ function codeFxStart(opts) {
   const rr = row.getBoundingClientRect();
   const pos = boxes.map((x) => { const r = x.getBoundingClientRect(); return [r.left + r.width / 2 - (rr.left + rr.width / 2), r.top + r.height / 2 - (rr.top + rr.height / 2)]; });
   row.classList.add("cf-run");
+  try { playSound("cfWhoosh"); } catch (e) {}
+  [520, 750, 980, 1210].forEach((ms) => setTimeout(() => { if (row.isConnected) { try { playSound("cfTick"); } catch (e) {} } }, ms));
   row.animate([{ height: rr.height + "px" }, { height: "150px" }], { duration: 450, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" });
   const spin = el("div", { class: "cf-spinwrap" });
   row.appendChild(spin);
@@ -9061,7 +9068,8 @@ async function cfSuccess(row, go, title, sub, h, subText, label) {
   ring.animate([{ opacity: 0, transform: "scale(.4)" }, { opacity: 1, transform: "scale(1)", offset: 0.4 }, { opacity: 0, transform: "scale(1.9)" }], { duration: 1300, easing: "ease-out" });
   setTimeout(() => ring2.animate([{ opacity: 0, transform: "scale(.4)" }, { opacity: 0.8, transform: "scale(1)", offset: 0.4 }, { opacity: 0, transform: "scale(2.3)" }], { duration: 1400, easing: "ease-out" }), 350);
   orb.animate([{ opacity: 0, transform: "rotate(0) scale(.6)" }, { opacity: 1, transform: "rotate(140deg) scale(1)", offset: 0.5 }, { opacity: 0, transform: "rotate(280deg) scale(1.3)" }], { duration: 1300, easing: "ease-in-out" });
-  fbOk(go, label);
+  fbOk(go, label, true);
+  try { playSound("cfSuccess"); } catch (e) {}
   const hero = document.querySelector(".bx-hero");
   if (hero && hero.contains(row)) hero.classList.add("cf-hero-ok");
   const swap = (node, build) => {
@@ -9781,6 +9789,7 @@ async function selectColor(c, btn) {
     }
     reserved = true;
     _seatJustTaken = c;
+    try { playSound("fbOk"); } catch (e) {}
   }
   const prevColor = myColor;
   myColor = c;
@@ -11306,6 +11315,19 @@ const SOUND_RECIPES = {
   cardFlick: () => { noiseBurst(0, 120, 0.32, 5200, 2600, "bandpass", 0.04, 0.9); noiseBurst(0.11, 14, 0.9, 1900, 1900, "bandpass", 0.002, 0.8); tone(150, 0.11, 45, "sine", 0.22, 85); },
   // scoppiettio del fuoco (carta bruciata)
   burn: () => { noiseBurst(0, 500, 0.5, 300, 1500); for (let k = 0; k < 14; k++) noiseBurst(0.1 + Math.random() * 0.9, 12, 0.9, 4000, 4000); },
+  // v5.59: suoni delle animazioni "Glassy OTP" (presi dal video dell'utente).
+  // Ogni lettera scritta nelle caselle: "tic" secco con un piccolo squillo.
+  cfKey: () => { noiseBurst(0, 18, 0.9, 3500, 3500, "bandpass", 0.002, 1.2); tone(1900, 0, 90, "sine", 0.22, 0, [[1, 1, 30]]); },
+  // Pulsante premuto, le caselle partono: fruscio che sale.
+  cfWhoosh: () => { noiseBurst(0, 420, 0.55, 500, 3200, "bandpass", 0.22, 0.9); tone(250, 0, 420, "sine", 0.18, 300); },
+  // Attesa (le caselle girano): colpetto sordo.
+  cfTick: () => { noiseBurst(0, 22, 0.9, 1300, 1300, "bandpass", 0.002, 1.5); tone(170, 0, 45, "sine", 0.3, 95); },
+  // Esito positivo con cerchi e ✓: arpeggio a campanella Do-Mi-Sol-Do.
+  cfSuccess: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.09, 900, "sine", 0.24, 0, BELL)); },
+  // Pulsante diventato verde: due note di campanello.
+  fbOk: () => { tone(784, 0, 380, "sine", 0.22, 0, BELL); tone(1047, 0.08, 520, "sine", 0.22, 0, BELL); },
+  // Pulsante rosso (errore, "Già preso"): due note morbide che scendono.
+  fbFail: () => { tone(330, 0, 220, "triangle", 0.3, 220); tone(247, 0.12, 300, "triangle", 0.26, 150); },
 };
 
 // Called from every interactive tap in the game (a card, sending a chat
@@ -11343,6 +11365,12 @@ const SOUND_RECIPES_8BIT = {
   chatMessage: () => { beep(1568, 0, 60, "square", 0.12); },
   victory: () => { [[523, 0, 110], [523, 0.12, 110], [523, 0.24, 110], [659, 0.36, 330], [415, 0.72, 110], [466, 0.84, 110], [523, 0.96, 110], [466, 1.08, 110], [523, 1.2, 480]].forEach(([f, t, d]) => beep(f, t, d, "square", 0.17)); },
   burn: () => { noiseBurst(0, 450, 0.5, 500, 1800); tone(900, 0, 450, "square", 0.1, 120); for (let k = 0; k < 10; k++) noiseBurst(0.05 + Math.random() * 0.8, 15, 0.8, 4500, 4500); },
+  cfKey: () => { beep(1568, 0, 25, "square", 0.08); },
+  cfWhoosh: () => { [262, 330, 392, 523].forEach((f, i) => beep(f, i * 0.05, 50, "square", 0.1)); },
+  cfTick: () => { beep(220, 0, 30, "square", 0.1); },
+  cfSuccess: () => { [523, 659, 784, 1047].forEach((f, i) => beep(f, i * 0.08, i === 3 ? 320 : 90, "square", 0.15)); },
+  fbOk: () => { beep(784, 0, 70, "square", 0.14); beep(1047, 0.07, 160, "square", 0.14); },
+  fbFail: () => { beep(330, 0, 100, "square", 0.14); beep(220, 0.1, 200, "square", 0.14); },
 };
 
 function playSound(name) {
