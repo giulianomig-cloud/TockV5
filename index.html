@@ -4538,6 +4538,53 @@ function sevenPawnCanReceiveSteps(state, color, pawnIndex) {
   return false;
 }
 
+// v5.66: pedine da proporre nel foglio del 7 — solo quelle che possono
+// davvero ricevere almeno un passo in una distribuzione valida. Prima, quando
+// il 7 poteva far proseguire i passi avanzati sul compagno, comparivano
+// TUTTE le proprie pedine (anche bloccate o già all'ultima casella di casa).
+function sevenMovableOwnPawns(state, color) {
+  const inPlay = state.pawns[color].map((p, i) => i).filter((i) => state.pawns[color][i] !== -1);
+  const ok = new Set(inPlay.filter((i) => sevenPawnCanReceiveSteps(state, color, i)));
+  if (ok.size < inPlay.length) {
+    const partner = PARTNER_OF[color];
+    for (let ownTotal = 1; ownTotal <= 6; ownTotal++) {
+      for (const ownDist of sevenAllSplitsOfTotal(inPlay, ownTotal)) {
+        if (ownDist.every((d) => ok.has(d.pawnIndex))) continue; // non aggiunge nulla di nuovo
+        const ownResult = sevenValidateOwnPortions(state, color, ownDist);
+        if (!ownResult || !ownResult.allHome) continue;
+        if (sevenSplitValidatesFromSnapshot(ownResult.pawns, partner, (i) => hasLapped(state, partner, i), 7 - ownTotal, state.lapped)) {
+          ownDist.forEach((d) => ok.add(d.pawnIndex));
+        }
+      }
+    }
+  }
+  return inPlay.filter((i) => ok.has(i));
+}
+
+// Pedine del compagno che possono ricevere almeno un passo dei `total` passi
+// avanzati, partendo dalla posizione dopo le porzioni proprie (snapshot).
+function sevenMovablePartnerPawns(state, color, pawnsSnapshot, total) {
+  const partner = PARTNER_OF[color];
+  const inPlay = pawnsSnapshot[partner].map((p, i) => i).filter((i) => pawnsSnapshot[partner][i] !== -1);
+  const ok = new Set();
+  for (const dist of sevenAllSplitsOfTotal(inPlay, total)) {
+    if (dist.every((d) => ok.has(d.pawnIndex))) continue;
+    for (const perm of permutations(dist)) {
+      const scratch = clonePawns(pawnsSnapshot);
+      let good = true;
+      for (const { pawnIndex, steps } of perm) {
+        const pos = scratch[partner][pawnIndex];
+        if (pos === undefined || pos === -1) { good = false; break; } // mangiata da una porzione precedente
+        const path = sevenSinglePawnPath({ pawns: scratch, lapped: state.lapped }, partner, pos, steps, true, hasLapped(state, partner, pawnIndex));
+        if (!path) { good = false; break; }
+        landSevenPortion(scratch, partner, pawnIndex, path);
+      }
+      if (good) { dist.forEach((d) => ok.add(d.pawnIndex)); break; }
+    }
+  }
+  return inPlay.filter((i) => ok.has(i));
+}
+
 function kSubsets(arr, k) {
   const out = [];
   function rec(start, chosen) {
@@ -5038,7 +5085,7 @@ if (typeof module !== "undefined") {
     newGameState, normalizeState, dealNewHand, submitExchangeCard, postChatMessage,
     allPawnsOnBoard, pawnsInBase, stepsFromOwnBase, pathForward, pathBackward,
     occupantAt, homeOccupant, allPawnPositions, isPawnProtected, jackableTargets,
-    legalMovesForCard, sevenHasAnyDistribution, sevenValidateDistribution,
+    legalMovesForCard, sevenHasAnyDistribution, sevenValidateDistribution, sevenMovableOwnPawns, sevenMovablePartnerPawns,
     anyLegalMove, applyMove, checkWin, resetForNewGame, burnOneCard, advanceTurn, activeColorFor,
     compareAppVersions,
   };
@@ -7993,7 +8040,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.65";
+const APP_VERSION = "v5.66";
 
 let myColor = null;
 let myRoomId = null;
@@ -15386,11 +15433,9 @@ function openSevenSplitter(active, card) {
   // giocata e proseguire sul compagno, mostra comunque tutte le proprie
   // pedine in gioco: la combinazione esatta la verifica comunque il tasto
   // "Conferma" (vedi confirmSeven).
-  const leftoverPossible = sevenHasAnyLeftoverToPartner(currentState, active);
-  const ownPawns = currentState.pawns[active]
-    .map((p, i) => ({ pawnIndex: i, pos: p, color: active }))
-    .filter((x) => x.pos !== -1)
-    .filter((x) => leftoverPossible || sevenPawnCanReceiveSteps(currentState, active, x.pawnIndex));
+  // v5.66: anche nel caso "passi avanzati al compagno" solo le pedine che
+  // possono davvero muovere (sevenMovableOwnPawns).
+  const ownPawns = sevenMovableOwnPawns(currentState, active).map((i) => ({ pawnIndex: i, pos: currentState.pawns[active][i], color: active }));
   sevenAllocation = {};
   ownPawns.forEach((p) => (sevenAllocation[sevenAllocKey(p.color, p.pawnIndex)] = 0));
   _sevenRowKeys = null; // forza una costruzione completa del foglio, è la prima apertura
@@ -15421,10 +15466,10 @@ function renderSevenSplitter(active, card, ownPawns) {
       // in casa?", segnalato). Le pedine nelle altre 3 caselle di casa
       // restano proponibili: possono ancora avanzare (vedi "casa#2 →
       // casa#4" nel registro mosse).
-      const lastHomeIdx = BOARD.homePaths[partner].length - 1;
-      partnerPawns = currentState.pawns[partner]
-        .map((p, i) => ({ pawnIndex: i, pos: p, color: partner }))
-        .filter((x) => x.pos !== -1 && x.pos !== 1000 + lastHomeIdx);
+      // v5.66: più in generale, solo le pedine del compagno che possono
+      // ricevere almeno uno dei passi avanzati (sevenMovablePartnerPawns).
+      partnerPawns = sevenMovablePartnerPawns(currentState, active, ownResult.pawns, 7 - ownTotal)
+        .map((i) => ({ pawnIndex: i, pos: ownResult.pawns[partner][i], color: partner }));
     }
   }
   // Ripulisce eventuali passi lasciati sul compagno da un'allocazione

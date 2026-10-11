@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.65**.
+- Versione attuale: **v5.66**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -25,6 +25,9 @@
   con una carta normale arrivandoci sopra (senza scavalcare nessuno), col 7 anche a metà strada.
   Se si mangia una pedina del proprio colore l'app chiede conferma.
 - Le pedine protette (appena entrate sulla propria base) non si mangiano né si scavalcano.
+- Foglio del 7 (v5.66): mostra SOLO le pedine che possono ricevere almeno un passo in una distribuzione
+  valida (`sevenMovableOwnPawns`), anche quando i passi avanzati possono andare al compagno; le righe del
+  compagno solo per le sue pedine che possono ricevere i passi avanzati (`sevenMovablePartnerPawns`).
 
 ## Tornei
 - L'organizzatore è riconosciuto dal dispositivo (`organizerToken`), non dal nome.

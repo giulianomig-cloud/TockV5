@@ -281,6 +281,20 @@ test("il 7: se le proprie pedine finiscono tutte in casa, i passi avanzati vanno
   assert.equal(s.pawns.yellow[0], 45);
 });
 
+test("il 7: nel foglio compaiono solo le pedine che possono davvero muovere", () => {
+  // Rosse già in casa (bloccate) + una a 63: anche se i passi avanzati possono
+  // andare al compagno, si propone solo la rossa che può muovere.
+  const s = partita({ red: [CASA(3), CASA(2), CASA(1), 63], yellow: [40, CASA(3), -1, -1] });
+  assert.deepEqual(T.sevenMovableOwnPawns(s, "red"), [3]);
+  // Dopo 2 passi della rossa (tutte in casa), dei gialli solo quello sul
+  // percorso può ricevere i 5 passi avanzati: quello all'ultima casella di casa no.
+  const dopo = JSON.parse(JSON.stringify(s.pawns));
+  dopo.red[3] = CASA(0);
+  assert.deepEqual(T.sevenMovablePartnerPawns(s, "red", dopo, 5), [0]);
+  // Caso normale: due pedine libere, compaiono entrambe.
+  assert.deepEqual(T.sevenMovableOwnPawns(partita({ red: [5, 20, -1, -1] }), "red"), [0, 1]);
+});
+
 // ---------------- Turni e vittoria ----------------
 
 test("il turno passa al giocatore successivo e salta chi non ha carte", () => {
