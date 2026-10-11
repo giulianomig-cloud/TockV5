@@ -2414,6 +2414,9 @@ html[data-skin="bright"]:not([data-theme="dark"]) .reaction-bar .reaction-btn:ac
 .reaction-who { font-size: 0.7rem; font-weight: 800; padding: 1px 8px; border-radius: 10px; background: rgba(0,0,0,0.65); color: #fff; display: inline-block; }
 @keyframes reactionUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 15% { transform: translateY(-20px) scale(1.15); opacity: 1; } 100% { transform: translateY(-190px) scale(1); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .reaction-float { animation-duration: 1.5s; } }
+/* v5.61: passaggi tra schermate (View Transitions): l'elemento che vola e il resto che sfuma. */
+::view-transition-group(vt-hero) { animation-duration: .5s; animation-timing-function: cubic-bezier(.3,.7,.2,1); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
 .reaction-mini { position: fixed; bottom: 22%; z-index: 9998; pointer-events: none; font-size: 1.9rem; margin-left: .6rem; filter: drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
 .chat-fab-row { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-bottom: 10px; }
 .chat-preview {
@@ -7985,7 +7988,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.60";
+const APP_VERSION = "v5.61";
 
 let myColor = null;
 let myRoomId = null;
@@ -8144,7 +8147,7 @@ function renderLobby() {
           el("div", { class: "cf-row", onclick: () => roomInput.focus() }, roomInput),
           el("button", { id: "continue-btn", onclick: continueFromRoomCode }, "Gioca →"))),
       el("div", { class: "bx-bento" },
-        el("button", { class: "bx-card bx-lb", onclick: renderLeaderboardScreen },
+        el("button", { class: "bx-card bx-lb", onclick: (ev) => vtGo(ev.currentTarget, ".lobby-card", renderLeaderboardScreen) },
           el("span", { class: "bx-k" }, "🏆 Classifica"), el("span", { class: "bx-t" }, "Chi vince di più"), podium),
         el("button", { class: "bx-card", onclick: openTutorial },
           el("span", { class: "bx-k" }, "🎓 Impara"),
@@ -8191,7 +8194,7 @@ async function fillActiveTournamentsList() {
     wrap.appendChild(
       el(
         "button",
-        { class: "tourney-row" + (t.stato === "concluso" ? " tourney-done" : ""), onclick: () => openTournamentByCode(t.code) },
+        { class: "tourney-row" + (t.stato === "concluso" ? " tourney-done" : ""), onclick: (ev) => vtGo(ev.currentTarget, ".lobby-card", () => openTournamentByCode(t.code)) },
         el(
           "div",
           { class: "tourney-row-main" },
@@ -8258,7 +8261,7 @@ async function renderLeaderboardScreen() {
       el("h2", { style: "margin:0 0 2px;" }, "Classifica generale"),
       tabs,
       body,
-      el("button", { class: "primary", style: "margin-top:14px;", onclick: renderLobby }, "Torna alla home")
+      el("button", { class: "primary", style: "margin-top:14px;", onclick: () => vtGo(document.querySelector(".lobby-card"), ".bx-lb", renderLobby) }, "Torna alla home")
     )
   );
 
@@ -9103,6 +9106,28 @@ async function cfCelebrate(go, title, sub, h, subText, label) {
   await cfSuccess(row, go, title, sub, h, subText, label);
 }
 
+// v5.61: passaggi tra schermate con un "elemento che vola" (View Transitions
+// del browser): fromEl nella schermata di partenza diventa toSel in quella
+// nuova (la casella verde del codice → l'etichetta "STANZA TORVA1", la
+// scheda del torneo → la pagina del torneo, il podio → la classifica),
+// mentre il resto sfuma. Sui telefoni che non lo supportano (o con "riduci
+// movimento") si cambia schermata come prima.
+const VT_TO_ROOM = ".room-tag, .room-team-room";
+function vtGo(fromEl, toSel, render) {
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!document.startViewTransition || reduce || !fromEl || !fromEl.isConnected) return render();
+  fromEl.style.viewTransitionName = "vt-hero";
+  let toEl = null;
+  const t = document.startViewTransition(async () => {
+    fromEl.style.viewTransitionName = "";
+    await render();
+    toEl = document.querySelector(toSel);
+    if (toEl) toEl.style.viewTransitionName = "vt-hero";
+  });
+  t.finished.finally(() => { if (toEl) toEl.style.viewTransitionName = ""; });
+  return t.updateCallbackDone.catch(() => {});
+}
+
 async function continueFromRoomCode() {
   if (document.querySelector(".bx-hero .cf-row.cf-run")) return; // animazione già partita
   unlockAudio();
@@ -9122,7 +9147,7 @@ async function continueFromRoomCode() {
     const codeSnap = await codesRef().child(roomId).get();
     if (codeSnap.val() === "tournament") {
       if (fx) await fx.finish("ok", ["Torneo", "trovato!"], "Ti porto alla pagina del torneo.", "Torneo trovato");
-      openTournamentByCode(roomId);
+      vtGo(fx && fxRow.querySelector(".cf-okx"), ".room-tag, .t-head h1", () => openTournamentByCode(roomId));
       return;
     }
   } catch (e) {
@@ -9143,11 +9168,12 @@ async function continueFromRoomCode() {
 
   if (!snap.exists()) {
     if (fx) await fx.finish("ok", ["Stanza", "nuova!"], "Non esiste ancora: la crei tu.", "Stanza nuova");
-    renderModeChoice(roomId);
+    vtGo(fx && fxRow.querySelector(".cf-okx"), VT_TO_ROOM, () => renderModeChoice(roomId));
     return;
   }
 
   const existing = normalizeState(snap.val());
+  const heroGo = (render) => vtGo(fx && fxRow.querySelector(".cf-okx"), VT_TO_ROOM, render);
   if (fx) {
     const nGioc = COLORS.filter((c) => existing.players && existing.players[c] && !existing.players[c].isBot).length;
     await fx.finish("ok", ["Stanza", "trovata!"], nGioc ? `${nGioc} ${nGioc === 1 ? "giocatore" : "giocatori"} al tavolo.` : "Al momento è vuota.", "Stanza trovata");
@@ -9167,8 +9193,7 @@ async function continueFromRoomCode() {
       // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
       // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
       // ("Cannot set properties of null", visto su un tavolo di torneo).
-      renderGameShell();
-      watchRoom(roomId, onStateChange);
+      heroGo(() => { renderGameShell(); watchRoom(roomId, onStateChange); });
       return;
     }
   }
@@ -9192,15 +9217,14 @@ async function continueFromRoomCode() {
   // sta rientrando da un dispositivo diverso — offriglielo prima di
   // mandarlo dritto alla lobby/estrazione come fosse nuovo.
   if (existing.players && Object.keys(existing.players).length > 0) {
-    renderNameRecoveryScreen(roomId, existing.players);
+    heroGo(() => renderNameRecoveryScreen(roomId, existing.players));
     return;
   }
 
-  if (existing.roomMode === "draw") {
-    renderDraftNameScreen(roomId);
-  } else {
-    renderManualLobby(roomId, existing.players || {});
-  }
+  heroGo(() => {
+    if (existing.roomMode === "draw") renderDraftNameScreen(roomId);
+    else renderManualLobby(roomId, existing.players || {});
+  });
 }
 
 // Testata delle schermate "secondarie" (v5.51): logo piccolo a sinistra e,
