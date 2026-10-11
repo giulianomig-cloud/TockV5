@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.54**.
+- Versione attuale: **v5.55**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -109,6 +109,10 @@
   scuro). Dalla v5.54 i pulsanti principali e "+ Organizza un torneo" sono ORO (`--bx-btn-bg`, sfumatura
   dorata con scritta scura) al posto del nero; scartati 4 colori, verde tavolo, terracotta. Token `--bx-*` in `:root` e `:root[data-theme="dark"]`. Scartati "Editoriale" e "Vetro" e i
   soli cambi di colore (Blu notte, Bianco e blu, Terracotta).
+- Schermata di gioco in stile Bento (v5.55, solo stile Classico): fondo `--bx-bg`, pulsanti in alto,
+  riquadri giocatori, chat e "Sollecita" bianchi senza bordo con ombra; riga "Tocca a te" e pulsante
+  chat ORO; tabellone con angoli più tondi e ombra morbida. Carte e tabellone invariati; Legno, Notte,
+  Luminoso e Arcade non cambiano.
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,

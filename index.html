@@ -3025,6 +3025,19 @@ html[data-skin="arcade"] .status-offline-dot { background: #6c6c80; box-shadow: 
 .chat-fab-row .reaction-btn.reaction-fab { flex: 0 0 auto; width: 44px; height: 44px; padding: 0; border-radius: 50%; font-size: 1.35rem; display: flex; align-items: center; justify-content: center; }
 .chat-fab-row .reaction-fab.open { font-size: 1rem; font-weight: 800; }
 #chat-wrap .reaction-bar { margin-top: 0; animation: lmIn .15s ease-out; }
+/* v5.55: schermata di gioco in stile Bento (solo stile Classico; carte e tabellone invariati) */
+html:not([data-skin]) body:has(.game-shell) { background: var(--bx-bg); }
+html:not([data-skin]) .game-shell .icon-btn, html:not([data-skin]) .game-shell .icon-btn-pair { background: var(--bx-card); border: none; border-radius: 12px; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .icon-btn-pair .icon-btn { box-shadow: none; }
+html:not([data-skin]) .game-shell .room-team-row { border: none; border-radius: 22px; background: var(--bx-card); box-shadow: var(--bx-shadow); overflow: hidden; }
+html:not([data-skin]) .game-shell .board-player { border: none; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell #board-wrap { border-radius: 28px; box-shadow: 0 2px 4px rgba(0,0,0,.05), 0 18px 34px -20px rgba(60,40,10,.55); }
+html:not([data-skin]) .game-shell .turn-line.my-turn { background: var(--bx-btn-bg); border: none; border-radius: 22px; box-shadow: 0 12px 26px -14px rgba(168,125,34,.7); }
+html:not([data-skin]) .game-shell .turn-line:not(.my-turn) { background: var(--bx-card); border: none; border-radius: 22px; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .chat-preview { background: var(--bx-card); border: none; border-radius: 18px; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .chat-fab { background: var(--bx-btn-bg); box-shadow: 0 10px 22px -12px rgba(168,125,34,.7); }
+html:not([data-skin]) .game-shell .reaction-fab { background: var(--bx-card); border: none; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .nudge-btn { background: var(--bx-card); border: none; border-radius: 18px; box-shadow: var(--bx-shadow); }
 </style>
 </head>
 <body>
@@ -7902,7 +7915,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.54";
+const APP_VERSION = "v5.55";
 
 let myColor = null;
 let myRoomId = null;
