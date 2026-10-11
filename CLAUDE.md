@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.51**.
+- Versione attuale: **v5.52**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -28,6 +28,9 @@
 
 ## Tornei
 - L'organizzatore è riconosciuto dal dispositivo (`organizerToken`), non dal nome.
+- Aprire un torneo (v5.52): se questo telefono è l'organizzatore si va sempre alla pagina del torneo,
+  anche se non è iscritto. La schermata di iscrizione ha "👀 Guarda il torneo senza iscriverti" (da lì,
+  in fondo, "Diventa organizzatore da questo dispositivo") e a torneo pieno "Torneo al completo".
 - Passare l'organizzazione: si scrive `passa:<playerId>` in `organizerToken`; il telefono di
   quella persona lo sostituisce col proprio token quando apre il torneo.
 - Le regole Firebase rifiutano campi nuovi nei tornei: usare solo i campi esistenti.

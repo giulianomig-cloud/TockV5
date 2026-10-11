@@ -7834,7 +7834,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.51";
+const APP_VERSION = "v5.52";
 
 let myColor = null;
 let myRoomId = null;
@@ -8246,6 +8246,14 @@ async function openTournamentByCode(code) {
     renderTournamentLobby(code);
     return;
   }
+  // L'organizzatore entra sempre nella pagina del torneo, anche se non è
+  // iscritto (prima finiva sulla schermata di iscrizione e, a torneo pieno,
+  // non poteva più gestirlo).
+  if (tournament.organizerToken === getOrCreateOrganizerToken(code)) {
+    if (savedPlayer) { myPlayerId = savedPlayer.id; myName = savedPlayer.nome; }
+    renderTournamentLobby(code);
+    return;
+  }
   renderTournamentJoinScreen(code, tournament);
 }
 
@@ -8262,6 +8270,7 @@ function renderTournamentJoinScreen(code, tournament) {
   const nameField = buildRubricaNameInput("torneo-join-name", myName || (savedPlayer && savedPlayer.nome) || "");
   const n = Object.keys(tournament.iscritti || {}).length;
   const formatoLabel = tournament.formato === "rotante_8" ? "Tutti con tutti (max 8)" : "Coppie fisse";
+  const pieno = tournament.formato === "rotante_8" && n >= 8;
   root.appendChild(
     el(
       "div",
@@ -8280,13 +8289,20 @@ function renderTournamentJoinScreen(code, tournament) {
                 p.isBot ? el("span", { class: "t-av t-av-bot" }, "🤖") : el("span", { class: "t-av", style: `background:${tAvatarColor(p.nome)}` }, String(p.nome || "?").trim().charAt(0).toUpperCase()),
                 el("div", { class: "t-name" }, el("b", {}, p.nome || "?")))))
         : "",
-      el("p", { class: "step-label" }, "Il tuo nome"),
-      nameField.wrap,
+      pieno ? "" : el("p", { class: "step-label" }, "Il tuo nome"),
+      pieno ? "" : nameField.wrap,
       tournament.formato === "coppie_fisse"
         ? el("p", { class: "muted", style: "font-size:0.76rem; margin-top:-4px;" },
             "In questo formato le coppie si decidono dopo: iscriviti pure da solo, sarà l'organizzatore ad abbinarti a qualcuno (o a un bot) quando la lista è pronta.")
         : "",
-      el("button", { class: "primary", onclick: () => submitJoinTournament(code, tournament) }, "Iscriviti"),
+      pieno
+        ? el("button", { class: "primary", disabled: true }, "Torneo al completo")
+        : el("button", { class: "primary", onclick: () => submitJoinTournament(code, tournament) }, "Iscriviti"),
+      // Anche senza iscriversi si può aprire la pagina del torneo (tavoli,
+      // classifica) e da lì, in fondo, "Diventa organizzatore da questo
+      // dispositivo" — prima da qui non c'era modo di arrivarci.
+      el("button", { class: "secondary", style: "width:100%;margin-top:10px;", onclick: () => renderTournamentLobby(code) }, "👀 Guarda il torneo senza iscriverti"),
+      el("p", { class: "t-note" }, "Hai creato tu il torneo da un altro telefono? Aprilo qui e in fondo tocca \"👑 Diventa organizzatore da questo dispositivo\"."),
       el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: renderLobby }, backChevronIcon(), "Torna alla home")
     )
   );
