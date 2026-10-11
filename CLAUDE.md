@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.52**.
+- Versione attuale: **v5.53**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -101,6 +101,13 @@
   piccolo + etichetta STANZA/TORNEO) al posto della scritta "Tock"; logo delle testate ridotto a 104px.
   Iscriviti al torneo mostra chi è già iscritto. L'attesa dei giocatori sotto il tabellone usa lo stile
   "Squadre" della stanza (righe per colore, 🤖 Normale/Difficile sui posti liberi).
+- Stile "Bento" (v5.53, scelto fra 3 impaginazioni: Bento / Editoriale / Vetro): home con riquadro
+  grande a sfumatura nei 4 colori ("Pronto per una partita?" + codice + "Gioca" nero), riquadri di misure
+  diverse (podio classifica top 3, anello lezioni X/9, "+ Organizza un torneo" nero), tornei come schede
+  che scorrono di lato, tastini 🔊 🌙 🧊 in alto a destra. Tutte le pagine prima della partita: fondo
+  `--bx-bg`, riquadri bianchi senza bordo con ombra morbida, pulsanti principali neri (crema nel tema
+  scuro). Token `--bx-*` in `:root` e `:root[data-theme="dark"]`. Scartati "Editoriale" e "Vetro" e i
+  soli cambi di colore (Blu notte, Bianco e blu, Terracotta).
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,

@@ -881,6 +881,72 @@ html.fx3d[data-theme="dark"] .home-tile { background: linear-gradient(165deg, #3
 .rj-go { flex-shrink: 0; font-size: .8rem; font-weight: 800; padding: 7px 14px; border-radius: 999px; background: var(--gold); }
 .rj-row.rj-bot { cursor: default; opacity: .6; }
 .rj-sec { margin: 20px 2px 8px; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-3); }
+/* ===== Stile "Bento" (v5.53) per tutte le pagine prima della partita ===== */
+:root { --bx-bg: #F5F1EA; --bx-card: #FFFFFF; --bx-ink: #1D1712; --bx-sub: #9A8B7A; --bx-line: #EFE7DB;
+  --bx-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 24px -16px rgba(60,40,10,.35);
+  --bx-btn: #1D1712; --bx-btn-ink: #FFFFFF;
+  --bx-hero: radial-gradient(60% 70% at 0% 0%, #F7C9CC 0%, transparent 60%), radial-gradient(60% 70% at 100% 0%, #BFE6D2 0%, transparent 60%), radial-gradient(60% 70% at 100% 100%, #BCD7F1 0%, transparent 60%), radial-gradient(60% 70% at 0% 100%, #F8E3A6 0%, transparent 60%), #FFF8EE; }
+:root[data-theme="dark"] { --bx-bg: #14110E; --bx-card: #221C17; --bx-ink: #F3EBDD; --bx-sub: #A8998A; --bx-line: #3A3028;
+  --bx-shadow: 0 10px 24px -16px rgba(0,0,0,.85); --bx-btn: #F3E6CC; --bx-btn-ink: #1D1712;
+  --bx-hero: radial-gradient(60% 70% at 0% 0%, rgba(217,99,107,.35) 0%, transparent 60%), radial-gradient(60% 70% at 100% 0%, rgba(63,167,126,.32) 0%, transparent 60%), radial-gradient(60% 70% at 100% 100%, rgba(62,143,203,.32) 0%, transparent 60%), radial-gradient(60% 70% at 0% 100%, rgba(227,172,51,.3) 0%, transparent 60%), #221C17; }
+body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
+.lobby-card .t-list, .lobby-card .lb-list-card, .lobby-card .room-team, .lobby-card .rj-list, .lobby-card .mode-btn,
+.lobby-card .tourney-placeholder, .tut-overlay .tl-list, .tut-overlay .tl-prog {
+  background: var(--bx-card); border-color: transparent; border-radius: 22px; box-shadow: var(--bx-shadow); }
+.lobby-card button.primary, .lobby-card button.primary * { color: var(--bx-btn-ink); }
+.lobby-card button.primary svg, .lobby-card button.primary svg * { stroke: var(--bx-btn-ink); }
+.lobby-card button.primary { background: var(--bx-btn); border-radius: 18px; box-shadow: 0 10px 22px -12px rgba(0,0,0,.45); }
+.lobby-card button.primary:hover { background: var(--bx-btn); filter: brightness(1.15); }
+.lobby-card button.secondary { background: var(--bx-card); color: var(--bx-ink); border: none; border-radius: 16px; box-shadow: var(--bx-shadow); padding: 13px 14px; }
+.lobby-card #room-input, .lobby-card #name-input, .lobby-card #recover-name-input, .lobby-card #torneo-code-input,
+.lobby-card #torneo-organizer-name, .lobby-card #torneo-join-name, .lobby-card .room-tag {
+  background: var(--bx-card); border-color: transparent; box-shadow: var(--bx-shadow); border-radius: 16px; }
+.lobby-card .lb-tabs { background: var(--bx-line); }
+.lobby-card .lb-tab.on { background: var(--bx-card); }
+/* Home */
+.bx-home { padding-top: 0; }
+.bx-top { display: flex; align-items: center; justify-content: space-between; margin: 0 0 14px; }
+@media (pointer: coarse) { .bx-top { margin-top: max(0px, calc(50px - env(safe-area-inset-top, 0px))); } }
+.bx-home .bx-logo { width: 92px; max-width: 30vw; display: block; transform: rotate(-2deg); }
+.bx-icons { display: flex; gap: 8px; }
+.bx-icons .theme-toggle-btn { width: 38px; height: 38px; border-radius: 12px; border: none; background: var(--bx-card); box-shadow: var(--bx-shadow); font-size: 1.05rem; }
+.bx-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 22px 18px 18px; background: var(--bx-hero); }
+.bx-hero h1 { margin: 0; font-size: 2rem; line-height: 1.05; letter-spacing: -.03em; font-weight: 800; color: var(--bx-ink); text-wrap: balance; }
+.bx-hero p { margin: 8px 0 16px; color: var(--bx-sub); font-size: .92rem; }
+:root:not([data-theme="dark"]) .bx-hero p { color: #5A4E42; }
+.bx-play { display: flex; gap: 8px; background: var(--bx-card); border-radius: 18px; padding: 6px; box-shadow: 0 10px 24px -14px rgba(60,40,10,.45); }
+.bx-play #room-input { flex: 1; min-width: 0; border: none; background: transparent; box-shadow: none; margin: 0; padding: 12px 10px; font-weight: 700; outline: none; }
+.bx-play #continue-btn { all: unset; cursor: pointer; background: var(--bx-btn); color: var(--bx-btn-ink); font-weight: 800; border-radius: 14px; padding: 0 20px; -webkit-tap-highlight-color: transparent; }
+.bx-play #continue-btn * { color: var(--bx-btn-ink); }
+.bx-bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.bx-card { all: unset; box-sizing: border-box; cursor: pointer; background: var(--bx-card); border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--bx-shadow); -webkit-tap-highlight-color: transparent; min-width: 0; }
+.bx-card:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.bx-k { font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--bx-sub); }
+.bx-t { font-size: 1.05rem; font-weight: 800; color: var(--bx-ink); }
+.bx-lb { grid-row: span 2; }
+.bx-pod { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.bx-pod div { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: .9rem; color: var(--bx-ink); min-width: 0; }
+.bx-pod i { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: .72rem; font-weight: 800; color: #2B2016; }
+.bx-pod .bx-m1 { background: linear-gradient(135deg, #F7DE91, #D4A63F); }
+.bx-pod .bx-m2 { background: linear-gradient(135deg, #F1F1F1, #BDBDBD); }
+.bx-pod .bx-m3 { background: linear-gradient(135deg, #EBB98C, #C0804A); }
+.bx-pn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bx-pv { margin-left: auto; color: var(--bx-sub); font-weight: 800; font-size: .8rem; }
+.bx-muted { color: var(--bx-sub); font-size: .82rem; }
+.bx-ring { display: flex; align-items: center; gap: 10px; }
+.bx-ring-bg { stroke: var(--bx-line); }
+.bx-dark { background: var(--bx-btn); }
+.bx-dark .bx-t, .bx-dark .bx-t * { color: var(--bx-btn-ink); }
+.bx-dark .bx-k { color: var(--bx-sub); }
+.bx-sec { display: flex; justify-content: space-between; align-items: baseline; margin: 22px 4px 10px; }
+.bx-sec b { font-size: 1.15rem; letter-spacing: -.01em; color: var(--bx-ink); }
+.bx-scroll { display: flex; gap: 10px; overflow-x: auto; margin: 0 -20px; padding: 0 20px 8px; scroll-snap-type: x mandatory; scroll-padding-left: 20px; -webkit-overflow-scrolling: touch; }
+.bx-scroll .tourney-row { flex: 0 0 62%; margin: 0; flex-direction: column; align-items: flex-start; gap: 10px; scroll-snap-align: start; padding: 14px; border: none; border-radius: 22px; background: var(--bx-card); box-shadow: var(--bx-shadow); }
+.bx-scroll .tourney-row-side { align-items: flex-start; flex-direction: row-reverse; gap: 8px; }
+.bx-scroll .tourney-row-code { font-size: 1.05rem; }
+.bx-scroll .tourney-placeholder { flex: 1; }
+html.fx3d .bx-card, html.fx3d .bx-scroll .tourney-row { box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 3px 0 #D2C093, 0 10px 14px -6px rgba(60,40,10,.35); }
+html.fx3d[data-theme="dark"] .bx-card, html.fx3d[data-theme="dark"] .bx-scroll .tourney-row { box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 3px 0 #0E0B08, 0 10px 14px -6px rgba(0,0,0,.65); }
 /* Elenco tornei attivi in home. */
 .tourney-row {
   all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center;
@@ -7834,7 +7900,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.52";
+const APP_VERSION = "v5.53";
 
 let myColor = null;
 let myRoomId = null;
@@ -7932,9 +7998,28 @@ function forwardArrowIcon(stroke) {
 // La modalità "estrazione" (sorteggio coppie + scelta colori) è descritta
 // più sotto, cercare "Estrazione squadre".
 
-// Home (v5.46, proposta "A · Tessere"): codice + "Gioca" sulla stessa riga,
-// Classifica e Impara a giocare come due tessere affiancate, tornei in un
-// unico riquadro a righe, tastini in basso con il loro nome sotto.
+// Home (v5.53, stile "Bento" scelto fra 3 proposte): riquadro grande con la
+// sfumatura dei 4 colori e il codice stanza, poi riquadri di misure diverse
+// che mostrano già qualcosa (podio della classifica, anello delle lezioni),
+// tornei come schede che scorrono di lato, tastini in alto a destra.
+function bentoRing(done, total) {
+  const r = 16, c = 2 * Math.PI * r;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "44"); svg.setAttribute("height", "44"); svg.setAttribute("viewBox", "0 0 44 44");
+  svg.innerHTML = `<circle cx="22" cy="22" r="${r}" fill="none" class="bx-ring-bg" stroke-width="6"/>` +
+    `<circle cx="22" cy="22" r="${r}" fill="none" stroke="#3FA77E" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(c * done) / Math.max(1, total)} ${c}" transform="rotate(-90 22 22)"/>`;
+  return svg;
+}
+async function fillHomePodium(box) {
+  let list = null;
+  try { list = await loadLeaderboard(); } catch (e) { console.error(e); }
+  if (!box.isConnected) return;
+  box.innerHTML = "";
+  const top = (list || []).filter((p) => p.vittorie > 0).slice(0, 3);
+  if (!top.length) { box.appendChild(el("span", { class: "bx-muted" }, list ? "Ancora nessuna vittoria" : "Tocca per vederla")); return; }
+  const medal = ["bx-m1", "bx-m2", "bx-m3"];
+  top.forEach((p, i) => box.appendChild(el("div", {}, el("i", { class: medal[i] }, String(i + 1)), el("span", { class: "bx-pn" }, p.nome), el("span", { class: "bx-pv" }, String(p.vittorie)))));
+}
 function renderLobby() {
   const root = $("#app");
   root.innerHTML = "";
@@ -7944,48 +8029,42 @@ function renderLobby() {
     placeholder: "Codice stanza",
     value: myRoomId || "",
   });
-  const tool = (btn, label) => el("div", { class: "home-tool" }, btn, el("span", {}, label));
+  const tutTotal = TUT_LESSONS.length;
+  const tutFatte = tutDone().filter((id) => TUT_LESSONS.some((l) => l.id === id)).length;
+  const podium = el("div", { class: "bx-pod" }, el("span", { class: "bx-muted" }, "Carico…"));
 
   root.appendChild(
     el(
       "div",
-      { class: "lobby-card" },
-      el("div", { class: "app-logo" },
-        el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" })
-      ),
-      el("div", { class: "home-play" },
-        roomInput,
-        el("button", { id: "continue-btn", class: "primary", onclick: continueFromRoomCode }, "Gioca ›")
-      ),
-      el("p", { class: "home-hint" }, "Es. TORVA1 — se la stanza non esiste, la crei tu."),
-      el(
-        "div",
-        { class: "home-tiles" },
-        el("button", { class: "home-tile", onclick: renderLeaderboardScreen },
-          el("span", { class: "home-tile-em" }, "🏆"), el("b", {}, "Classifica"), el("small", {}, "Chi vince di più")),
-        el("button", { class: "home-tile", onclick: openTutorial },
-          el("span", { class: "home-tile-em" }, "🎓"), el("b", {}, "Impara a giocare"), el("small", {}, "Le regole passo passo"))
-      ),
-      el(
-        "button",
-        { class: "organize-btn", onclick: renderTournamentCreateScreen },
-        el("span", { class: "plus-badge" }, "+"),
-        el("span", {}, "Organizza un torneo")
-      ),
-      el("div", { class: "section-label-row home-section" }, el("span", { class: "section-label" }, "Tornei")),
-      el("div", { id: "tourney-list-wrap", class: "tourney-group" }, el("div", { class: "tourney-placeholder" }, "Carico i tornei…")),
-      el(
-        "div",
-        { class: "home-tools" },
-        tool(el("button", { class: "sound-test-btn", "aria-label": "Prova il suono", onclick: testSound }, "🔊"), "Suono"),
-        tool(themeToggleButton(), currentTheme === "dark" ? "Tema chiaro" : "Tema scuro"),
-        tool(fx3dToggleButton(), "Effetto 3D")
-      ),
+      { class: "lobby-card bx-home" },
+      el("div", { class: "bx-top" },
+        el("img", { class: "app-logo-img bx-logo", src: logoSrc(currentTheme), alt: "Tock" }),
+        el("div", { class: "bx-icons" },
+          el("button", { class: "theme-toggle-btn", "aria-label": "Prova il suono", title: "Prova il suono", onclick: testSound }, "🔊"),
+          themeToggleButton(),
+          fx3dToggleButton())),
+      el("div", { class: "bx-hero" },
+        el("h1", {}, "Pronto per", el("br"), "una partita?"),
+        el("p", {}, "Scrivi il codice della stanza: se non esiste, la crei tu."),
+        el("div", { class: "bx-play" },
+          roomInput,
+          el("button", { id: "continue-btn", onclick: continueFromRoomCode }, "Gioca"))),
+      el("div", { class: "bx-bento" },
+        el("button", { class: "bx-card bx-lb", onclick: renderLeaderboardScreen },
+          el("span", { class: "bx-k" }, "🏆 Classifica"), el("span", { class: "bx-t" }, "Chi vince di più"), podium),
+        el("button", { class: "bx-card", onclick: openTutorial },
+          el("span", { class: "bx-k" }, "🎓 Impara"),
+          el("div", { class: "bx-ring" }, bentoRing(tutFatte, tutTotal), el("span", { class: "bx-t" }, `${tutFatte}/${tutTotal}`))),
+        el("button", { class: "bx-card bx-dark", onclick: renderTournamentCreateScreen },
+          el("span", { class: "bx-k" }, "Nuovo"), el("span", { class: "bx-t" }, "+ Organizza un torneo"))),
+      el("div", { class: "bx-sec" }, el("b", {}, "Tornei")),
+      el("div", { id: "tourney-list-wrap", class: "bx-scroll" }, el("div", { class: "tourney-placeholder" }, "Carico i tornei…")),
       el("p", { class: "app-meta home-meta" }, `Tock by Mig · ${APP_VERSION} · © 2026 Mig`),
       homeScreenHint()
     )
   );
   fillActiveTournamentsList();
+  fillHomePodium(podium);
 }
 
 // Carica i tornei attivi e riempie #tourney-list-wrap in home — chiamata
