@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.64**.
+- Versione attuale: **v5.65**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -152,12 +152,16 @@
   disegno (es. `watchRoom` dopo `renderGameShell`) va messo DENTRO la funzione passata a `vtGo`.
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
-- IDEE IN ATTESA (l'utente: "tienile lì poi le vediamo"): portare nel GIOCO le animazioni fatte nei menu.
-  Elemento che vola: ⚙️/📜 che si aprono dal pulsante, anteprima chat che diventa la chat, banner vittoria
-  che nasce dalla riga della squadra. Pulsanti con esito: "Sveglia" → "✓ Sveglia inviata", conferma
-  scambio/Jack/7, Rivincita; mossa non valida = carta che trema rossa. Cerchi verdi + ✓: pedina in casa,
-  scambio col compagno riuscito. Caselle che si riuniscono: a fine mano le carte volano al centro nel
-  mazzetto. Suoni: tic selezione carta, fruscio carta al centro, campanella sui cerchi. Prima le anteprime.
+- Animazioni dei menu portate nel GIOCO (v5.65, scelti i gruppi 1 e 2 dai video di prova):
+  1) Elemento che vola: ⚙️ Impostazioni, ≡ Registro, 💬 chat (anteprima o pulsante) e "📜 Regolamento" si
+  aprono uscendo dal pulsante toccato (`openPickerFrom`) e ci rientrano con ✕ / Chiudi / tocco fuori
+  (`closePickerAnimated`; il trascinamento in giù chiude come prima); il banner della vittoria nasce dalla
+  riga di un giocatore della squadra vincente. 2) Pulsanti con esito: "Sveglia" → "✓ Sveglia inviata a …"
+  (niente più avviso scritto), scambio carta → riga "Mando la carta…" poi verde "✓ Carta data a …",
+  carta senza mosse → trema rossa prima della domanda "la bruci?", "Rivincita" → "Preparo la rivincita…".
+  IDEE ANCORA IN ATTESA (gruppi 3-4-5 dei video): cerchi verdi + ✓ su pedina in casa (oggi già scintille +
+  anello oro) e su carta ricevuta dal compagno; a fine mano carte che volano al centro nel mazzetto prima
+  della nuova distribuzione; suoni tic (scelta carta), fruscio (carta al centro), campanella sui cerchi.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
 - Alcuni giocatori usano l'app con il **traduttore di Chrome** (es. in spagnolo): avvolge i testi
