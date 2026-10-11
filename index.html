@@ -271,7 +271,7 @@ h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
   align-items: flex-start;
   margin-bottom: 0;
 }
-.lobby-header-row .app-logo-img { width: 130px; max-width: 42vw; }
+.lobby-header-row .app-logo-img { width: 104px; max-width: 34vw; }
 
 /* Stanza "C · Squadre" (v5.46) */
 .room-teams { margin-bottom: 16px; }
@@ -316,6 +316,9 @@ html.fx3d[data-theme="dark"] .room-team { background: linear-gradient(165deg, #3
   color: var(--muted-3);
 }
 .room-tag-code { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.04em; color: var(--ink); }
+/* Testata piccola (v5.51): etichetta del codice accanto al logo, non sotto. */
+.small-header { align-items: center; margin-bottom: 18px; }
+.small-header .room-tag { margin-bottom: 0; }
 
 #room-input, #name-input,
 #torneo-code-input, #torneo-organizer-name, #torneo-join-name, #torneo-join-partner {
@@ -7831,7 +7834,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.50";
+const APP_VERSION = "v5.51";
 
 let myColor = null;
 let myRoomId = null;
@@ -8185,8 +8188,9 @@ function renderTournamentCreateScreen() {
     el(
       "div",
       { class: "lobby-card" },
-      el("h1", {}, "Organizza un torneo"),
-      el("p", { class: "muted" }, "Il formato scelto vale per tutto il torneo — non si cambia dopo."),
+      smallScreenHeader(),
+      el("p", { class: "rj-title" }, "🏆 Organizza un torneo"),
+      el("p", { class: "rj-text" }, "Scegli il formato: vale per tutto il torneo e non si cambia dopo."),
       el("div", { class: "mode-choice" }, formatBtns.coppie_fisse, formatBtns.rotante_8),
       el("p", { class: "step-label" }, "Il tuo nome"),
       nameField.wrap,
@@ -8262,8 +8266,20 @@ function renderTournamentJoinScreen(code, tournament) {
     el(
       "div",
       { class: "lobby-card" },
-      el("h1", {}, "Iscriviti al torneo"),
-      el("p", { class: "muted" }, `Torneo ${code} · ${formatoLabel} · ${n}${tournament.formato === "rotante_8" ? "/8" : ""} iscritti finora.`),
+      smallScreenHeader("Torneo", code),
+      el("p", { class: "rj-title" }, "Iscriviti al torneo"),
+      el("div", { class: "t-chips" },
+        el("span", { class: "t-chip" }, formatoLabel),
+        el("span", { class: "t-chip t-chip-open" }, `${n}${tournament.formato === "rotante_8" ? "/8" : ""} iscritti`)),
+      // Chi c'è già: aiuta a capire se è il torneo giusto (stesso stile
+      // dell'elenco iscritti nella pagina del torneo).
+      n > 0
+        ? el("div", { class: "t-list", style: "margin-bottom:14px;" },
+            Object.values(tournament.iscritti || {}).map((p) =>
+              el("div", { class: "t-row" },
+                p.isBot ? el("span", { class: "t-av t-av-bot" }, "🤖") : el("span", { class: "t-av", style: `background:${tAvatarColor(p.nome)}` }, String(p.nome || "?").trim().charAt(0).toUpperCase()),
+                el("div", { class: "t-name" }, el("b", {}, p.nome || "?")))))
+        : "",
       el("p", { class: "step-label" }, "Il tuo nome"),
       nameField.wrap,
       tournament.formato === "coppie_fisse"
@@ -8785,6 +8801,18 @@ async function continueFromRoomCode() {
   }
 }
 
+// Testata delle schermate "secondarie" (v5.51): logo piccolo a sinistra e,
+// se c'è, l'etichetta con il codice della stanza o del torneo a destra —
+// al posto della vecchia scritta "Tock" in grassetto.
+function smallScreenHeader(tagLabel, tagCode) {
+  return el(
+    "div",
+    { class: "lobby-header-row small-header" },
+    el("div", { class: "app-logo" }, el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" })),
+    tagCode ? el("div", { class: "room-tag" }, el("span", { class: "room-tag-label" }, tagLabel), el("span", { class: "room-tag-code" }, tagCode)) : ""
+  );
+}
+
 function renderModeChoice(roomId) {
   const root = $("#app");
   root.innerHTML = "";
@@ -8792,8 +8820,9 @@ function renderModeChoice(roomId) {
     el(
       "div",
       { class: "lobby-card" },
-      el("h1", {}, "Tock"),
-      el("p", { class: "muted" }, `Stanza ${roomId} — sei il primo, scegli come formare le squadre.`),
+      smallScreenHeader("Stanza", roomId),
+      el("p", { class: "rj-title" }, "Nuova stanza"),
+      el("p", { class: "rj-text" }, "Sei il primo: scegli come formare le squadre."),
       el(
         "div",
         { class: "mode-choice" },
@@ -9749,8 +9778,10 @@ function renderDraftNameScreen(roomId) {
     el(
       "div",
       { class: "lobby-card" },
-      el("h1", {}, "Tock"),
-      el("p", { class: "muted" }, `Stanza ${roomId} — modalità estrazione a sorte: qui non scegli il colore, solo il nome.`),
+      smallScreenHeader("Stanza", roomId),
+      el("p", { class: "rj-title" }, "🎲 Estrazione a sorte"),
+      el("p", { class: "rj-text" }, "Qui non scegli il colore: scrivi il tuo nome. Quando siete in 4, coppie e colori si decidono a caso."),
+      el("p", { class: "step-label" }, "Il tuo nome"),
       nameField.wrap,
       el("button", { id: "join-btn", class: "primary", onclick: () => joinDraftRoom(roomId) }, "Entra nella stanza", forwardArrowIcon()),
       el("button", { class: "text-link-btn", style: "margin-top:10px;", onclick: renderLobby }, backChevronIcon(), "Cambia stanza"),
@@ -12859,27 +12890,34 @@ function renderStartControls(state) {
   // direttamente nella sala d'attesa. watchRoom/onStateChange è già in
   // ascolto, quindi basta il giro Firebase per far ricomparire questa
   // schermata aggiornata da sola.
+  // v5.51: stesso stile della schermata della stanza (una riga per colore,
+  // divise per squadra); sui posti vuoti i due pulsanti per il computer.
+  const seat = (c) => {
+    const p = state.players && state.players[c];
+    return el(
+      "div",
+      { class: "room-seat " + (p ? (p.isBot ? "rs-bot" : "rs-taken") : "rs-free") + (c === myColor ? " rs-mine" : "") },
+      el("span", { class: "room-dot", style: `background:var(--${c})` }),
+      el("div", { class: "room-seat-text" },
+        el("span", { class: "room-seat-name" }, p ? (p.isBot ? "🤖 Computer" : p.name || colorLabel(c)) : "Libero"),
+        el("span", { class: "room-seat-sub" }, p && p.isBot ? (p.botLevel === "easy" ? "normale" : "difficile") : colorLabel(c) + (c === myColor ? " · tu" : ""))),
+      p ? "" : [
+        el("button", { class: "room-chip", onclick: () => assignBotToColor(myRoomId, c, () => {}, "easy") }, "🤖 Normale"),
+        el("button", { class: "room-chip", onclick: () => assignBotToColor(myRoomId, c, () => {}, "hard") }, "🤖 Difficile"),
+      ]
+    );
+  };
+  const team = (t) => el("div", { class: "room-team" },
+    el("div", { class: "room-team-head" }, `Squadra ${t === "A" ? 1 : 2} · ${TEAM_LABEL[t]}`),
+    COLORS.filter((c) => TEAM_OF[c] === t).map(seat));
   wrap.appendChild(
     el(
       "div",
       { class: "start-card" },
-      el("p", {}, `Giocatori nella stanza: ${joined.map(colorLabel).join(", ") || "nessuno"}`),
-      missing.length > 0
-        ? el(
-            "div",
-            { class: "missing-bots-row" },
-            missing.map((c) =>
-              el(
-                "div",
-                { class: "bot-btn-row" },
-                el("button", { class: "bot-btn", onclick: () => assignBotToColor(myRoomId, c, () => {}, "easy") }, `🤖 ${colorLabel(c)} normale`),
-                el("button", { class: "bot-btn", onclick: () => assignBotToColor(myRoomId, c, () => {}, "hard") }, `🤖 ${colorLabel(c)} difficile`)
-              )
-            )
-          )
-        : "",
-      el("p", { class: "muted" }, "Servono tutti e 4 i colori per iniziare (rosso+giallo vs verde+blu)."),
-      el("button", { class: "primary", disabled: missing.length > 0, onclick: startGame }, "Inizia partita")
+      el("div", { class: "t-sec", style: "margin-top:4px;" }, el("b", {}, "In attesa dei giocatori"), el("span", {}, `${joined.length}/4`)),
+      el("div", { class: "room-teams" }, team("A"), el("div", { class: "room-vs" }, "VS"), team("B")),
+      missing.length > 0 ? el("p", { class: "t-note", style: "margin:-6px 2px 10px;" }, "Aspetta gli amici o metti il computer sui posti liberi.") : "",
+      el("button", { class: "primary", disabled: missing.length > 0, onclick: startGame }, missing.length === 1 ? "Manca 1 giocatore" : missing.length > 1 ? `Mancano ${missing.length} giocatori` : "Inizia partita")
     )
   );
 }
