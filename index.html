@@ -1466,6 +1466,26 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
 .tut-head h2 { margin: 0; font-size: 1.15rem; flex: 1; }
 .tut-x { border: 1px solid var(--panel-border); background: var(--panel); color: var(--ink); border-radius: 999px; width: 38px; height: 38px; font-size: 1.1rem; cursor: pointer; }
 .tut-sub { margin: -6px 0 2px; color: var(--muted-2); font-size: .85rem; }
+/* Elenco lezioni (v5.50) */
+.tl-prog { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.tl-prog-top { display: flex; justify-content: space-between; align-items: baseline; font-weight: 800; color: var(--ink); font-size: .92rem; }
+.tl-prog-top span { font-size: .78rem; color: var(--muted-2); font-weight: 700; }
+.tl-bar { height: 8px; border-radius: 4px; background: rgba(201,154,58,.18); overflow: hidden; }
+.tl-bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #D4A63F, #A87D22); }
+.tl-list { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; overflow: hidden; }
+.tl-row { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: flex; align-items: center; gap: 12px; padding: 11px 14px; }
+.tl-row + .tl-row { border-top: 1px solid var(--panel-border); }
+.tl-num { width: 22px; flex-shrink: 0; text-align: center; font-size: .78rem; font-weight: 800; color: var(--muted-3); font-variant-numeric: tabular-nums; }
+.tl-ico { font-size: 1.35rem; width: 30px; text-align: center; flex-shrink: 0; }
+.tl-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tl-txt b { font-size: .95rem; color: var(--ink); }
+.tl-txt small { font-size: .76rem; color: var(--muted-2); }
+.tl-done { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; background: #E3F1E9; color: #2E7D52; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .8rem; }
+.tl-next { flex-shrink: 0; font-size: .72rem; font-weight: 800; padding: 5px 10px; border-radius: 999px; background: var(--gold); color: var(--ink-on-gold); }
+.tl-row.tl-is-next { background: rgba(201,154,58,.10); }
+.tl-row.tl-is-done .tl-txt b { color: var(--muted-3); }
+.tl-next, .tl-next * { color: var(--ink-on-gold); }
+:root[data-theme="dark"] .tl-done { background: #1C3326; color: #8FD3AE; }
 .tut-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--panel-border); background: var(--panel); color: var(--ink); cursor: pointer; font: inherit; }
 .tut-row:hover { border-color: var(--gold); }
 .tut-ico { font-size: 1.5rem; width: 38px; text-align: center; flex: none; }
@@ -1491,6 +1511,10 @@ html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
 html[data-skin="arcade"] .tut-overlay { background: #07021a; color: #e9e4ff; }
 html[data-skin="arcade"] .tut-bubble, html[data-skin="arcade"] .tut-row, html[data-skin="arcade"] .tut-chip, html[data-skin="arcade"] .tut-foot button, html[data-skin="arcade"] .tut-x { background: #120a3a; color: #e9e4ff; border-color: #00f0ff; border-radius: 4px; }
 html[data-skin="arcade"] .tut-row-d, html[data-skin="arcade"] .tut-sub, html[data-skin="arcade"] .tut-chip small { color: #b8aef0; }
+html[data-skin="arcade"] .tl-list, html[data-skin="arcade"] .tl-prog { background: #120a3a; border-color: #00f0ff; border-radius: 4px; }
+html[data-skin="arcade"] .tl-row + .tl-row { border-top-color: rgba(0,240,255,.35); }
+html[data-skin="arcade"] .tl-txt b, html[data-skin="arcade"] .tl-prog-top { color: #e9e4ff; }
+html[data-skin="arcade"] .tl-txt small, html[data-skin="arcade"] .tl-num, html[data-skin="arcade"] .tl-prog-top span { color: #b8aef0; }
 .center-discard .jack-overlay-arrow { font: 900 12px/1 system-ui, sans-serif; color: #2b2b2b; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; }
 @keyframes jackOvIn { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .center-discard .jack-overlay { animation: none; } }
@@ -7807,7 +7831,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.49";
+const APP_VERSION = "v5.50";
 
 let myColor = null;
 let myRoomId = null;
@@ -14383,20 +14407,24 @@ function closeTutorial() {
   // Se c'è una partita sotto, ridisegna il suo tabellone.
   try { if (document.querySelector("#board-wrap #board-svg") && typeof rebuildBoardForTheme === "function") { resetPawnAnimState(); rebuildBoardForTheme(); } } catch (e) {}
 }
+// v5.50: barra dei progressi, lezioni numerate in un unico riquadro a righe,
+// ✓ sulle fatte e "Inizia ›" sulla prima ancora da fare.
 function showTutorialList() {
-  const root = tutEnsureRoot();
-  _tut = null;
-  const done = tutDone();
-  root.innerHTML = "";
+  const root = tutEnsureRoot(); _tut = null;
+  const done = tutDone(); root.innerHTML = "";
+  const n = TUT_LESSONS.length, k = TUT_LESSONS.filter((l) => done.indexOf(l.id) >= 0).length;
+  const nextIdx = TUT_LESSONS.findIndex((l) => done.indexOf(l.id) < 0);
   root.appendChild(el("div", { class: "tut-wrap" },
-    el("div", { class: "tut-head", }, el("h2", {}, "🎓 Impara a giocare"), el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, "✕")),
-    el("p", { class: "tut-sub" }, "Scegli la lezione che vuoi, nell'ordine che preferisci. Giochi sul vero tabellone: niente stanze, niente fretta."),
-    TUT_LESSONS.map((l, i) => el("button", { class: "tut-row", onclick: () => openTutorialLesson(i) },
-      el("span", { class: "tut-ico" }, l.icon),
-      el("span", {}, el("div", { class: "tut-row-t" }, l.title), el("div", { class: "tut-row-d" }, l.desc)),
-      done.indexOf(l.id) >= 0 ? el("span", { class: "tut-check" }, "✓") : ""
-    ))
-  ));
+    el("div", { class: "tut-head" }, el("h2", {}, "🎓 Impara a giocare"), el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, "✕")),
+    el("p", { class: "tut-sub" }, "Lezioni brevi sul vero tabellone, nell'ordine che preferisci."),
+    el("div", { class: "tl-prog" }, el("div", { class: "tl-prog-top" }, k === n ? "Hai completato tutto! 🎉" : "Il tuo percorso", el("span", {}, `${k} di ${n} lezioni`)), el("div", { class: "tl-bar" }, el("i", { style: `width:${Math.round((k / n) * 100)}%` }))),
+    el("div", { class: "tl-list" }, TUT_LESSONS.map((l, i) => {
+      const isDone = done.indexOf(l.id) >= 0, isNext = i === nextIdx;
+      return el("button", { class: "tl-row" + (isDone ? " tl-is-done" : "") + (isNext ? " tl-is-next" : ""), onclick: () => openTutorialLesson(i) },
+        el("span", { class: "tl-num" }, String(i + 1)), el("span", { class: "tl-ico" }, l.icon),
+        el("span", { class: "tl-txt" }, el("b", {}, l.title), el("small", {}, l.desc)),
+        isDone ? el("span", { class: "tl-done" }, "✓") : isNext ? el("span", { class: "tl-next" }, "Inizia ›") : "");
+    }))));
   root.scrollTop = 0;
 }
 
