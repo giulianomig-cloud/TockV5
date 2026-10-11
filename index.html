@@ -910,7 +910,12 @@ body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
 @media (pointer: coarse) { .bx-top { margin-top: max(0px, calc(50px - env(safe-area-inset-top, 0px))); } }
 .bx-home .bx-logo { width: 92px; max-width: 30vw; display: block; transform: rotate(-2deg); }
 .bx-icons { display: flex; gap: 8px; }
-.bx-icons .theme-toggle-btn { width: 38px; height: 38px; border-radius: 12px; border: none; background: var(--bx-card); box-shadow: var(--bx-shadow); font-size: 1.05rem; }
+/* v5.70: tastini rotondi nello stile della pillola (fondo bianco, pomello crema al centro). */
+.bx-icons { align-items: center; }
+.bx-icons .theme-toggle-btn { position: relative; isolation: isolate; width: 38px; height: 38px; padding: 0; border-radius: 50%; border: none; background: #FFFFFF; box-shadow: var(--bx-shadow), inset 0 1px 3px rgba(60,40,10,.12); font-size: .95rem; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+.bx-icons .theme-toggle-btn::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #F5F1EA; box-shadow: 0 2px 5px rgba(60,40,10,.25); z-index: -1; }
+:root[data-theme="dark"] .bx-icons .theme-toggle-btn { background: #262B40; box-shadow: var(--bx-shadow), inset 0 1px 4px rgba(0,0,0,.5); }
+:root[data-theme="dark"] .bx-icons .theme-toggle-btn::before { background: #343A55; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
 /* v5.68: interruttore del tema "a pillola" (vedi themePill). */
 .theme-pill { position: relative; flex: none; width: 74px; height: 38px; padding: 0; border: none; border-radius: 999px; background: #FFFFFF; box-shadow: var(--bx-shadow), inset 0 1px 3px rgba(60,40,10,.12); cursor: pointer; overflow: visible; transition: background .5s ease; -webkit-tap-highlight-color: transparent; }
 .theme-pill.tp-dark { background: #262B40; box-shadow: var(--bx-shadow), inset 0 1px 4px rgba(0,0,0,.5); }
@@ -919,8 +924,9 @@ body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
 .theme-pill .tp-hole { position: absolute; right: 9px; bottom: 9px; width: 18px; height: 6px; border-radius: 50%; background: #1D1712; transform: scaleX(0); }
 .theme-pill.tp-dark .tp-hole { background: #05060B; }
 .theme-pill .tp-hole.tp-glow { background: #FFFBEF; box-shadow: 0 0 7px 3px rgba(255,236,170,.85), 0 0 14px 6px rgba(255,236,170,.35); transition: background .2s ease, box-shadow .2s ease; }
-.theme-pill .tp-pawn { position: absolute; left: 19px; bottom: 11px; width: 13px; height: 13px; pointer-events: none; z-index: 2; }
-.theme-pill .tp-pawn svg { display: block; filter: drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
+.theme-pill .tp-man { position: absolute; left: 19px; bottom: 11px; width: 10px; height: 16.5px; color: #3B3850; pointer-events: none; z-index: 2; transform-origin: 50% 100%; }
+.theme-pill .tp-man.tp-man-light { color: #E9E6F2; }
+.theme-pill .tp-man svg { display: block; }
 .bx-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 22px 18px 18px; background: var(--bx-hero); }
 .bx-hero h1 { margin: 0; font-size: 2rem; line-height: 1.05; letter-spacing: -.03em; font-weight: 800; color: var(--bx-ink); text-wrap: balance; }
 .bx-hero p { margin: 8px 0 16px; color: var(--bx-sub); font-size: .92rem; }
@@ -8050,7 +8056,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.69";
+const APP_VERSION = "v5.70";
 
 let myColor = null;
 let myRoomId = null;
@@ -11216,6 +11222,22 @@ function themePill() {
   );
   return pill;
 }
+// v5.70: l'omino del video (testa + corpo + braccia + gambe), disegnato a pose.
+const STICK_POSES = {
+  stand: "M5 6.5V11.5M5 8L3.2 10.6M5 8L6.8 10.6M5 11.5L4 16M5 11.5L6 16",
+  walkA: "M5 6.5V11.5M5 8L3 10M5 8L7 10M5 11.5L2.6 15.6M5 11.5L7.4 15.6",
+  walkB: "M5 6.5V11.5M5 8L4 10.8M5 8L6 10.8M5 11.5L4.4 16M5 11.5L5.6 16",
+  jump: "M5 6.5V11.5M5 8.4L1.4 7M5 8.4L8.6 7M5 11.5L2.4 15.2M5 11.5L7.6 15.2",
+};
+function stickman() {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 10 16.5");
+  svg.setAttribute("width", "10");
+  svg.setAttribute("height", "16.5");
+  svg.innerHTML = '<circle cx="5" cy="3.6" r="2.3" fill="currentColor"/><path d="' + STICK_POSES.stand + '" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>';
+  return svg;
+}
 async function animateThemePill(pill) {
   if (_themePillBusy) return;
   const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -11224,37 +11246,70 @@ async function animateThemePill(pill) {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const toDark = currentTheme !== "dark";
   const hole = pill.querySelector(".tp-hole");
-  const pawn = el("span", { class: "tp-pawn" }, pipIcon(myColor || "red", 0, 13));
-  pill.appendChild(pawn);
-  const X = 31; // dal pomello al buco
+  const svg = stickman();
+  const man = el("span", { class: "tp-man" + (toDark ? "" : " tp-man-light") }, svg);
+  man.style.opacity = "0"; // compare solo quando parte la sua animazione
+  const legs = svg.querySelector("path");
+  const pose = (k) => legs.setAttribute("d", STICK_POSES[k]);
+  pill.appendChild(man);
+  const X = 32; // dal pomello al buco
+  let walkTimer = null;
+  const walk = (on) => {
+    clearInterval(walkTimer);
+    if (!on) return;
+    let k = 0;
+    pose("walkA");
+    walkTimer = setInterval(() => pose(++k % 2 ? "walkB" : "walkA"), 120);
+  };
+  // passi: piccolo su e giù mentre cammina
+  const steps = (from, to, n) => {
+    const f = [];
+    for (let i = 0; i <= n; i++) f.push({ transform: `translate(${from + ((to - from) * i) / n}px, ${i % 2 ? -1.5 : 0}px)${to < from ? " scaleX(-1)" : ""}` });
+    return f;
+  };
   // v5.69: tornando alla luce il buco è bianco e luminoso (la luce esce da lì), come nel video
   if (!toDark) hole.classList.add("tp-glow");
   try {
-    hole.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: 220, fill: "forwards", easing: "ease-out" });
-    const hops = [];
-    const N = 3;
-    for (let i = 0; i <= N; i++) {
-      const x = toDark ? (X * i) / N : X - (X * i) / N;
-      hops.push({ transform: `translate(${x}px, 0)`, offset: i / (N + 1) });
-      if (i < N) hops.push({ transform: `translate(${toDark ? x + X / N / 2 : x - X / N / 2}px, -9px)`, offset: (i + 0.5) / (N + 1) });
-    }
     if (toDark) {
-      // esce dal pomello, saltella, salto finale dentro il buco
-      pawn.animate([{ transform: "translate(0,0) scale(0)" }, { transform: "translate(0,0) scale(1)" }], { duration: 160, fill: "forwards" });
-      await wait(160);
-      await pawn.animate(hops.concat([{ transform: `translate(${X}px, -12px)`, offset: 0.9 }, { transform: `translate(${X}px, 4px) scale(.3)`, opacity: 0 }]), { duration: 900, fill: "forwards", easing: "linear" }).finished;
+      // compare accanto al sole, cammina fino al buco, salta e ci cade dentro
+      await man.animate([{ transform: "translate(0,0) scale(0)", opacity: 0 }, { transform: "translate(0,0) scale(1)", opacity: 1 }], { duration: 200, fill: "forwards", easing: "ease-out" }).finished;
+      hole.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: 300, delay: 500, fill: "forwards", easing: "ease-out" });
+      walk(true);
+      await man.animate(steps(0, X - 8, 8), { duration: 1000, fill: "forwards", easing: "linear" }).finished;
+      walk(false);
+      pose("jump");
+      await man.animate([
+        { transform: `translate(${X - 8}px, 0)` },
+        { transform: `translate(${X - 3}px, -11px)`, offset: 0.45 },
+        { transform: `translate(${X}px, -6px)`, offset: 0.65 },
+        { transform: `translate(${X}px, 6px) scale(.35)`, opacity: 0 },
+      ], { duration: 520, fill: "forwards", easing: "ease-in" }).finished;
       try { playSound("captureBonk"); } catch (e) {}
+      await wait(120);
     } else {
-      // salta fuori dal buco e torna saltellando al pomello
-      await pawn.animate([{ transform: `translate(${X}px, 4px) scale(.3)`, opacity: 0 }, { transform: `translate(${X}px, -12px) scale(1)`, opacity: 1, offset: 0.25 }, { transform: `translate(${X}px, 0) scale(1)` }], { duration: 320, fill: "forwards" }).finished;
+      // il buco si apre luminoso, l'omino salta fuori e torna camminando al pomello
+      await hole.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: 260, fill: "forwards", easing: "ease-out" }).finished;
+      pose("jump");
+      await man.animate([
+        { transform: `translate(${X}px, 6px) scale(.35)`, opacity: 0 },
+        { transform: `translate(${X - 2}px, -12px) scale(1)`, opacity: 1, offset: 0.5 },
+        { transform: `translate(${X - 8}px, 0) scale(1)`, opacity: 1 },
+      ], { duration: 480, fill: "forwards", easing: "ease-out" }).finished;
       try { playSound("pawnOut"); } catch (e) {}
-      await pawn.animate(hops.concat([{ transform: "translate(0,0) scale(0)" }]), { duration: 820, fill: "forwards", easing: "linear" }).finished;
+      pose("stand");
+      await wait(150);
+      walk(true);
+      await man.animate(steps(X - 8, 0, 8), { duration: 1000, fill: "forwards", easing: "linear" }).finished;
+      walk(false);
+      pose("stand");
+      await man.animate([{ transform: "translate(0,0) scaleX(-1) scale(1)", opacity: 1 }, { transform: "translate(0,0) scaleX(-1) scale(0)", opacity: 0 }], { duration: 200, fill: "forwards", easing: "ease-in" }).finished;
     }
     toggleTheme();
     await hole.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }], { duration: 220, fill: "forwards", easing: "ease-in" }).finished;
   } finally {
+    clearInterval(walkTimer);
     hole.classList.remove("tp-glow");
-    pawn.remove();
+    man.remove();
     _themePillBusy = false;
   }
 }
