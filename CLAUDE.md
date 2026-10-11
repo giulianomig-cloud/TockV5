@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.66**.
+- Versione attuale: **v5.67**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -51,6 +51,9 @@
   da sola mentre si resta sulla schermata. Anche "Entra nella stanza" la rispetta.
 
 ## Bot e versioni in stanza
+- Jack dei bot (v5.67): un Jack che manda INDIETRO una pedina del compagno costa nel punteggio del bot
+  (`botJackPartnerDamage`: 2 per passo perso + 25 se era in vista di casa), tranne quando lo scambio la
+  salva da una minaccia. Prima i bot a volte rispedivano indietro il compagno per colpire un avversario.
 - Dalla v5.30 ogni telefono scrive la propria `APP_VERSION` nella presenza
   (`presence/<stanza>/<colore>/<connessione>`). Chi ha una versione più vecchia di un altro
   giocatore vede un avviso non chiudibile e non fa muovere i bot.

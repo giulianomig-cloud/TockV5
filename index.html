@@ -8040,7 +8040,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.66";
+const APP_VERSION = "v5.67";
 
 let myColor = null;
 let myRoomId = null;
@@ -12402,7 +12402,41 @@ var BOT_WEIGHTS = {
   // botRiskAdjustment: costo atteso = probabilità di essere mangiata × (passi fatti + 8) × riskScale.
   riskScale: 0.6,
   partnerRedundantRescue: -6, // la salva ma il compagno l'avrebbe comunque salvata da sé al suo turno: leggera penalità, meglio occuparsi d'altro
+  // v5.67: Jack che manda INDIETRO una pedina del compagno (segnalato: "i bot
+  // a volte giocano il Jack danneggiando il compagno"). Per botEvaluateBoard
+  // uno scambio con il compagno è quasi sempre "in pari" (quello che guadagna
+  // una pedina lo perde l'altra) e un compagno rispedito indietro per colpire
+  // un avversario sembrava conveniente. Ora ogni passo perso dal compagno
+  // costa, e di più se la sua pedina era già in vista di casa — tranne
+  // quando lo scambio la salva da una minaccia (botJackPartnerDamage).
+  jackPartnerLossStep: 2,
+  jackPartnerNearHome: 25,
 };
+
+// Penalità per un Jack che fa perdere strada a una pedina del compagno
+// (vedi BOT_WEIGHTS.jackPartnerLossStep / jackPartnerNearHome).
+function botJackPartnerDamage(state, active, move) {
+  if (!move || move.type !== "jack") return 0;
+  let pen = 0;
+  for (const [t, o] of [[move.a, move.b], [move.b, move.a]]) {
+    if (t.color === active || TEAM_OF[t.color] !== TEAM_OF[active]) continue; // solo le pedine del compagno
+    const before = state.pawns[t.color][t.pawnIndex];
+    const after = state.pawns[o.color][o.pawnIndex]; // dove finisce dopo lo scambio
+    if (before < 0 || before >= 1000 || after < 0 || after >= 1000) continue;
+    const sBefore = stepsFromOwnBase(t.color, before, hasLapped(state, t.color, t.pawnIndex));
+    const sAfter = stepsFromOwnBase(t.color, after, after === BOARD.baseIndex[t.color]);
+    const lost = sBefore - sAfter;
+    if (lost <= 0) continue;
+    // Salvata da una minaccia: lo scambio la aiuta, nessuna penalità.
+    const afterPawns = clonePawns(state.pawns);
+    afterPawns[t.color][t.pawnIndex] = after;
+    afterPawns[o.color][o.pawnIndex] = before;
+    if (botPawnThreatened(state.pawns, t.color, t.pawnIndex) && !botPawnThreatened(afterPawns, t.color, t.pawnIndex)) continue;
+    pen += lost * BOT_WEIGHTS.jackPartnerLossStep;
+    if (sBefore >= 44) pen += BOT_WEIGHTS.jackPartnerNearHome;
+  }
+  return pen;
+}
 
 // Penalità di trattenere Jack/7, per rank — legge sempre BOT_WEIGHTS "dal
 // vivo" (non un oggetto derivato una volta sola) così una modifica di
@@ -12530,6 +12564,7 @@ function botChooseCardAndMove(state, active, seat) {
       score += botReceivedCardAdjustment(state, active, seat, card, move);
       score += botRiskAdjustment(state, active, seat, card, move);
       score -= BOT_WEIGHTS.teamCapturePenalty * botTeamPawnsEaten(state, botSimulate(state, active, card, move), botTeam);
+      score -= botJackPartnerDamage(state, active, move);
       score += Math.random() * 0.01;
       if (score > bestScore) {
         bestScore = score;
@@ -12566,6 +12601,7 @@ function botChooseCardAndMoveEasy(state, active, seat) {
       let score = botScoreMove(state, active, card, move, botTeam);
       score += botCoordinationAdjustment(belief, active, seat, card, move);
       score -= BOT_WEIGHTS.teamCapturePenalty * botTeamPawnsEaten(state, botSimulate(state, active, card, move), botTeam);
+      score -= botJackPartnerDamage(state, active, move);
       score += Math.random() * 0.5;
       if (score > bestScore) {
         bestScore = score;
