@@ -7988,7 +7988,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.63";
+const APP_VERSION = "v5.64";
 
 let myColor = null;
 let myRoomId = null;
@@ -9235,7 +9235,12 @@ async function continueFromRoomCode() {
   // stato riconosciuto sopra, potrebbe comunque essere un giocatore che
   // sta rientrando da un dispositivo diverso — offriglielo prima di
   // mandarlo dritto alla lobby/estrazione come fosse nuovo.
-  if (existing.players && Object.keys(existing.players).length > 0) {
+  // v5.64: solo se c'è almeno una PERSONA seduta (non solo computer): con
+  // soli bot nella stanza "Partita già in corso" non aveva senso e non
+  // c'era nessun nome da toccare — si va dritti alla scelta del colore
+  // (a partita già cominciata resta la schermata di rientro, come prima).
+  const humansSeated = COLORS.some((c) => existing.players && existing.players[c] && !existing.players[c].isBot);
+  if (humansSeated || (existing.phase && existing.phase !== "lobby")) {
     heroGo(() => renderNameRecoveryScreen(roomId, existing.players));
     return;
   }

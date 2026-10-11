@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.63**.
+- Versione attuale: **v5.64**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -94,6 +94,9 @@
 - Rientro in una partita già in corso (v5.49): elenco di chi è seduto nella stanza, si tocca
   "Sono io ›" sul proprio nome (niente più nome da riscrivere). Il rientro tiene tutti i campi del
   posto, `playerId` compreso (prima si perdeva e le partite dopo il rientro non contavano in classifica).
+  Dalla v5.64 la schermata di rientro compare solo se è seduta almeno una PERSONA (o la partita è già
+  cominciata): con soli computer in stanza si va dritti alla scelta del colore. Nota: si risulta seduti
+  solo dopo "Entra nella stanza" ("Siediti" prenota e basta).
 - "Impara a giocare" (v5.50): barra "Il tuo percorso · X di 9 lezioni", lezioni numerate in un unico
   riquadro a righe, ✓ verde sulle fatte e "Inizia ›" sulla prima ancora da fare.
 - Schermate secondarie (v5.51, l'utente ha lasciato decidere a Claude): scelta modalità della stanza,
