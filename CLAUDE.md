@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.72**.
+- Versione attuale: **v5.73**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -122,6 +122,11 @@
   riquadri giocatori, chat e "Sollecita" bianchi senza bordo con ombra; riga "Tocca a te" e pulsante
   chat ORO; tabellone con angoli più tondi e ombra morbida. Carte e tabellone invariati; Legno, Notte,
   Luminoso e Arcade non cambiano.
+- Schermata di gioco "come la home" (v5.73, scelta "B · Tessere" fra A riquadro a sfumatura / B tessere;
+  solo stile Classico): stanza e squadra in due tessere bianche con etichetta "🚪 STANZA" / "🤝 SQUADRA"
+  (resta lo stemma tondo diviso nei due colori), giocatori + tabellone in un unico riquadro bianco (`.gx-card`,
+  negli altri stili `display: contents`), "💬 CHAT" come etichetta sopra l'anteprima della chat, angoli più tondi.
+  La barra in alto (⚙️ ≡ ‹ › 🏠) resta com'era (scartato metterci pillola/🔊/🧊).
 - Estrazione del mazziere in stile Bento (v5.56, solo stile Classico): un riquadro bianco per giocatore
   (solo nome col pallino), mazzetto al centro; animazione "A · Lancio": la carta si stacca dal mazzetto,
   fa una curva girando e si posa un po' storta sul mucchietto (restano le ultime 4); chi vince ha bordo
@@ -133,6 +138,8 @@
   fondono in una (mentre si cerca su Firebase), poi l'esito: verde con cerchi e ✓ "Stanza trovata!" /
   "Torneo trovato!" / "Stanza nuova!" (dalla v5.58 la stanza nuova ha la STESSA animazione verde,
   non più oro con il +), rosso che trema "Nessuna connessione".
+  Le caselle hanno sopra un input invisibile: dalla v5.73 con `autocorrect="off"` e `text-indent` fuori schermo
+  (su iPhone scrivendo compariva un riquadro grigio a sinistra).
   Pulsanti "con esito" (`fbBusy` / `fbOk` / `fbFail`): rotellina → verde ✓ / rosso che trema e poi torna
   com'era. Usati su: Siediti (aspetta la prenotazione del colore: "Già preso" se un altro telefono è
   arrivato prima), Iscriviti, Crea torneo, Sono io, Diventa/Passa organizzatore, Condividi l'invito.

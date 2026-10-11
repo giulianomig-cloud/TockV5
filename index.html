@@ -3078,6 +3078,23 @@ html:not([data-skin]) .game-shell .chat-preview { background: var(--bx-card); bo
 html:not([data-skin]) .game-shell .chat-fab { background: var(--bx-btn-bg); box-shadow: 0 10px 22px -12px rgba(168,125,34,.7); }
 html:not([data-skin]) .game-shell .reaction-fab { background: var(--bx-card); border: none; box-shadow: var(--bx-shadow); }
 html:not([data-skin]) .game-shell .nudge-btn { background: var(--bx-card); border: none; border-radius: 18px; box-shadow: var(--bx-shadow); }
+/* v5.73: schermata di gioco come la home ("B · Tessere", solo stile Classico). */
+.gx-tiles, .chat-k { display: none; }
+.gx-card { display: contents; }
+.gx-card > * { margin: 0 !important; }
+html:not([data-skin]) .game-shell .room-team-row { display: none; }
+html:not([data-skin]) .game-shell .gx-tiles { display: grid; grid-template-columns: 1fr 1.45fr; gap: 10px; }
+html:not([data-skin]) .game-shell .gx-tile { min-width: 0; background: var(--bx-card); border-radius: 22px; padding: 7px 14px 8px; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .gx-big { display: flex; align-items: center; gap: 7px; margin-top: 1px; font-size: 1.08rem; font-weight: 800; letter-spacing: -.01em; color: var(--bx-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html:not([data-skin]) .game-shell .gx-big svg { width: 18px; height: 18px; flex: none; }
+html:not([data-skin]) .game-shell .gx-big .identity-team { overflow: hidden; text-overflow: ellipsis; color: inherit; font: inherit; }
+html:not([data-skin]) .game-shell .gx-card { display: flex; flex-direction: column; gap: 6px; padding: 6px 8px; background: var(--bx-card); border-radius: 28px; box-shadow: var(--bx-shadow); }
+html:not([data-skin]) .game-shell .gx-card #board-wrap { box-shadow: none; }
+html:not([data-skin]) .game-shell .gx-card .board-player { box-shadow: none; }
+html:not([data-skin]) .game-shell .turn-line { border-radius: 24px; }
+html:not([data-skin]) .game-shell .chat-preview { flex-wrap: wrap; row-gap: 1px; border-radius: 22px; padding-top: 6px; padding-bottom: 7px; }
+html:not([data-skin]) .game-shell .chat-k { display: block; flex-basis: 100%; font-style: normal; }
+html:not([data-skin]) .game-shell .nudge-btn { border-radius: 22px; }
 /* v5.56: estrazione del mazziere in stile Bento (solo stile Classico): un riquadro per giocatore,
    carte lanciate dal mazzetto che restano a mucchietto, "👑 Mazziere" sul riquadro di chi vince. */
 html:not([data-skin]) #picker-wrap:has(.dealer-draw-grid) { background: var(--bx-bg); }
@@ -3100,7 +3117,10 @@ html:not([data-skin]) .dealer-pile .card-btn.dealer-under { z-index: 3; filter: 
 .cf-row { position: relative; height: 48px; display: flex; gap: 6px; justify-content: center; align-items: center; cursor: text; }
 .cf-row.cf-long { gap: 4px; }
 /* L'input vero è invisibile sopra le caselle (!important: batte gli stili per id dei campi). */
-.cf-row > input { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; opacity: 0 !important; font-size: 16px !important; color: transparent !important; caret-color: transparent; border: none !important; background: transparent !important; box-shadow: none !important; z-index: 2; }
+.cf-row > input { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; opacity: 0 !important; font-size: 16px !important; color: transparent !important; caret-color: transparent; border: none !important; background: transparent !important; box-shadow: none !important; z-index: 2; text-indent: -9999px; }
+/* v5.73: su iPhone, scrivendo, compariva un riquadro grigio a sinistra (evidenziazione dei suggerimenti
+   della tastiera sul testo dell'input invisibile): suggerimenti spenti (autocorrect) e testo spostato fuori. */
+.cf-row > input::selection { background: transparent; }
 .cf-card { background: var(--bx-card); border-radius: 18px; padding: 8px; box-shadow: 0 10px 24px -14px rgba(60,40,10,.45); margin-bottom: 12px; }
 .cf-row.cf-stage { height: 0; overflow: visible; margin: 4px 0 8px; }
 .cf-row.cf-run > input { pointer-events: none; }
@@ -8071,7 +8091,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.72";
+const APP_VERSION = "v5.73";
 
 let myColor = null;
 let myRoomId = null;
@@ -8201,6 +8221,7 @@ function renderLobby() {
     value: myRoomId || "",
     autocapitalize: "characters",
     autocomplete: "off",
+    autocorrect: "off",
     spellcheck: "false",
     "aria-label": "Codice stanza",
   });
@@ -8425,7 +8446,7 @@ function renderTournamentCreateScreen() {
   root.innerHTML = "";
   const savedPlayer = getSavedPlayerShortcut();
   const nameField = buildRubricaNameInput("torneo-organizer-name", myName || (savedPlayer && savedPlayer.nome) || "");
-  const codeInput = el("input", { id: "torneo-code-input", placeholder: "codice torneo (es. TORNEO1)", autocapitalize: "characters", autocomplete: "off", spellcheck: "false", "aria-label": "Codice del torneo" });
+  const codeInput = el("input", { id: "torneo-code-input", placeholder: "codice torneo (es. TORNEO1)", autocapitalize: "characters", autocomplete: "off", autocorrect: "off", spellcheck: "false", "aria-label": "Codice del torneo" });
   // v5.58: codice a caselle come in home (stessa animazione alla creazione).
   const codeRow = el("div", { class: "cf-row notranslate", translate: "no", onclick: () => codeInput.focus() }, codeInput);
   const redrawCode = () => codeBoxesDraw(codeRow);
@@ -9201,8 +9222,8 @@ async function cfCelebrate(go, title, sub, h, subText, label) {
 // movimento") si cambia schermata come prima. La schermata nuova viene
 // disegnata un attimo dopo (dentro la transizione): render() deve quindi
 // contenere tutto quello che va fatto dopo il disegno (es. watchRoom).
-const VT_TO_ROOM = ".room-tag, .room-team-room";
-const VT_AUTO = [["vt-tag", ".room-tag, .room-team-room, .t-head h1"], ["vt-logo", ".app-logo-img"]];
+const VT_TO_ROOM = ".room-tag, .room-team-room, .gx-room";
+const VT_AUTO = [["vt-tag", ".room-tag, .room-team-room, .gx-room, .t-head h1"], ["vt-logo", ".app-logo-img"]];
 let _vtBusy = false;
 function vtGo(fromEl, toSel, render) {
   const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -9210,7 +9231,7 @@ function vtGo(fromEl, toSel, render) {
   const app = document.getElementById("app");
   const named = [];
   const name = (e, n) => { if (e && !e.style.viewTransitionName) { e.style.viewTransitionName = n; named.push(e); } };
-  const markAuto = () => VT_AUTO.forEach(([n, sel]) => { if (!named.some((e) => e.style.viewTransitionName === n)) name(app && app.querySelector(sel), n); });
+  const markAuto = () => VT_AUTO.forEach(([n, sel]) => { if (!named.some((e) => e.style.viewTransitionName === n)) name(app && [...app.querySelectorAll(sel)].find((e) => e.getClientRects().length), n); });
   if (fromEl && fromEl.isConnected) name(fromEl, "vt-hero");
   markAuto();
   _vtBusy = true;
@@ -11100,9 +11121,27 @@ function renderGameShell() {
       // Nomi giocatori + pedine "fuori" agli angoli sopra/sotto il
       // tabellone (vedi renderPlayerStatus) invece che in riquadri a parte
       // più sotto — ciascuno vicino all'angolo dov'è davvero la sua base.
-      el("div", { id: "board-players-top", class: "board-players-row" }),
-      el("div", { id: "board-wrap" }),
-      el("div", { id: "board-players-bottom", class: "board-players-row" }),
+      // v5.73 (stile Classico, scelta "B · Tessere"): stanza e squadra in due tessere come
+      // "Classifica"/"Impara" della home; giocatori + tabellone in un unico riquadro bianco.
+      // Negli altri stili le tessere sono nascoste e il riquadro è "display: contents".
+      el(
+        "div",
+        { class: "gx-tiles" },
+        el("div", { class: "gx-tile gx-room" }, el("div", { class: "bx-k" }, "🚪 Stanza"), el("div", { class: "gx-big notranslate", translate: "no" }, myRoomId)),
+        el(
+          "div",
+          { class: "gx-tile" },
+          el("div", { class: "bx-k" }, "🤝 Squadra"),
+          el("div", { class: "gx-big" }, teamCrest(TEAM_COLORS[TEAM_OF[myColor]]), el("span", { class: "identity-team" }, TEAM_LABEL[TEAM_OF[myColor]]))
+        )
+      ),
+      el(
+        "div",
+        { class: "gx-card" },
+        el("div", { id: "board-players-top", class: "board-players-row" }),
+        el("div", { id: "board-wrap" }),
+        el("div", { id: "board-players-bottom", class: "board-players-row" })
+      ),
       el("div", { id: "start-wrap" }),
       el("div", { id: "exchange-wrap" }),
       el("div", { id: "turn-indicator" }),
@@ -15928,6 +15967,7 @@ function renderChatFab(messages) {
     ? el(
         "div",
         { class: "chat-preview", onclick: (ev) => openPickerFrom(ev.currentTarget, openChatPicker), title: "Apri la chat" },
+        el("span", { class: "chat-k bx-k" }, "💬 Chat"),
         el(
           "span",
           { class: "chat-avatar chat-avatar-" + last.color },
@@ -15943,6 +15983,7 @@ function renderChatFab(messages) {
     : el(
         "div",
         { class: "chat-preview chat-preview-empty", onclick: (ev) => openPickerFrom(ev.currentTarget, openChatPicker), title: "Apri la chat" },
+        el("span", { class: "chat-k bx-k" }, "💬 Chat"),
         "Nessun messaggio ancora — tocca per scrivere"
       );
   wrap.appendChild(
