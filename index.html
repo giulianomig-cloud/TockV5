@@ -7988,7 +7988,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.62";
+const APP_VERSION = "v5.63";
 
 let myColor = null;
 let myRoomId = null;
@@ -8144,7 +8144,7 @@ function renderLobby() {
         el("h1", {}, "Pronto per", el("br"), "una partita?"),
         el("p", {}, "Scrivi il codice della stanza: se non esiste, la crei tu."),
         el("div", { class: "bx-play cf" },
-          el("div", { class: "cf-row", onclick: () => roomInput.focus() }, roomInput),
+          el("div", { class: "cf-row notranslate", translate: "no", onclick: () => roomInput.focus() }, roomInput),
           el("button", { id: "continue-btn", onclick: continueFromRoomCode }, "Gioca →"))),
       el("div", { class: "bx-bento" },
         el("button", { class: "bx-card bx-lb", onclick: (ev) => vtGo(ev.currentTarget, ".lobby-card", renderLeaderboardScreen) },
@@ -8198,7 +8198,7 @@ async function fillActiveTournamentsList() {
         el(
           "div",
           { class: "tourney-row-main" },
-          el("span", { class: "tourney-row-code" }, t.code),
+          el("span", { class: "tourney-row-code notranslate", translate: "no" }, t.code),
           el("span", { class: "tourney-row-format" }, t.formato === "rotante_8" ? "Tutti con tutti (8)" : "Coppie fisse")
         ),
         el(
@@ -8344,7 +8344,7 @@ function renderTournamentCreateScreen() {
   const nameField = buildRubricaNameInput("torneo-organizer-name", myName || (savedPlayer && savedPlayer.nome) || "");
   const codeInput = el("input", { id: "torneo-code-input", placeholder: "codice torneo (es. TORNEO1)", autocapitalize: "characters", autocomplete: "off", spellcheck: "false", "aria-label": "Codice del torneo" });
   // v5.58: codice a caselle come in home (stessa animazione alla creazione).
-  const codeRow = el("div", { class: "cf-row", onclick: () => codeInput.focus() }, codeInput);
+  const codeRow = el("div", { class: "cf-row notranslate", translate: "no", onclick: () => codeInput.focus() }, codeInput);
   const redrawCode = () => codeBoxesDraw(codeRow);
   codeInput.addEventListener("input", redrawCode);
   codeInput.addEventListener("focus", redrawCode);
@@ -8542,7 +8542,7 @@ function renderTournamentLobby(code) {
   if (_tournamentLobbyListenerCode && _tournamentLobbyListenerCode !== code) tournamentsRef().child(_tournamentLobbyListenerCode).off();
   _tournamentLobbyListenerCode = code;
   const root = $("#app"); root.innerHTML = "";
-  root.appendChild(el("div", { class: "lobby-card" }, el("div", { class: "t-head" }, el("h1", {}, "🏆 " + code)), el("div", { id: "torneo-lobby-body" }, el("p", { class: "muted" }, "Carico…"))));
+  root.appendChild(el("div", { class: "lobby-card" }, el("div", { class: "t-head" }, el("h1", { class: "notranslate", translate: "no" }, "🏆 " + code)), el("div", { id: "torneo-lobby-body" }, el("p", { class: "muted" }, "Carico…"))));
   tournamentsRef().child(code).on("value", (snap) => {
     const t = snap.val();
     const body = document.getElementById("torneo-lobby-body");
@@ -8976,6 +8976,8 @@ const fbWait = (ms) => new Promise((r) => setTimeout(r, ms));
 // v5.57: codice stanza "a caselle" nella home (dalla v5.58 anche in Organizza torneo). L'input vero resta (invisibile)
 // sopra le caselle, così tastiera, incolla e ?room=... funzionano come prima;
 // le caselle si ridisegnano a ogni lettera.
+// Le caselle sono marcate translate="no": il traduttore di Chrome (giocatori
+// in spagnolo) traduceva le singole lettere ("L" → "EL", "N" → "norte").
 function codeBoxesDraw(row) {
   const input = row && row.querySelector("input");
   if (!input || row.classList.contains("cf-run")) return; // durante l'animazione non si ridisegna
@@ -9252,7 +9254,7 @@ function smallScreenHeader(tagLabel, tagCode) {
     "div",
     { class: "lobby-header-row small-header" },
     el("div", { class: "app-logo" }, el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" })),
-    tagCode ? el("div", { class: "room-tag" }, el("span", { class: "room-tag-label" }, tagLabel), el("span", { class: "room-tag-code" }, tagCode)) : ""
+    tagCode ? el("div", { class: "room-tag" }, el("span", { class: "room-tag-label" }, tagLabel), el("span", { class: "room-tag-code notranslate", translate: "no" }, tagCode)) : ""
   );
 }
 
@@ -9345,7 +9347,7 @@ function renderNameRecoveryScreen(roomId, players) {
       "div",
       { class: "lobby-card" },
       el("div", { class: "lobby-header-row" }, el("div", { class: "app-logo" }, el("img", { class: "app-logo-img", src: logoSrc(currentTheme), alt: "Tock" }))),
-      el("div", { class: "room-tag" }, el("span", { class: "room-tag-label" }, "Stanza"), el("span", { class: "room-tag-code" }, roomId)),
+      el("div", { class: "room-tag" }, el("span", { class: "room-tag-label" }, "Stanza"), el("span", { class: "room-tag-code notranslate", translate: "no" }, roomId)),
       el("p", { class: "rj-title" }, "Partita già in corso"),
       el("p", { class: "rj-text" }, "Stavi giocando da un altro telefono? Tocca il tuo nome per riprendere il tuo posto."),
       el("div", { class: "rj-list" }, rows),
@@ -9542,7 +9544,7 @@ function renderManualLobby(roomId, existingPlayers) {
         "div",
         { class: "room-tag" },
         el("span", { class: "room-tag-label" }, "Stanza"),
-        el("span", { class: "room-tag-code" }, roomId)
+        el("span", { class: "room-tag-code notranslate", translate: "no" }, roomId)
       ),
       el("p", { class: "muted" }, "Inserisci il tuo nome e scegli il tuo colore."),
       stepLabel(1, "Il tuo nome"),
@@ -10993,7 +10995,7 @@ function renderGameShell() {
           "div",
           { class: "room-team-room" },
           el("span", { class: "room-team-room-label" }, "Stanza"),
-          el("span", { class: "room-team-room-code" }, myRoomId)
+          el("span", { class: "room-team-room-code notranslate", translate: "no" }, myRoomId)
         ),
         el(
           "div",
