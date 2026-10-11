@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.40**.
+- Versione attuale: **v5.41**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -60,6 +60,11 @@
   quelle nei quadratini colorati (v5.36, tolte nella v5.37): non riproporle.
   Emoji scelte: tutte "oggetti colorati", niente simboli piatti e niente doppioni (Impostazioni:
   ☀️ 🌙 🧊 · 🃏 Classico, 🪵 Legno, 🎰 Notte, 💎 Luminoso, 🕹️ Arcade · 🔊 📳 · 📜 🎓 · 📤 · 👀 🏷️).
+- Animazioni (v5.41): la pedina cammina con un saltello morbido fra le caselle (se non piace
+  si torna allo scatto di prima); la pedina mangiata atterra senza schiacciarsi (le pedine restano
+  sempre tonde); a fine partita le pedine vincenti saltano "a onda" e poi arriva il banner.
+  Scartato: ridurre le pulsazioni quando tocca a te (restano come sono). Scartati anche gli effetti
+  3D tipo video (pedine di vetro, logo lucido con Three.js): non riproporli.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
 - Alcuni giocatori usano l'app con il **traduttore di Chrome** (es. in spagnolo): avvolge i testi
