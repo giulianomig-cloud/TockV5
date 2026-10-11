@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.71**.
+- Versione attuale: **v5.72**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -164,6 +164,9 @@
   Dalla v5.71 l'omino è più piccolo e parte
   ACCANTO al pomello (lo tocca, non ci va sopra); pillola larga 92px. `themePill` / `animateThemePill`. Gli altri tastini in home (🔊 🧊) dalla v5.70 sono ROTONDI nello stesso
   stile (fondo bianco, pomello crema al centro; blu notte nel tema scuro).
+  Animati dalla v5.72: 🔊 ("Prova il suono", NON spegne l'audio) a ogni nota batte, onda dorata e nota ♪ ♫ ♪
+  che vola (`soundTestButton` / `soundBtnFx`); 🧊 spento = tastino schiacciato e cubetto grigio, acceso = capriola
+  del cubetto e tastino in rilievo (`animateFx3dBtn`, classi `ic-on` / `ic-off`), suoni `pawnOut` / `captureBonk`.
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Animazioni dei menu portate nel GIOCO (v5.65, scelti i gruppi 1 e 2 dai video di prova):
