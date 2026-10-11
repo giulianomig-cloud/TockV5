@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.38**.
+- Versione attuale: **v5.40**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -37,6 +37,12 @@
   Jack, 7, turni, vittoria). Leggono il motore direttamente da `index.html`.
 - Si lanciano con `node --test tests/*.test.js` (girano anche su GitHub a ogni aggiornamento).
 - Lanciali prima di ogni push; se cambi una regola apposta, aggiorna anche il controllo.
+
+## Scelta del colore nella stanza
+- Toccando un colore si scrive una prenotazione in `games/<stanza>/pending/<colore>` (`token`, `ts`)
+  con una transazione: vince il primo, l'altro telefono perde la scelta e vede "In scelta…".
+  Gli orari usano l'ora del server (`serverNow`), la prenotazione dura 45 s e si rinnova
+  da sola mentre si resta sulla schermata. Anche "Entra nella stanza" la rispetta.
 
 ## Bot e versioni in stanza
 - Dalla v5.30 ogni telefono scrive la propria `APP_VERSION` nella presenza
