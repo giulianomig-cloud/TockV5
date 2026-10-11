@@ -2417,6 +2417,11 @@ html[data-skin="bright"]:not([data-theme="dark"]) .reaction-bar .reaction-btn:ac
 /* v5.61: passaggi tra schermate (View Transitions): l'elemento che vola e il resto che sfuma. */
 ::view-transition-group(vt-hero) { animation-duration: .5s; animation-timing-function: cubic-bezier(.3,.7,.2,1); }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+/* v5.65: scambio carta confermato (riga verde) e carta senza mosse (rossa che trema). */
+.turn-line.exchange-line.ex-ok { background: linear-gradient(135deg, #9BE8B4, #4FB477) !important; border-color: transparent !important; transition: background .3s; }
+.turn-line.exchange-line.ex-ok > strong, .turn-line.exchange-line.ex-ok > strong * { color: #10261A !important; }
+.card-btn.card-bad { animation: fbShake .45s; box-shadow: 0 0 0 3px #D9534F, 0 0 18px rgba(217,83,79,.65) !important; }
+@media (prefers-reduced-motion: reduce) { .card-btn.card-bad { animation: none; } }
 .reaction-mini { position: fixed; bottom: 22%; z-index: 9998; pointer-events: none; font-size: 1.9rem; margin-left: .6rem; filter: drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
 .chat-fab-row { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-bottom: 10px; }
 .chat-preview {
@@ -7988,7 +7993,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.63";
+const APP_VERSION = "v5.65";
 
 let myColor = null;
 let myRoomId = null;
@@ -9136,7 +9141,7 @@ function vtGo(fromEl, toSel, render) {
     try {
       await render();
     } finally {
-      if (fromEl && toSel) name(document.querySelector(toSel), "vt-hero");
+      if (fromEl && toSel) name(typeof toSel === "string" ? document.querySelector(toSel) : toSel, "vt-hero");
       markAuto();
     }
   });
@@ -9235,7 +9240,12 @@ async function continueFromRoomCode() {
   // stato riconosciuto sopra, potrebbe comunque essere un giocatore che
   // sta rientrando da un dispositivo diverso — offriglielo prima di
   // mandarlo dritto alla lobby/estrazione come fosse nuovo.
-  if (existing.players && Object.keys(existing.players).length > 0) {
+  // v5.64: solo se c'è almeno una PERSONA seduta (non solo computer): con
+  // soli bot nella stanza "Partita già in corso" non aveva senso e non
+  // c'era nessun nome da toccare — si va dritti alla scelta del colore
+  // (a partita già cominciata resta la schermata di rientro, come prima).
+  const humansSeated = COLORS.some((c) => existing.players && existing.players[c] && !existing.players[c].isBot);
+  if (humansSeated || (existing.phase && existing.phase !== "lobby")) {
     heroGo(() => renderNameRecoveryScreen(roomId, existing.players));
     return;
   }
@@ -10930,7 +10940,7 @@ function renderGameShell() {
           { class: "top-actions-icons" },
           el(
             "button",
-            { id: "settings-btn", class: "icon-btn", "aria-label": "Impostazioni", onclick: openSettingsPanel },
+            { id: "settings-btn", class: "icon-btn", "aria-label": "Impostazioni", onclick: (ev) => openPickerFrom(ev.currentTarget, () => openSettingsPanel()) },
             // Ingranaggio a linee (stesso stile delle altre icone): l'emoji ⚙️ a
             // questa dimensione sembrava una macchia grigia (segnalato: "non si
             // capisce che è una rotella").
@@ -10942,7 +10952,7 @@ function renderGameShell() {
           // Registro delle mosse: di nuovo qui in alto (non più dentro il menu).
           el(
             "button",
-            { class: "icon-btn", "aria-label": "Registro mosse", onclick: openLogPicker },
+            { class: "icon-btn", "aria-label": "Registro mosse", onclick: (ev) => openPickerFrom(ev.currentTarget, openLogPicker) },
             svgIcon(14, 14, "0 0 24 24", "#5A5145", 2.2, [
               ["line", { x1: 8, y1: 6, x2: 21, y2: 6 }],
               ["line", { x1: 8, y1: 12, x2: 21, y2: 12 }],
@@ -13206,7 +13216,12 @@ function onStateChange(state) {
     }
     clearTimeout(_winBannerTimer);
     _winBannerTimer = setTimeout(() => {
-      if (currentState && currentState.phase === "finished") renderWinBanner(currentState);
+      if (!currentState || currentState.phase !== "finished") return;
+      // v5.65: il banner "nasce" dalla riga di un giocatore della squadra vincente.
+      const st = currentState, wc = COLORS.filter((c) => TEAM_OF[c] === st.winnerTeam);
+      const from = document.querySelector(".board-player.bp-" + (wc.includes(myColor) ? myColor : wc[0]));
+      if (from && !document.querySelector("#app .win-banner-backdrop")) vtGo(from, ".win-banner", () => renderWinBanner(st));
+      else renderWinBanner(st);
     }, Math.max(0, (_winCelebrateUntil || 0) - Date.now()));
     if (!_leaderboardClaimAttempted) {
       _leaderboardClaimAttempted = true;
@@ -13512,12 +13527,16 @@ function renderExchangeControls(state) {
       )
     )
   );
+  // v5.65: appena data la carta la riga diventa verde "✓ Carta data a …"
+  // (prima "Mando la carta…" con la rotellina, vedi il clic sulle carte sotto).
+  const justSent = already && Date.now() - _exchangeSentAt < 4000;
+  if (justSent && _exchangeOkSound !== _exchangeSentAt) { _exchangeOkSound = _exchangeSentAt; try { playSound("fbOk"); } catch (e) {} }
   line.appendChild(
     el(
       "div",
-      { class: "turn-line exchange-line" + (already ? "" : " my-turn") },
+      { class: "turn-line exchange-line" + (already ? "" : " my-turn") + (justSent ? " ex-ok" : "") },
       already
-        ? el("strong", {}, waitingColors.length ? "✓ Scelta fatta" : "Tutti pronti, avvio…")
+        ? el("strong", {}, !waitingColors.length ? "Tutti pronti, avvio…" : justSent ? "✓ Carta data a " + playerName(state, partner) : "✓ Scelta fatta")
         : el("strong", {}, "🤝 Dai una carta a " + playerName(state, partner)),
       dots
     )
@@ -13532,7 +13551,13 @@ function renderExchangeControls(state) {
   _dealAnimKey = dealKey;
   _handRenderedAt = Date.now();
   (state.hands[myColor] || []).filter(Boolean).forEach((card, i) => {
-    const btn = already ? buildCardButton(card, false) : buildCardButton(card, true, (e) => { flyGivenCard(e && e.currentTarget); sendExchangeCard(card); });
+    const btn = already ? buildCardButton(card, false) : buildCardButton(card, true, (e) => {
+      flyGivenCard(e && e.currentTarget);
+      _exchangeSentAt = Date.now();
+      const st = document.querySelector(".exchange-line strong");
+      if (st) { st.innerHTML = ""; st.append(el("span", { class: "fb-spin", "aria-hidden": "true" }), "Mando la carta…"); }
+      sendExchangeCard(card);
+    });
     if (justDealt) {
       btn.classList.add("deal-card");
       btn.style.setProperty("--i", i);
@@ -13547,6 +13572,7 @@ function renderExchangeControls(state) {
 }
 let _dealAnimKey = null;
 let _handRenderedAt = 0;
+let _exchangeSentAt = 0, _exchangeOkSound = 0;
 
 // Rete di sicurezza per "a volte spariscono le carte": se la mano nello
 // stato ha carte ma sullo schermo ce ne sono di meno (render interrotto,
@@ -13600,6 +13626,9 @@ async function sendExchangeCard(card) {
     });
   } catch (e) {
     showToast("Errore nello scambio: " + describeError(e));
+    _exchangeSentAt = 0;
+    try { playSound("fbFail"); } catch (e2) {}
+    if (currentState) renderExchangeControls(currentState); // la riga torna "Dai una carta a …"
   }
 }
 
@@ -14195,10 +14224,18 @@ async function onCardClick(card, evt) {
   const options = legalMovesForCard(currentState, active, card);
 
   if (options.length === 0) {
-    if (!confirm(`"${cardLabel(card)}" non ha mosse legali ora: la bruci e passi il turno?`)) return;
+    // v5.65: la carta senza mosse trema e si colora di rosso, poi la domanda.
+    const btn = evt && evt.currentTarget;
+    if (btn && btn.classList) {
+      btn.classList.remove("card-bad"); void btn.offsetWidth; btn.classList.add("card-bad");
+      try { playSound("fbFail"); } catch (e) {}
+      await new Promise((resolve) => setTimeout(resolve, 480));
+    }
+    const ok = confirm(`"${cardLabel(card)}" non ha mosse legali ora: la bruci e passi il turno?`);
+    if (btn && btn.classList) btn.classList.remove("card-bad");
+    if (!ok) return;
     // Piccola animazione di "bruciatura" sulla carta cliccata, prima che
     // sparisca davvero dallo stato — invece di sparire di scatto.
-    const btn = evt && evt.currentTarget;
     if (btn && btn.classList) {
       btn.classList.add("card-burning");
       await new Promise((resolve) => setTimeout(resolve, 380));
@@ -14268,7 +14305,7 @@ function ensurePickerBackdrop() {
     bd = document.createElement("div");
     bd.id = "picker-backdrop";
     bd.className = "picker-backdrop";
-    bd.onclick = closePicker;
+    bd.onclick = closePickerAnimated;
     document.body.appendChild(bd);
   }
   return bd;
@@ -14310,6 +14347,19 @@ function unlockBodyScroll() {
   window.scrollTo(0, y);
 }
 
+// v5.65: pannelli del gioco che "escono" dal pulsante toccato (⚙️, ≡, 💬,
+// riga "Regolamento") e ci rientrano quando si chiudono con ✕ / Chiudi /
+// tocco fuori. _pickerOrigin = l'elemento da cui si è aperto il pannello.
+let _pickerOrigin = null;
+function openPickerFrom(fromEl, openFn) {
+  return vtGo(fromEl, "#picker-wrap", () => { openFn(); _pickerOrigin = fromEl || null; });
+}
+function closePickerAnimated() {
+  const o = _pickerOrigin, wrap = document.getElementById("picker-wrap");
+  if (o && o.isConnected && wrap && wrap.childElementCount) return vtGo(wrap, o, closePicker);
+  closePicker();
+}
+
 function openPicker(contentEl, opts) {
   const wrap = $("#picker-wrap");
   wrap.innerHTML = "";
@@ -14345,6 +14395,7 @@ function closePicker() {
     bd.style.opacity = "";
   }
   unlockBodyScroll();
+  _pickerOrigin = null;
   // Se era la chat ad essere aperta, torna a contare i messaggi non letti
   // da qui in avanti (no-op innocuo se non era la chat).
   if (chatPickerOpen) {
@@ -14784,7 +14835,7 @@ function openSettingsPanel(keepScroll) {
   const body = el(
     "div",
     { class: "choice-box set-box" },
-    el("div", { class: "set-head" }, el("p", { class: "set-title" }, "⚙️ Impostazioni"), el("button", { class: "set-close", "aria-label": "Chiudi", onclick: closePicker }, "✕")),
+    el("div", { class: "set-head" }, el("p", { class: "set-title" }, "⚙️ Impostazioni"), el("button", { class: "set-close", "aria-label": "Chiudi", onclick: closePickerAnimated }, "✕")),
     settingsCard("Aspetto", [
       settingsRow("☀️", "Modalità chiara", el("span", { class: "set-radio" + (dark ? "" : " on") }), () => { applyTheme("light"); openSettingsPanel(true); }),
       settingsRow("🌙", "Modalità scura", el("span", { class: "set-radio" + (dark ? " on" : "") }), () => { applyTheme("dark"); openSettingsPanel(true); }),
@@ -14798,7 +14849,7 @@ function openSettingsPanel(keepScroll) {
       settingsRow("📳", "Vibrazione (turno, pedina mangiata, casa)", settingsToggle(hapticOn, toggleHaptic)),
     ]),
     settingsCard("Regole", [
-      settingsRow("📜", "Regolamento completo", null, () => { closePicker(); openRulesPanel(); }),
+      settingsRow("📜", "Regolamento completo", null, (ev) => openPickerFrom(ev.currentTarget, () => { closePicker(); openRulesPanel(); })),
       settingsRow("🎓", "Impara a giocare (tutorial)", null, () => { closePicker(); openTutorial(); }),
     ]),
     settingsCard("Partita", [
@@ -14836,7 +14887,7 @@ function openRulesPanel() {
           )
         );
       }),
-      el("button", { class: "secondary", onclick: closePicker, style: "width:100%;margin-top:4px;" }, "Chiudi")
+      el("button", { class: "secondary", onclick: closePickerAnimated, style: "width:100%;margin-top:4px;" }, "Chiudi")
     )
   );
 }
@@ -15602,7 +15653,7 @@ function renderChatFab(messages) {
   const preview = last
     ? el(
         "div",
-        { class: "chat-preview", onclick: openChatPicker, title: "Apri la chat" },
+        { class: "chat-preview", onclick: (ev) => openPickerFrom(ev.currentTarget, openChatPicker), title: "Apri la chat" },
         el(
           "span",
           { class: "chat-avatar chat-avatar-" + last.color },
@@ -15617,7 +15668,7 @@ function renderChatFab(messages) {
       )
     : el(
         "div",
-        { class: "chat-preview chat-preview-empty", onclick: openChatPicker, title: "Apri la chat" },
+        { class: "chat-preview chat-preview-empty", onclick: (ev) => openPickerFrom(ev.currentTarget, openChatPicker), title: "Apri la chat" },
         "Nessun messaggio ancora — tocca per scrivere"
       );
   wrap.appendChild(
@@ -15627,7 +15678,7 @@ function renderChatFab(messages) {
       preview,
       el(
         "button",
-        { class: "chat-fab", "aria-label": "Apri la chat", onclick: openChatPicker },
+        { class: "chat-fab", "aria-label": "Apri la chat", onclick: (ev) => openPickerFrom(ev.currentTarget, openChatPicker) },
         chatBubbleIconSvg(),
         unread > 0 ? el("span", { class: "chat-fab-badge" }, unread > 99 ? "99+" : String(unread)) : ""
       ),
@@ -15662,7 +15713,7 @@ function renderChatFab(messages) {
     el(
       "div",
       { class: "nudge-row" },
-      el("button", { class: "nudge-btn", title: "Sveglia chi deve giocare", onclick: sendNudge }, "👋", el("span", { class: "nudge-label" }, " Sveglia chi deve giocare"))
+      el("button", { class: "nudge-btn" + (Date.now() < _nudgeOkUntil ? " fb-ok" : ""), title: "Sveglia chi deve giocare", onclick: (ev) => sendNudge(ev.currentTarget) }, ...(Date.now() < _nudgeOkUntil ? ["✓ Sveglia inviata"] : ["👋", el("span", { class: "nudge-label" }, " Sveglia chi deve giocare")]))
     )
   );
 }
@@ -15688,7 +15739,10 @@ function openCallRoom() {
   window.open(url, "_blank", "noopener");
 }
 
-async function sendNudge() {
+// v5.65: "Sveglia" con esito sul pulsante (rotellina → verde "✓ Sveglia inviata").
+// _nudgeOkUntil tiene il verde anche se la chat ridisegna il pulsante.
+let _nudgeOkUntil = 0;
+async function sendNudge(btn) {
   keepAudioAlive();
   const st = currentState;
   if (!st) return;
@@ -15698,13 +15752,18 @@ async function sendNudge() {
   if (st.players && st.players[t] && st.players[t].isBot) return showToast("Gioca il computer, è già veloce.");
   if (Date.now() - lastNudgeAt < 30000) return showToast("Hai appena svegliato: aspetta un po'.");
   lastNudgeAt = Date.now();
+  fbBusy(btn, "Invio…");
   try {
     await updateState(myRoomId, (state) => {
       postChatMessage(state, myColor, NUDGE_TEXT);
     });
-    showToast("👋 Sveglia inviata a " + playerName(st, t));
+    _nudgeOkUntil = Date.now() + 2200;
+    const live = document.querySelector(".nudge-btn");
+    fbOk(live || btn, "Sveglia inviata a " + playerName(st, t));
+    setTimeout(() => { _nudgeOkUntil = 0; _chatFabRenderKey = null; if (currentState) renderChatFab(currentState.chat || []); }, 2300);
   } catch (e) {
     console.error(e);
+    fbFail(btn, "Riprova");
   }
 }
 
@@ -16282,7 +16341,7 @@ function renderWinBanner(state) {
     // torneo, da cui l'organizzatore avvia il round successivo.
     state.torneo
       ? el("button", { class: "primary", onclick: () => { detachFromGameRoom(); openTournamentByCode(state.torneo.code); } }, "🏆 Torna al torneo")
-      : el("button", { class: "primary", onclick: startNewGame }, "🔁 Rivincita"),
+      : el("button", { class: "primary", onclick: (ev) => startNewGame(ev.currentTarget) }, "🔁 Rivincita"),
     el(
       "button",
       { class: "text-link-btn", style: "display:flex;width:100%;justify-content:center;margin-top:10px;", onclick: () => { location.href = location.pathname; } },
@@ -16294,14 +16353,17 @@ function renderWinBanner(state) {
   launchConfetti(winners);
 }
 
-async function startNewGame() {
+async function startNewGame(btn) {
   keepAudioAlive();
+  fbBusy(btn, "Preparo la rivincita…");
   try {
     await runUpdate((state) => {
       resetForNewGame(state);
     });
+    fbOk(btn, "Si riparte!");
   } catch (e) {
     console.error(e);
+    fbFail(btn, "Riprova");
   }
 }
 
