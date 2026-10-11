@@ -7988,7 +7988,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.61";
+const APP_VERSION = "v5.62";
 
 let myColor = null;
 let myRoomId = null;
@@ -8149,10 +8149,10 @@ function renderLobby() {
       el("div", { class: "bx-bento" },
         el("button", { class: "bx-card bx-lb", onclick: (ev) => vtGo(ev.currentTarget, ".lobby-card", renderLeaderboardScreen) },
           el("span", { class: "bx-k" }, "🏆 Classifica"), el("span", { class: "bx-t" }, "Chi vince di più"), podium),
-        el("button", { class: "bx-card", onclick: openTutorial },
+        el("button", { class: "bx-card bx-imp", onclick: (ev) => vtGo(ev.currentTarget, ".tl-prog", openTutorial) },
           el("span", { class: "bx-k" }, "🎓 Impara"),
           el("div", { class: "bx-ring" }, bentoRing(tutFatte, tutTotal), el("span", { class: "bx-t" }, `${tutFatte}/${tutTotal}`))),
-        el("button", { class: "bx-card bx-dark", onclick: renderTournamentCreateScreen },
+        el("button", { class: "bx-card bx-dark", onclick: (ev) => vtGo(ev.currentTarget, "#app .lobby-card", renderTournamentCreateScreen) },
           el("span", { class: "bx-k" }, "Nuovo"), el("span", { class: "bx-t" }, "+ Organizza un torneo"))),
       el("div", { class: "bx-sec" }, el("b", {}, "Tornei")),
       el("div", { id: "tourney-list-wrap", class: "bx-scroll" }, el("div", { class: "tourney-placeholder" }, "Carico i tornei…")),
@@ -8380,7 +8380,7 @@ function renderTournamentCreateScreen() {
       el("p", { class: "step-label" }, "Codice del torneo"),
       el("div", { class: "cf-card" }, codeRow),
       el("button", { class: "primary", onclick: (ev) => submitCreateTournament(codeInput, () => formatoScelto, ev.currentTarget) }, "Crea torneo"),
-      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: renderLobby }, backChevronIcon(), "Annulla")
+      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: () => vtGo(document.querySelector("#app .lobby-card"), ".bx-dark", renderLobby) }, backChevronIcon(), "Annulla")
     )
   );
   codeBoxesDraw(codeRow);
@@ -8414,7 +8414,7 @@ async function submitCreateTournament(codeInput, getFormato, btn) {
   }
   await joinTournament(code, player.id, player.nome, null);
   await fx.finish("ok", ["🏆 Torneo", "creato!"], "Ti porto alla pagina del torneo.", "Torneo creato");
-  renderTournamentLobby(code);
+  vtGo(row && row.querySelector(".cf-okx"), ".t-head h1", () => renderTournamentLobby(code));
 }
 
 // Punto di ingresso quando si clicca un torneo dall'elenco in home, o si
@@ -8492,9 +8492,9 @@ function renderTournamentJoinScreen(code, tournament) {
       // Anche senza iscriversi si può aprire la pagina del torneo (tavoli,
       // classifica) e da lì, in fondo, "Diventa organizzatore da questo
       // dispositivo" — prima da qui non c'era modo di arrivarci.
-      el("button", { class: "secondary", style: "width:100%;margin-top:10px;", onclick: () => renderTournamentLobby(code) }, "👀 Guarda il torneo senza iscriverti"),
+      el("button", { class: "secondary", style: "width:100%;margin-top:10px;", onclick: () => vtGo(null, null, () => renderTournamentLobby(code)) }, "👀 Guarda il torneo senza iscriverti"),
       el("p", { class: "t-note" }, "Hai creato tu il torneo da un altro telefono? Aprilo qui e in fondo tocca \"👑 Diventa organizzatore da questo dispositivo\"."),
-      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: renderLobby }, backChevronIcon(), "Torna alla home")
+      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: vtHome }, backChevronIcon(), "Torna alla home")
     )
   );
 }
@@ -8523,7 +8523,7 @@ async function submitJoinTournament(code, tournament, btn) {
   }
   const card = btn && btn.closest(".lobby-card");
   await cfCelebrate(btn, card && card.querySelector(".rj-title"), null, ["Sei", "iscritto!"], null, "Sei iscritto!");
-  renderTournamentLobby(code);
+  vtGo(document.querySelector(".cf-stage .cf-okx"), ".t-head h1", () => renderTournamentLobby(code));
 }
 
 // Sala del torneo: elenco iscritti in tempo reale, round, tavoli e classifica.
@@ -8884,8 +8884,7 @@ async function joinTournamentTable(roomCode) {
   // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
   // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
   // ("Cannot set properties of null", visto su un tavolo di torneo).
-  renderGameShell();
-  watchRoom(roomCode, onStateChange);
+  vtGo(null, null, () => { renderGameShell(); watchRoom(roomCode, onStateChange); });
 }
 
 async function shareTournamentInviteLink(code, btn) {
@@ -9110,23 +9109,41 @@ async function cfCelebrate(go, title, sub, h, subText, label) {
 // del browser): fromEl nella schermata di partenza diventa toSel in quella
 // nuova (la casella verde del codice → l'etichetta "STANZA TORVA1", la
 // scheda del torneo → la pagina del torneo, il podio → la classifica),
-// mentre il resto sfuma. Sui telefoni che non lo supportano (o con "riduci
-// movimento") si cambia schermata come prima.
+// mentre il resto sfuma. Dalla v5.62 vale per tutti i passaggi prima della
+// partita: anche senza fromEl, l'etichetta della stanza/torneo e il logo che
+// ci sono in tutte e due le schermate "volano" dalla vecchia posizione alla
+// nuova (VT_AUTO). Sui telefoni che non lo supportano (o con "riduci
+// movimento") si cambia schermata come prima. La schermata nuova viene
+// disegnata un attimo dopo (dentro la transizione): render() deve quindi
+// contenere tutto quello che va fatto dopo il disegno (es. watchRoom).
 const VT_TO_ROOM = ".room-tag, .room-team-room";
+const VT_AUTO = [["vt-tag", ".room-tag, .room-team-room, .t-head h1"], ["vt-logo", ".app-logo-img"]];
+let _vtBusy = false;
 function vtGo(fromEl, toSel, render) {
   const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!document.startViewTransition || reduce || !fromEl || !fromEl.isConnected) return render();
-  fromEl.style.viewTransitionName = "vt-hero";
-  let toEl = null;
+  if (!document.startViewTransition || reduce || _vtBusy) return render();
+  const app = document.getElementById("app");
+  const named = [];
+  const name = (e, n) => { if (e && !e.style.viewTransitionName) { e.style.viewTransitionName = n; named.push(e); } };
+  const markAuto = () => VT_AUTO.forEach(([n, sel]) => { if (!named.some((e) => e.style.viewTransitionName === n)) name(app && app.querySelector(sel), n); });
+  if (fromEl && fromEl.isConnected) name(fromEl, "vt-hero");
+  markAuto();
+  _vtBusy = true;
   const t = document.startViewTransition(async () => {
-    fromEl.style.viewTransitionName = "";
-    await render();
-    toEl = document.querySelector(toSel);
-    if (toEl) toEl.style.viewTransitionName = "vt-hero";
+    named.splice(0).forEach((e) => { e.style.viewTransitionName = ""; });
+    try {
+      await render();
+    } finally {
+      if (fromEl && toSel) name(document.querySelector(toSel), "vt-hero");
+      markAuto();
+    }
   });
-  t.finished.finally(() => { if (toEl) toEl.style.viewTransitionName = ""; });
+  t.finished.finally(() => { named.splice(0).forEach((e) => { e.style.viewTransitionName = ""; }); _vtBusy = false; });
   return t.updateCallbackDone.catch(() => {});
 }
+// Ritorno alla home dalle schermate di stanza/torneo: l'etichetta col codice
+// torna a volare dentro le caselle del codice.
+const vtHome = () => vtGo(document.querySelector("#app .room-tag"), ".bx-hero .cf-row", renderLobby);
 
 async function continueFromRoomCode() {
   if (document.querySelector(".bx-hero .cf-row.cf-run")) return; // animazione già partita
@@ -9267,7 +9284,7 @@ function renderModeChoice(roomId) {
       ),
       el("p", { class: "muted", style: "margin-top:12px; font-size:0.78rem;" },
         "La modalità scelta vale per tutta la stanza: chi entra dopo la trova già impostata."),
-      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: renderLobby }, backChevronIcon(), "Cambia stanza")
+      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: vtHome }, backChevronIcon(), "Cambia stanza")
     )
   );
 }
@@ -9289,11 +9306,10 @@ async function pickRoomMode(roomId, mode) {
     console.error(e);
     return;
   }
-  if (state.roomMode === "draw") {
-    renderDraftNameScreen(roomId);
-  } else {
-    renderManualLobby(roomId, state.players || {});
-  }
+  vtGo(null, null, () => {
+    if (state.roomMode === "draw") renderDraftNameScreen(roomId);
+    else renderManualLobby(roomId, state.players || {});
+  });
 }
 
 // Permette di rientrare in una stanza già avviata da un dispositivo
@@ -9335,7 +9351,7 @@ function renderNameRecoveryScreen(roomId, players) {
       el("div", { class: "rj-list" }, rows),
       el("div", { class: "rj-sec" }, "Non sei nella lista?"),
       el("button", { class: "secondary", style: "width:100%;", onclick: () => continueAsNewPlayer(roomId) }, "Entro come nuovo giocatore"),
-      el("button", { class: "text-link-btn", style: "margin-top:10px;", onclick: renderLobby }, backChevronIcon(), "Cambia stanza")
+      el("button", { class: "text-link-btn", style: "margin-top:10px;", onclick: vtHome }, backChevronIcon(), "Cambia stanza")
     )
   );
 }
@@ -9381,8 +9397,7 @@ async function recoverByName(roomId, chosenName, rowBtn) {
     // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
     // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
     // ("Cannot set properties of null", visto su un tavolo di torneo).
-    renderGameShell();
-    watchRoom(roomId, onStateChange);
+    vtGo(null, null, () => { renderGameShell(); watchRoom(roomId, onStateChange); });
   } catch (e) {
     fail();
     showToast("Non sono riuscito a farti rientrare: " + describeError(e));
@@ -9394,11 +9409,10 @@ async function continueAsNewPlayer(roomId) {
   try {
     const snap = await roomRef(roomId).get();
     const existing = normalizeState(snap.val());
-    if (existing.roomMode === "draw") {
-      renderDraftNameScreen(roomId);
-    } else {
-      renderManualLobby(roomId, existing.players || {});
-    }
+    vtGo(null, null, () => {
+      if (existing.roomMode === "draw") renderDraftNameScreen(roomId);
+      else renderManualLobby(roomId, existing.players || {});
+    });
   } catch (e) {
     showToast("Non riesco a contattare il server, riprova.");
     console.error(e);
@@ -9976,8 +9990,7 @@ async function joinManualRoom(roomId) {
   // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
   // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
   // ("Cannot set properties of null", visto su un tavolo di torneo).
-  renderGameShell();
-  watchRoom(roomId, onStateChange);
+  vtGo(null, null, () => { renderGameShell(); watchRoom(roomId, onStateChange); });
 }
 
 // Nomi assegnati ai bot invece di un generico "Bot Verde"/"Computer" — più
@@ -10242,7 +10255,7 @@ function renderDraftNameScreen(roomId) {
       el("p", { class: "step-label" }, "Il tuo nome"),
       nameField.wrap,
       el("button", { id: "join-btn", class: "primary", onclick: () => joinDraftRoom(roomId) }, "Entra nella stanza", forwardArrowIcon()),
-      el("button", { class: "text-link-btn", style: "margin-top:10px;", onclick: renderLobby }, backChevronIcon(), "Cambia stanza"),
+      el("button", { class: "text-link-btn", style: "margin-top:10px;", onclick: vtHome }, backChevronIcon(), "Cambia stanza"),
       homeScreenHint()
     )
   );
@@ -14967,7 +14980,7 @@ function showTutorialList() {
   const n = TUT_LESSONS.length, k = TUT_LESSONS.filter((l) => done.indexOf(l.id) >= 0).length;
   const nextIdx = TUT_LESSONS.findIndex((l) => done.indexOf(l.id) < 0);
   root.appendChild(el("div", { class: "tut-wrap" },
-    el("div", { class: "tut-head" }, el("h2", {}, "🎓 Impara a giocare"), el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, "✕")),
+    el("div", { class: "tut-head" }, el("h2", {}, "🎓 Impara a giocare"), el("button", { class: "tut-x", onclick: () => vtGo(document.querySelector(".tl-prog"), ".bx-imp", closeTutorial), "aria-label": "Chiudi" }, "✕")),
     el("p", { class: "tut-sub" }, "Lezioni brevi sul vero tabellone, nell'ordine che preferisci."),
     el("div", { class: "tl-prog" }, el("div", { class: "tl-prog-top" }, k === n ? "Hai completato tutto! 🎉" : "Il tuo percorso", el("span", {}, `${k} di ${n} lezioni`)), el("div", { class: "tl-bar" }, el("i", { style: `width:${Math.round((k / n) * 100)}%` }))),
     el("div", { class: "tl-list" }, TUT_LESSONS.map((l, i) => {
@@ -14998,7 +15011,7 @@ function openTutorialLesson(idx) {
     el("div", { class: "tut-head" },
       el("button", { class: "tut-x", onclick: showTutorialList, "aria-label": "Elenco lezioni" }, "‹"),
       el("h2", {}, lesson.icon + " " + lesson.title),
-      el("button", { class: "tut-x", onclick: closeTutorial, "aria-label": "Chiudi" }, "✕")),
+      el("button", { class: "tut-x", onclick: () => vtGo(document.querySelector(".tl-prog"), ".bx-imp", closeTutorial), "aria-label": "Chiudi" }, "✕")),
     holder, T.bubble, T.handEl, T.chipsEl, T.footEl));
   root.scrollTop = 0;
   T.svg = buildBoardSVG(holder, BOARD);
