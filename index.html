@@ -917,14 +917,14 @@ body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
 :root[data-theme="dark"] .bx-icons .theme-toggle-btn { background: #262B40; box-shadow: var(--bx-shadow), inset 0 1px 4px rgba(0,0,0,.5); }
 :root[data-theme="dark"] .bx-icons .theme-toggle-btn::before { background: #343A55; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
 /* v5.68: interruttore del tema "a pillola" (vedi themePill). */
-.theme-pill { position: relative; flex: none; width: 74px; height: 38px; padding: 0; border: none; border-radius: 999px; background: #FFFFFF; box-shadow: var(--bx-shadow), inset 0 1px 3px rgba(60,40,10,.12); cursor: pointer; overflow: visible; transition: background .5s ease; -webkit-tap-highlight-color: transparent; }
+.theme-pill { position: relative; flex: none; width: 92px; height: 38px; padding: 0; border: none; border-radius: 999px; background: #FFFFFF; box-shadow: var(--bx-shadow), inset 0 1px 3px rgba(60,40,10,.12); cursor: pointer; overflow: visible; transition: background .5s ease; -webkit-tap-highlight-color: transparent; }
 .theme-pill.tp-dark { background: #262B40; box-shadow: var(--bx-shadow), inset 0 1px 4px rgba(0,0,0,.5); }
 .theme-pill .tp-knob { position: absolute; left: 4px; top: 4px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .95rem; background: #F5F1EA; box-shadow: 0 2px 5px rgba(60,40,10,.25); transition: background .5s ease; }
 .theme-pill.tp-dark .tp-knob { background: #343A55; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
-.theme-pill .tp-hole { position: absolute; right: 9px; bottom: 9px; width: 18px; height: 6px; border-radius: 50%; background: #1D1712; transform: scaleX(0); }
+.theme-pill .tp-hole { position: absolute; right: 10px; bottom: 9px; width: 22px; height: 6px; border-radius: 50%; background: #1D1712; transform: scaleX(0); }
 .theme-pill.tp-dark .tp-hole { background: #05060B; }
 .theme-pill .tp-hole.tp-glow { background: #FFFBEF; box-shadow: 0 0 7px 3px rgba(255,236,170,.85), 0 0 14px 6px rgba(255,236,170,.35); transition: background .2s ease, box-shadow .2s ease; }
-.theme-pill .tp-man { position: absolute; left: 19px; bottom: 11px; width: 10px; height: 16.5px; color: #3B3850; pointer-events: none; z-index: 2; transform-origin: 50% 100%; }
+.theme-pill .tp-man { position: absolute; left: 35px; bottom: 11px; width: 7px; height: 11.5px; color: #3B3850; pointer-events: none; z-index: 2; transform-origin: 50% 100%; }
 .theme-pill .tp-man.tp-man-light { color: #E9E6F2; }
 .theme-pill .tp-man svg { display: block; }
 .bx-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 22px 18px 18px; background: var(--bx-hero); }
@@ -8056,7 +8056,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.70";
+const APP_VERSION = "v5.71";
 
 let myColor = null;
 let myRoomId = null;
@@ -11233,8 +11233,8 @@ function stickman() {
   const ns = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(ns, "svg");
   svg.setAttribute("viewBox", "0 0 10 16.5");
-  svg.setAttribute("width", "10");
-  svg.setAttribute("height", "16.5");
+  svg.setAttribute("width", "7");
+  svg.setAttribute("height", "11.5");
   svg.innerHTML = '<circle cx="5" cy="3.6" r="2.3" fill="currentColor"/><path d="' + STICK_POSES.stand + '" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>';
   return svg;
 }
@@ -11252,7 +11252,7 @@ async function animateThemePill(pill) {
   const legs = svg.querySelector("path");
   const pose = (k) => legs.setAttribute("d", STICK_POSES[k]);
   pill.appendChild(man);
-  const X = 32; // dal pomello al buco
+  const X = 32; // dal pomello (l'omino lo tocca appena) al centro del buco
   let walkTimer = null;
   const walk = (on) => {
     clearInterval(walkTimer);
@@ -11275,11 +11275,11 @@ async function animateThemePill(pill) {
       await man.animate([{ transform: "translate(0,0) scale(0)", opacity: 0 }, { transform: "translate(0,0) scale(1)", opacity: 1 }], { duration: 200, fill: "forwards", easing: "ease-out" }).finished;
       hole.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: 300, delay: 500, fill: "forwards", easing: "ease-out" });
       walk(true);
-      await man.animate(steps(0, X - 8, 8), { duration: 1000, fill: "forwards", easing: "linear" }).finished;
+      await man.animate(steps(0, X - 7, 8), { duration: 1000, fill: "forwards", easing: "linear" }).finished;
       walk(false);
       pose("jump");
       await man.animate([
-        { transform: `translate(${X - 8}px, 0)` },
+        { transform: `translate(${X - 7}px, 0)` },
         { transform: `translate(${X - 3}px, -11px)`, offset: 0.45 },
         { transform: `translate(${X}px, -6px)`, offset: 0.65 },
         { transform: `translate(${X}px, 6px) scale(.35)`, opacity: 0 },
@@ -11293,13 +11293,13 @@ async function animateThemePill(pill) {
       await man.animate([
         { transform: `translate(${X}px, 6px) scale(.35)`, opacity: 0 },
         { transform: `translate(${X - 2}px, -12px) scale(1)`, opacity: 1, offset: 0.5 },
-        { transform: `translate(${X - 8}px, 0) scale(1)`, opacity: 1 },
+        { transform: `translate(${X - 7}px, 0) scale(1)`, opacity: 1 },
       ], { duration: 480, fill: "forwards", easing: "ease-out" }).finished;
       try { playSound("pawnOut"); } catch (e) {}
       pose("stand");
       await wait(150);
       walk(true);
-      await man.animate(steps(X - 8, 0, 8), { duration: 1000, fill: "forwards", easing: "linear" }).finished;
+      await man.animate(steps(X - 7, 0, 8), { duration: 1000, fill: "forwards", easing: "linear" }).finished;
       walk(false);
       pose("stand");
       await man.animate([{ transform: "translate(0,0) scaleX(-1) scale(1)", opacity: 1 }, { transform: "translate(0,0) scaleX(-1) scale(0)", opacity: 0 }], { duration: 200, fill: "forwards", easing: "ease-in" }).finished;
