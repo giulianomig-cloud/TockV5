@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.47**.
+- Versione attuale: **v5.48**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -83,6 +83,13 @@
   e a destra "Siediti" + 🤖 (il 🤖 apre nella riga la scelta Normale / Difficile / ✕) oppure "Libera"
   per il computer. Qui NON esiste `#picker-wrap`: niente openPicker in questa schermata.
   Scartate: "A · Compatta" (riquadri 2x2) e "B · Tavolo" (posti intorno a un tavolino).
+- Pagina del torneo (v5.48): etichette di stato in alto (formato, stato, 👑 Organizzatore), azione
+  principale, tavoli/spareggio/classifica in riquadri a righe ("Come si contano i punti" a scomparsa),
+  iscritti in un unico elenco (tondino 🤖 o iniziale colorata, ✕ uguale per tutti, pallini 8 posti),
+  "Aggiungi bot" solo con posti liberi; in fondo "Gestione": Condividi, Passa l'organizzazione,
+  Elimina torneo (scritta rossa, non più pulsante grande in alto).
+- Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
+  pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
 - Alcuni giocatori usano l'app con il **traduttore di Chrome** (es. in spagnolo): avvolge i testi
