@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.62**.
+- Versione attuale: **v5.63**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -149,10 +149,19 @@
   disegno (es. `watchRoom` dopo `renderGameShell`) va messo DENTRO la funzione passata a `vtGo`.
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
+- IDEE IN ATTESA (l'utente: "tienile lì poi le vediamo"): portare nel GIOCO le animazioni fatte nei menu.
+  Elemento che vola: ⚙️/📜 che si aprono dal pulsante, anteprima chat che diventa la chat, banner vittoria
+  che nasce dalla riga della squadra. Pulsanti con esito: "Sveglia" → "✓ Sveglia inviata", conferma
+  scambio/Jack/7, Rivincita; mossa non valida = carta che trema rossa. Cerchi verdi + ✓: pedina in casa,
+  scambio col compagno riuscito. Caselle che si riuniscono: a fine mano le carte volano al centro nel
+  mazzetto. Suoni: tic selezione carta, fruscio carta al centro, campanella sui cerchi. Prima le anteprime.
 - Le modifiche vanno su un branch e arrivano su `main` tramite pull request,
   che l'utente unisce da GitHub (anche dall'app sul telefono).
 - Alcuni giocatori usano l'app con il **traduttore di Chrome** (es. in spagnolo): avvolge i testi
-  in `<font>`. Regole CSS tipo `.qualcosa * { color: ... }` colpiscono anche quei `<font>`:
+  in `<font>` e traduce anche lettere e codici (v5.63: le caselle del codice mostravano "B EL A norte do O"
+  per BLANCO). Codici di stanza/torneo e caselle hanno `translate="no"` + classe `notranslate`: farlo
+  anche per ogni nuovo testo che non va tradotto (codici, sigle).
+  Regole CSS tipo `.qualcosa * { color: ... }` colpiscono anche quei `<font>`:
   se un elemento interno ha un colore diverso, dagli la regola anche per i suoi figli (`.x, .x *`).
 - Prima di eliminare un file, controlla che non sia usato in `index.html`, `sw.js` o `manifest.json`.
 - Le conversazioni non si salvano tra una sessione e l'altra: le informazioni importanti
