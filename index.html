@@ -8160,7 +8160,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.77";
+const APP_VERSION = "v5.78";
 
 let myColor = null;
 let myRoomId = null;
@@ -9294,13 +9294,16 @@ async function cfCelebrate(go, title, sub, h, subText, label) {
 const VT_TO_ROOM = ".room-tag, .room-team-room, .gx-room";
 const VT_AUTO = [["vt-tag", ".room-tag, .room-team-room, .gx-room, .t-head h1"], ["vt-logo", ".app-logo-img"]];
 let _vtBusy = false;
-function vtGo(fromEl, toSel, render) {
+// opts.noAuto (v5.78): niente etichetta/logo che volano da soli (VT_AUTO). Serve dentro la partita
+// (menu che escono dai pulsanti, banner della vittoria): la tessera STANZA restava un attimo sopra il menu.
+function vtGo(fromEl, toSel, render, opts) {
+  const auto = !(opts && opts.noAuto);
   const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!document.startViewTransition || reduce || _vtBusy) return render();
   const app = document.getElementById("app");
   const named = [];
   const name = (e, n) => { if (e && !e.style.viewTransitionName) { e.style.viewTransitionName = n; named.push(e); } };
-  const markAuto = () => VT_AUTO.forEach(([n, sel]) => { if (!named.some((e) => e.style.viewTransitionName === n)) name(app && [...app.querySelectorAll(sel)].find((e) => e.getClientRects().length), n); });
+  const markAuto = () => auto && VT_AUTO.forEach(([n, sel]) => { if (!named.some((e) => e.style.viewTransitionName === n)) name(app && [...app.querySelectorAll(sel)].find((e) => e.getClientRects().length), n); });
   if (fromEl && fromEl.isConnected) name(fromEl, "vt-hero");
   markAuto();
   _vtBusy = true;
@@ -13605,7 +13608,7 @@ function onStateChange(state) {
       // v5.65: il banner "nasce" dalla riga di un giocatore della squadra vincente.
       const st = currentState, wc = COLORS.filter((c) => TEAM_OF[c] === st.winnerTeam);
       const from = document.querySelector(".board-player.bp-" + (wc.includes(myColor) ? myColor : wc[0]));
-      if (from && !document.querySelector("#app .win-banner-backdrop")) vtGo(from, ".win-banner", () => renderWinBanner(st));
+      if (from && !document.querySelector("#app .win-banner-backdrop")) vtGo(from, ".win-banner", () => renderWinBanner(st), { noAuto: true });
       else renderWinBanner(st);
     }, Math.max(0, (_winCelebrateUntil || 0) - Date.now()));
     if (!_leaderboardClaimAttempted) {
@@ -14737,11 +14740,11 @@ function unlockBodyScroll() {
 // tocco fuori. _pickerOrigin = l'elemento da cui si è aperto il pannello.
 let _pickerOrigin = null;
 function openPickerFrom(fromEl, openFn) {
-  return vtGo(fromEl, "#picker-wrap", () => { openFn(); _pickerOrigin = fromEl || null; });
+  return vtGo(fromEl, "#picker-wrap", () => { openFn(); _pickerOrigin = fromEl || null; }, { noAuto: true });
 }
 function closePickerAnimated() {
   const o = _pickerOrigin, wrap = document.getElementById("picker-wrap");
-  if (o && o.isConnected && wrap && wrap.childElementCount) return vtGo(wrap, o, closePicker);
+  if (o && o.isConnected && wrap && wrap.childElementCount) return vtGo(wrap, o, closePicker, { noAuto: true });
   closePicker();
 }
 
