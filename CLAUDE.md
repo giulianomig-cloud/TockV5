@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.77**.
+- Versione attuale: **v5.78**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -186,6 +186,8 @@
   (stessa pillola con l'omino della home) e "Rilievo 3D" (stesso 🧊 animato); "Stile grafico" = 5 tessere coi
   colori di ogni stile (oro + ✓ su quella scelta); Suoni a righe in una tessera; Regolamento / Impara / Condividi
   come 3 tessere; Sviluppo a righe. Classi `sx-*`; in Arcade tessere scure. Tolte le righe Modalità chiara/scura.
+- Menu/foglietti in partita (v5.78): `openPickerFrom`, `closePickerAnimated` e il banner della vittoria usano
+  `vtGo(..., { noAuto: true })`, così la tessera STANZA non vola da sola e non resta un attimo sopra il menu.
 - Tasto 🏠 in partita (v5.77): dopo la conferma la tessera STANZA vola dentro le caselle del codice in home (`vtGo`).
 - Notte da casinò: proposte A velluto bordeaux / B art déco nero e oro / C luci di Las Vegas SCARTATE (resta com'è).
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
