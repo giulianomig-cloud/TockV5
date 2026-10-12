@@ -2806,13 +2806,16 @@ html[data-skin="arcade"] .confetti-piece { border-radius: 0 !important; box-shad
 /* ================= Stili grafici selezionabili (html[data-skin]) =================
    Scelti da Impostazioni → Stile grafico. "classico" = nessun attributo. */
 /* --- Stile "wood" --- */
+/* v5.76: "Noce scuro intarsiato" su panno verde (scelta dell'utente: B + sfondo di C).
+   Venature del legno e trama del panno sono piccole immagini SVG (--wood-grain / --felt). */
+html[data-skin="wood"] { --wood-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.12' numOctaves='4' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.04 0 0 0 0 0.01 0 0 0 0.8 -0.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); --felt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E"); }
 html[data-skin="wood"]:has(.game-shell),
-html[data-skin="wood"]:has(.game-shell) body {background:radial-gradient(120% 60% at 50% 0%,#5A3A22 0%,#3B2515 55%,#2A190E 100%)!important;color:#F6E7C8}
-html[data-skin="wood"] #board-wrap {padding:12px!important;background:linear-gradient(145deg,#8A5A32,#5E3B1E 50%,#7A4E2A)!important;border:2px solid #C79A4B!important;border-radius:30px!important;
- box-shadow:inset 0 2px 0 rgba(255,220,160,.35),inset 0 -4px 8px rgba(0,0,0,.5),0 0 0 3px #2A190E,0 20px 34px -10px rgba(0,0,0,.8)!important}
-html[data-skin="wood"] #board-wrap>svg {border-radius:0;box-shadow:0 0 0 2px #C79A4B,0 4px 10px rgba(0,0,0,.5) inset}
+html[data-skin="wood"]:has(.game-shell) body {background:var(--felt),radial-gradient(110% 70% at 50% 35%,#2F6B47 0%,#1E4D33 60%,#133524 100%)!important;color:#F6E7C8}
+html[data-skin="wood"] #board-wrap {padding:11px!important;background:var(--wood-grain),linear-gradient(145deg,#5A3A20,#2F1D0F 50%,#4A2F18)!important;background-size:500px 500px,auto!important;border:2px solid #D7AE5A!important;border-radius:18px!important;
+ box-shadow:inset 0 1px 0 rgba(255,225,170,.3),0 0 0 3px #1C110A,0 18px 30px -10px rgba(0,0,0,.7)!important}
+html[data-skin="wood"] #board-wrap>svg {border-radius:0;box-shadow:inset 0 0 8px 2px rgba(0,0,0,.35)!important}
 html[data-skin="wood"] .room-team-row,
-html[data-skin="wood"] .chat-preview {background:linear-gradient(180deg,#4B311C,#3A2515)!important;border:1.5px solid #B88A3E!important;color:#F6E7C8!important;box-shadow:0 1px 0 rgba(255,220,160,.25) inset,0 8px 14px -6px rgba(0,0,0,.7)!important}
+html[data-skin="wood"] .chat-preview {background:var(--wood-grain),linear-gradient(180deg,#3C2614,#28180C)!important;background-size:500px 500px,auto!important;border:1px solid #B98F3E!important;color:#F6E7C8!important;box-shadow:inset 0 0 0 3px rgba(0,0,0,.25),inset 0 0 0 4px rgba(214,175,92,.35),0 10px 18px -8px rgba(0,0,0,.7)!important}
 html[data-skin="wood"] .room-team-row *,
 html[data-skin="wood"] .chat-preview * {color:#F6E7C8!important}
 html[data-skin="wood"] .room-team-room {background:transparent!important}
@@ -2822,11 +2825,11 @@ html[data-skin="wood"] .board-player {box-shadow:0 1px 0 rgba(255,255,255,.4) in
 html[data-skin="wood"] .card-btn {box-shadow:0 0 0 1px #fff inset,0 3px 0 #C9B992,0 14px 18px -4px rgba(0,0,0,.7)!important;border-color:#C9A24D!important}
 html[data-skin="wood"] .reaction-btn,
 html[data-skin="wood"] .icon-btn,
-html[data-skin="wood"] .icon-btn-pair {background:linear-gradient(180deg,#5B3C22,#3F2916)!important;border:1px solid #B88A3E!important;color:#F6E7C8!important;box-shadow:0 1px 0 rgba(255,220,160,.3) inset,0 4px 8px rgba(0,0,0,.6)!important}
+html[data-skin="wood"] .icon-btn-pair {background:var(--wood-grain),linear-gradient(180deg,#4A2F18,#2E1C0E)!important;background-size:400px 400px,auto!important;border:1px solid #B88A3E!important;color:#F6E7C8!important;box-shadow:0 1px 0 rgba(255,220,160,.3) inset,0 4px 8px rgba(0,0,0,.6)!important}
 html[data-skin="wood"] .icon-btn svg,
 html[data-skin="wood"] .icon-btn-half svg {stroke:#F6D88F!important}
 html[data-skin="wood"] .chat-fab {background:linear-gradient(180deg,#FBE49A,#C9982E)!important;box-shadow:0 0 14px rgba(240,190,70,.5),0 6px 10px rgba(0,0,0,.6)!important}
-html[data-skin="wood"] .nudge-btn {border-color:#B88A3E!important;color:#E9CF98!important}
+html[data-skin="wood"] .nudge-btn {border:1px solid rgba(217,182,97,.65)!important;background:rgba(0,0,0,.22)!important;color:#E9CF98!important}
 html[data-skin="wood"] .status-bar-shield {background:transparent!important;backdrop-filter:none!important}
 /* --- Stile "night" --- */
 html[data-skin="night"]:has(.game-shell),
@@ -3099,9 +3102,9 @@ html:not([data-skin]) .game-shell .chat-preview { border-radius: 22px; }
 html:not([data-skin]) .game-shell .nudge-btn { border-radius: 22px; }
 /* Legno: come la vecchia fascia Stanza/Squadra (legno scuro, bordo oro) */
 html[data-skin="wood"] .game-shell .gx-tile,
-html[data-skin="wood"] .game-shell .gx-card { background: linear-gradient(180deg,#4B311C,#3A2515); border: 1.5px solid #B88A3E; box-shadow: 0 1px 0 rgba(255,220,160,.25) inset, 0 8px 14px -6px rgba(0,0,0,.7); }
+html[data-skin="wood"] .game-shell .gx-card { background: var(--wood-grain), linear-gradient(180deg,#3C2614,#28180C); background-size: 500px 500px, auto; border: 1px solid #B98F3E; box-shadow: inset 0 0 0 3px rgba(0,0,0,.25), inset 0 0 0 4px rgba(214,175,92,.35), 0 10px 18px -8px rgba(0,0,0,.7); }
 html[data-skin="wood"] .game-shell .gx-tile .bx-k, html[data-skin="wood"] .game-shell .gx-tile .bx-k *,
-html[data-skin="wood"] .game-shell .chat-preview .chat-k, html[data-skin="wood"] .game-shell .chat-preview .chat-k * { color: #E2C285 !important; }
+html[data-skin="wood"] .game-shell .chat-preview .chat-k, html[data-skin="wood"] .game-shell .chat-preview .chat-k * { color: #D9B661 !important; letter-spacing: .1em; }
 html[data-skin="wood"] .game-shell .gx-big, html[data-skin="wood"] .game-shell .gx-big * { color: #F6E7C8; }
 /* Notte: vetro scuro con bordo oro */
 html[data-skin="night"] .game-shell .gx-tile,
@@ -6637,6 +6640,19 @@ const BOARD_PALETTES = {
     cellBorderLighten: 0.15,
     innerRing: "#F5E9C8", innerRingOpacity: 0.16,
   },
+  // v5.76: stile Legno = "noce scuro intarsiato" (scelta B, sia col tema chiaro sia scuro):
+  // tabellone di noce scuro, caselle avorio e linee dorate come un intarsio.
+  walnut: {
+    border: "#C9A24D",
+    bg: ["#6B4526", "#52331B", "#3E2613"],
+    grainFill: "#000000", grainOpacity: 0.3,
+    cellCream: ["#F6E9C9", "#E9D6A8", "#CDB27A"],
+    cellPlain: ["#EEDDB5", "#DEC48F", "#B99A5E"],
+    lineStroke: "#E0BD6C", lineOpacity: 0.75,
+    cellBorderBase: "#D7B062",
+    cellBorderLighten: 0.15,
+    innerRing: "#2a1a0a", innerRingOpacity: 0.5,
+  },
 };
 
 // ---- Arcade retro (v5.175): caselle quadrate al neon + pedine a pixel ----
@@ -6670,7 +6686,7 @@ function buildBoardSVG(containerEl, board) {
   const S = board.boardSizeMm;
   const R = board.cellRadiusMm;
   const ns = "http://www.w3.org/2000/svg";
-  const pal = BOARD_PALETTES[currentTheme === "dark" ? "dark" : "light"];
+  const pal = BOARD_PALETTES[document.documentElement.getAttribute("data-skin") === "wood" ? "walnut" : currentTheme === "dark" ? "dark" : "light"];
   const svg = document.createElementNS(ns, "svg");
   svg.setAttribute("viewBox", `0 0 ${S} ${S}`);
   svg.setAttribute("id", "board-svg");
@@ -8109,7 +8125,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.75";
+const APP_VERSION = "v5.76";
 
 let myColor = null;
 let myRoomId = null;

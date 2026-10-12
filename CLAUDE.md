@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.75**.
+- Versione attuale: **v5.76**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -131,6 +131,10 @@
   i colori di ogni stile (legno scuro bordo oro / vetro scuro bordo oro / bianco semitrasparente).
   Dalla v5.75 il bordo scuro interno del tabellone ha gli spigoli DRITTI in tutti gli stili, come nel Classico
   (prima Legno/Notte/Luminoso li avevano arrotondati e tagliavano l'angolo delle basi).
+- Stile Legno (v5.76, scelta "B · Noce scuro intarsiato" + panno verde della "C · Tavolo da gioco"; scartate
+  "A · Noce lucido" e il tavolo con tabellone chiaro): sfondo di panno verde, riquadri e cornice in noce con
+  venature (`--wood-grain`, `--felt` = piccole immagini SVG) e filetti dorati, tabellone di noce scuro con caselle
+  avorio e linee dorate (`BOARD_PALETTES.walnut`, usata sempre con data-skin="wood", anche col tema scuro).
 - Estrazione del mazziere in stile Bento (v5.56, solo stile Classico): un riquadro bianco per giocatore
   (solo nome col pallino), mazzetto al centro; animazione "A · Lancio": la carta si stacca dal mazzetto,
   fa una curva girando e si posa un po' storta sul mucchietto (restano le ultime 4); chi vince ha bordo
