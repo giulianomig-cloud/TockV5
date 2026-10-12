@@ -13,7 +13,7 @@
   icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
 
 ## Versione
-- Versione attuale: **v5.76**.
+- Versione attuale: **v5.77**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -182,6 +182,12 @@
   Animati dalla v5.72: 🔊 ("Prova il suono", NON spegne l'audio) a ogni nota batte, onda dorata e nota ♪ ♫ ♪
   che vola (`soundTestButton` / `soundBtnFx`); 🧊 spento = tastino schiacciato e cubetto grigio, acceso = capriola
   del cubetto e tastino in rilievo (`animateFx3dBtn`, classi `ic-on` / `ic-off`), suoni `pawnOut` / `captureBonk`.
+- Impostazioni in partita (v5.77, stile home a tessere): titolo grande + ✕ in tastino rotondo; tessere "Tema"
+  (stessa pillola con l'omino della home) e "Rilievo 3D" (stesso 🧊 animato); "Stile grafico" = 5 tessere coi
+  colori di ogni stile (oro + ✓ su quella scelta); Suoni a righe in una tessera; Regolamento / Impara / Condividi
+  come 3 tessere; Sviluppo a righe. Classi `sx-*`; in Arcade tessere scure. Tolte le righe Modalità chiara/scura.
+- Tasto 🏠 in partita (v5.77): dopo la conferma la tessera STANZA vola dentro le caselle del codice in home (`vtGo`).
+- Notte da casinò: proposte A velluto bordeaux / B art déco nero e oro / C luci di Las Vegas SCARTATE (resta com'è).
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
 - Animazioni dei menu portate nel GIOCO (v5.65, scelti i gruppi 1 e 2 dai video di prova):
