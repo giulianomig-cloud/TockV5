@@ -10,10 +10,12 @@
 - Multigiocatore online tramite Firebase Realtime Database (script caricati da gstatic in `index.html`).
 - Grafiche disponibili (skin, `html[data-skin=...]`): `wood`, `bright`, `night`, `arcade`.
 - Altri file: `sw.js` (service worker / cache offline), `manifest.json` (icone e nome app),
-  icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`.
+  icone `icon-v3-*.png`, loghi `logo.png` e `logo-dark.png`, caratteri in `fonts/` (Plus Jakarta Sans
+  500-800 + Permanent Marker, con licenze). I font mancavano fino alla v5.78: senza di loro `sw.js` non salvava
+  NIENTE per l'offline (cache.addAll fallisce se manca anche un solo file). Ogni file elencato in APP_SHELL deve esistere.
 
 ## Versione
-- Versione attuale: **v5.78**.
+- Versione attuale: **v5.79**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -188,6 +190,12 @@
   come 3 tessere; Sviluppo a righe. Classi `sx-*`; in Arcade tessere scure. Tolte le righe Modalità chiara/scura.
 - Menu/foglietti in partita (v5.78): `openPickerFrom`, `closePickerAnimated` e il banner della vittoria usano
   `vtGo(..., { noAuto: true })`, così la tessera STANZA non vola da sola e non resta un attimo sopra il menu.
+- Uscita dalla partita (v5.79): il tasto 🏠 apre un foglio dell'app "🏠 Tornare alla home?" con "Resta" (bianco) /
+  "Esci" (oro) al posto della domanda grigia del telefono (`leaveGameToHome`).
+- Codici stanza lunghi in partita (v5.79): la scritta nella tessera STANZA rimpicciolisce (`roomCodeFit`).
+- Col Rilievo 3D acceso il 🔊 in home non ha più il bordo spesso sotto (v5.79); il 🧊 resta in rilievo quando è acceso.
+- DA FARE PIÙ AVANTI (chiesto dall'utente): compattare la partita sui telefoni bassi (iPhone SE: carte che escono
+  dallo schermo, "Dai una carta a Mar…" tagliato).
 - Tasto 🏠 in partita (v5.77): dopo la conferma la tessera STANZA vola dentro le caselle del codice in home (`vtGo`).
 - Notte da casinò: proposte A velluto bordeaux / B art déco nero e oro / C luci di Las Vegas SCARTATE (resta com'è).
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,

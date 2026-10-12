@@ -37,8 +37,9 @@ try {
    un font caricato da fonts.gstatic.com non veniva mai salvato: aprendo
    l'app installata offline "Tock" perdeva il carattere disegnato a mano e
    ripiegava sul cursive generico di sistema, diverso da telefono a
-   telefono. File OFL-1.1 (stessa licenza di Google Fonts), scaricati da
-   @fontsource/permanent-marker e @fontsource/plus-jakarta-sans. */
+   telefono. File scaricati da @fontsource/permanent-marker (Apache 2.0) e
+   @fontsource/plus-jakarta-sans (OFL-1.1): licenze in fonts/. Dalla v5.79 i file ci sono
+   davvero (prima mancavano: niente carattere e sw.js non salvava nulla per l'offline). */
 @font-face {
   font-family: 'Permanent Marker';
   font-style: normal;
@@ -131,6 +132,8 @@ body {
    disattivarlo e affidarsi solo ai nostri :hover/:active già pensati per
    ogni tema. */
 button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
+/* v5.79: pulsanti e campi con lo stesso carattere del resto dell'app (di loro usano quello del telefono) */
+button, input, select, textarea { font-family: inherit; }
 
 /* min-height: 100vh fa "saltare" leggermente il contenuto (es. il
    tabellone) quando si interagisce con un elemento fisso in basso come il
@@ -1166,6 +1169,18 @@ button.danger:active {
 .set-tog.on { background:linear-gradient(#E5BF63,#C9982E); border-color:#B5851F; }
 .set-knob { position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.35); transition:transform .15s; }
 .set-tog.on .set-knob { transform:translateX(18px); }
+/* v5.79: foglio "Tornare alla home?" (vedi leaveGameToHome) */
+.picker-overlay .leave-box > .leave-title { margin: 2px 2px 6px; padding: 0 !important; background: none !important; font-size: 1.35rem; font-weight: 800; letter-spacing: -.02em; color: var(--bx-ink); }
+.leave-sub { margin: 0 2px 16px; font-size: .92rem; line-height: 1.35; color: var(--bx-sub); }
+.leave-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.leave-btns button { margin: 0; height: 50px; border-radius: 18px; font-size: 1rem; font-weight: 800; }
+.leave-btns .leave-stay { background: var(--bx-card); color: var(--bx-ink); border: none; box-shadow: var(--bx-shadow); }
+.leave-btns .leave-go { background: var(--bx-btn-bg); color: #2A1C05; border: none; box-shadow: 0 10px 22px -12px rgba(168,125,34,.65); }
+html:not([data-skin="arcade"]) #picker-wrap:has(.leave-box) { background: var(--bx-bg); }
+/* v5.79: col Rilievo 3D acceso il tastino 🔊 in home non ha più il "bordo spesso" sotto (come la pillola);
+   il 🧊 resta in rilievo quando è acceso perché è il suo modo di dire "acceso". */
+html.fx3d .bx-icons .theme-toggle-btn:not(#fx3d-toggle-btn) { box-shadow: var(--bx-shadow), inset 0 1px 3px rgba(60,40,10,.12); }
+html.fx3d[data-theme="dark"] .bx-icons .theme-toggle-btn:not(#fx3d-toggle-btn) { box-shadow: var(--bx-shadow), inset 0 1px 4px rgba(0,0,0,.5); }
 /* v5.77: Impostazioni in stile home (vedi openSettingsPanel) */
 html:not([data-skin="arcade"]) #picker-wrap:has(.sx-box) { background: var(--bx-bg); }
 .sx-box { padding: 2px 2px 8px; }
@@ -8160,7 +8175,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.78";
+const APP_VERSION = "v5.79";
 
 let myColor = null;
 let myRoomId = null;
@@ -11060,14 +11075,33 @@ function renderDraftFinalizing(state) {
 // codice stanza. Stacchiamo solo gli ascoltatori/la presenza di QUESTO
 // client, con lo stesso schema già usato quando si cambia stanza/colore
 // (vedi setupOwnPresence).
-function leaveGameToHome() {
-  const ok = confirm(
-    "Tornare alla schermata iniziale?\n\nLa partita continua per gli altri giocatori: potrai rientrare più tardi con lo stesso codice stanza."
+// v5.79: foglio dell'app al posto della domanda grigia del telefono (confirm). "Esci" fa volare
+// la tessera STANZA dentro le caselle del codice in home (v5.77).
+// v5.79: i codici lunghi (es. TORNEOLUNGO12) rimpiccioliscono per stare interi nella tessera STANZA.
+function roomCodeFit(code) {
+  const n = String(code || "").length;
+  return n > 8 ? `font-size:${Math.max(0.62, (1.08 * 8) / n).toFixed(2)}rem` : "";
+}
+function leaveGameToHome(ev) {
+  const from = ev && ev.currentTarget;
+  const exit = () => {
+    closePicker();
+    const tag = [...document.querySelectorAll("#app .gx-room, #app .room-team-room")].find((e) => e.getClientRects().length);
+    vtGo(tag, ".bx-hero .cf-row", () => { detachFromGameRoom(); renderLobby(); });
+  };
+  const body = el(
+    "div",
+    { class: "choice-box leave-box" },
+    el("p", { class: "leave-title" }, "🏠 Tornare alla home?"),
+    el("p", { class: "leave-sub" }, "La partita continua per gli altri giocatori: potrai rientrare più tardi con lo stesso codice stanza."),
+    el(
+      "div",
+      { class: "leave-btns" },
+      el("button", { class: "secondary leave-stay", onclick: closePickerAnimated }, "Resta"),
+      el("button", { class: "primary leave-go", onclick: exit }, "Esci")
+    )
   );
-  if (!ok) return;
-  // v5.77: la tessera STANZA vola dentro le caselle del codice in home (come "Cambia stanza").
-  const tag = [...document.querySelectorAll("#app .gx-room, #app .room-team-room")].find((e) => e.getClientRects().length);
-  vtGo(tag, ".bx-hero .cf-row", () => { detachFromGameRoom(); renderLobby(); });
+  openPickerFrom(from, () => openPicker(body));
 }
 
 // Stacca ascolto e presenza del tavolo/stanza in cui si sta giocando, senza
@@ -11200,7 +11234,7 @@ function renderGameShell() {
       el(
         "div",
         { class: "gx-tiles" },
-        el("div", { class: "gx-tile gx-room" }, el("div", { class: "bx-k" }, "🚪 Stanza"), el("div", { class: "gx-big notranslate", translate: "no" }, myRoomId)),
+        el("div", { class: "gx-tile gx-room" }, el("div", { class: "bx-k" }, "🚪 Stanza"), el("div", { class: "gx-big notranslate", translate: "no", style: roomCodeFit(myRoomId) }, myRoomId)),
         el(
           "div",
           { class: "gx-tile" },
