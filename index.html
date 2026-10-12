@@ -3078,23 +3078,41 @@ html:not([data-skin]) .game-shell .chat-preview { background: var(--bx-card); bo
 html:not([data-skin]) .game-shell .chat-fab { background: var(--bx-btn-bg); box-shadow: 0 10px 22px -12px rgba(168,125,34,.7); }
 html:not([data-skin]) .game-shell .reaction-fab { background: var(--bx-card); border: none; box-shadow: var(--bx-shadow); }
 html:not([data-skin]) .game-shell .nudge-btn { background: var(--bx-card); border: none; border-radius: 18px; box-shadow: var(--bx-shadow); }
-/* v5.73: schermata di gioco come la home ("B · Tessere", solo stile Classico). */
+/* v5.73: schermata di gioco come la home ("B · Tessere"). Dalla v5.74 anche in Legno, Notte e Luminoso
+   (non in Arcade): la disposizione è uguale, i colori di tessere e riquadro sono quelli di ogni stile. */
 .gx-tiles, .chat-k { display: none; }
 .gx-card { display: contents; }
 .gx-card > * { margin: 0 !important; }
-html:not([data-skin]) .game-shell .room-team-row { display: none; }
-html:not([data-skin]) .game-shell .gx-tiles { display: grid; grid-template-columns: 1fr 1.45fr; gap: 10px; }
-html:not([data-skin]) .game-shell .gx-tile { min-width: 0; background: var(--bx-card); border-radius: 22px; padding: 7px 14px 8px; box-shadow: var(--bx-shadow); }
-html:not([data-skin]) .game-shell .gx-big { display: flex; align-items: center; gap: 7px; margin-top: 1px; font-size: 1.08rem; font-weight: 800; letter-spacing: -.01em; color: var(--bx-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-html:not([data-skin]) .game-shell .gx-big svg { width: 18px; height: 18px; flex: none; }
-html:not([data-skin]) .game-shell .gx-big .identity-team { overflow: hidden; text-overflow: ellipsis; color: inherit; font: inherit; }
-html:not([data-skin]) .game-shell .gx-card { display: flex; flex-direction: column; gap: 6px; padding: 6px 8px; background: var(--bx-card); border-radius: 28px; box-shadow: var(--bx-shadow); }
+html:not([data-skin="arcade"]) .game-shell .room-team-row { display: none; }
+html:not([data-skin="arcade"]) .game-shell .gx-tiles { display: grid; grid-template-columns: 1fr 1.45fr; gap: 10px; }
+html:not([data-skin="arcade"]) .game-shell .gx-tile { min-width: 0; box-sizing: border-box; background: var(--bx-card); border-radius: 22px; padding: 7px 14px 8px; box-shadow: var(--bx-shadow); }
+html:not([data-skin="arcade"]) .game-shell .gx-big { display: flex; align-items: center; gap: 7px; margin-top: 1px; font-size: 1.08rem; font-weight: 800; letter-spacing: -.01em; color: var(--bx-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html:not([data-skin="arcade"]) .game-shell .gx-big svg { width: 18px; height: 18px; flex: none; }
+html:not([data-skin="arcade"]) .game-shell .gx-big .identity-team { overflow: hidden; text-overflow: ellipsis; color: inherit; font: inherit; }
+html:not([data-skin="arcade"]) .game-shell .gx-card { display: flex; flex-direction: column; gap: 6px; padding: 6px 8px; background: var(--bx-card); border-radius: 28px; box-shadow: var(--bx-shadow); }
+html:not([data-skin="arcade"]) .game-shell .chat-preview { flex-wrap: wrap; row-gap: 1px; padding-top: 6px; padding-bottom: 7px; }
+html:not([data-skin="arcade"]) .game-shell .chat-k { display: block; flex-basis: 100%; font-style: normal; }
 html:not([data-skin]) .game-shell .gx-card #board-wrap { box-shadow: none; }
 html:not([data-skin]) .game-shell .gx-card .board-player { box-shadow: none; }
 html:not([data-skin]) .game-shell .turn-line { border-radius: 24px; }
-html:not([data-skin]) .game-shell .chat-preview { flex-wrap: wrap; row-gap: 1px; border-radius: 22px; padding-top: 6px; padding-bottom: 7px; }
-html:not([data-skin]) .game-shell .chat-k { display: block; flex-basis: 100%; font-style: normal; }
+html:not([data-skin]) .game-shell .chat-preview { border-radius: 22px; }
 html:not([data-skin]) .game-shell .nudge-btn { border-radius: 22px; }
+/* Legno: come la vecchia fascia Stanza/Squadra (legno scuro, bordo oro) */
+html[data-skin="wood"] .game-shell .gx-tile,
+html[data-skin="wood"] .game-shell .gx-card { background: linear-gradient(180deg,#4B311C,#3A2515); border: 1.5px solid #B88A3E; box-shadow: 0 1px 0 rgba(255,220,160,.25) inset, 0 8px 14px -6px rgba(0,0,0,.7); }
+html[data-skin="wood"] .game-shell .gx-tile .bx-k, html[data-skin="wood"] .game-shell .gx-tile .bx-k *,
+html[data-skin="wood"] .game-shell .chat-preview .chat-k, html[data-skin="wood"] .game-shell .chat-preview .chat-k * { color: #E2C285 !important; }
+html[data-skin="wood"] .game-shell .gx-big, html[data-skin="wood"] .game-shell .gx-big * { color: #F6E7C8; }
+/* Notte: vetro scuro con bordo oro */
+html[data-skin="night"] .game-shell .gx-tile,
+html[data-skin="night"] .game-shell .gx-card { background: rgba(255,255,255,.07); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1.5px solid rgba(217,182,88,.55); box-shadow: 0 8px 16px -8px rgba(0,0,0,.7); }
+html[data-skin="night"] .game-shell .gx-tile .bx-k, html[data-skin="night"] .game-shell .gx-tile .bx-k *,
+html[data-skin="night"] .game-shell .chat-preview .chat-k, html[data-skin="night"] .game-shell .chat-preview .chat-k * { color: #E8D699 !important; }
+html[data-skin="night"] .game-shell .gx-big, html[data-skin="night"] .game-shell .gx-big * { color: #F4EBD0; }
+/* Luminoso (tema chiaro): bianco semitrasparente con ombra viola */
+html[data-skin="bright"]:not([data-theme="dark"]) .game-shell .gx-tile,
+html[data-skin="bright"]:not([data-theme="dark"]) .game-shell .gx-card { background: rgba(255,255,255,.75); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.9); box-shadow: 0 10px 20px -10px rgba(70,60,120,.35); }
+html[data-skin="bright"]:not([data-theme="dark"]) .game-shell .gx-big, html[data-skin="bright"]:not([data-theme="dark"]) .game-shell .gx-big * { color: #2B2440; }
 /* v5.56: estrazione del mazziere in stile Bento (solo stile Classico): un riquadro per giocatore,
    carte lanciate dal mazzetto che restano a mucchietto, "👑 Mazziere" sul riquadro di chi vince. */
 html:not([data-skin]) #picker-wrap:has(.dealer-draw-grid) { background: var(--bx-bg); }
@@ -8091,7 +8109,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.73";
+const APP_VERSION = "v5.74";
 
 let myColor = null;
 let myRoomId = null;
