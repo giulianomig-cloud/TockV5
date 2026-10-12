@@ -1166,6 +1166,41 @@ button.danger:active {
 .set-tog.on { background:linear-gradient(#E5BF63,#C9982E); border-color:#B5851F; }
 .set-knob { position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.35); transition:transform .15s; }
 .set-tog.on .set-knob { transform:translateX(18px); }
+/* v5.77: Impostazioni in stile home (vedi openSettingsPanel) */
+html:not([data-skin="arcade"]) #picker-wrap:has(.sx-box) { background: var(--bx-bg); }
+.sx-box { padding: 2px 2px 8px; }
+.picker-overlay .sx-box > .sx-head { display: flex; align-items: center; justify-content: space-between; margin: 0 2px 14px; padding: 0 !important; background: none !important; border-radius: 0 !important; }
+.sx-head h2 { margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -.03em; color: var(--bx-ink); }
+.sx-close { position: relative; isolation: isolate; width: 38px; height: 38px; padding: 0; border-radius: 50%; border: none; background: #FFFFFF; box-shadow: var(--bx-shadow), inset 0 1px 3px rgba(60,40,10,.12); font-size: .9rem; font-weight: 800; color: var(--bx-ink); cursor: pointer; }
+.sx-close::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #F5F1EA; box-shadow: 0 2px 5px rgba(60,40,10,.25); z-index: -1; }
+:root[data-theme="dark"] .sx-close { background: #262B40; }
+:root[data-theme="dark"] .sx-close::before { background: #343A55; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
+.sx-sec { margin: 16px 4px 8px; font-size: 1.05rem; font-weight: 800; letter-spacing: -.01em; color: var(--bx-ink); }
+.sx-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sx-tile { min-width: 0; background: var(--bx-card); border-radius: 22px; box-shadow: var(--bx-shadow); padding: 12px 14px; }
+.sx-tile.bx-icons { display: block; }
+.sx-tile .bx-k { display: block; margin-bottom: 8px; }
+.sx-skins { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.sx-skin { position: relative; height: 96px; padding: 10px 8px 8px; border: none; border-radius: 20px; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; text-align: left; overflow: hidden; box-shadow: var(--bx-shadow); cursor: pointer; }
+.sx-skin .ic { font-size: 1.5rem; line-height: 1; margin-bottom: auto; }
+.sx-skin .nm { font-size: .8rem; font-weight: 800; line-height: 1.1; }
+.sx-skin.on { outline: 3px solid #D9A93A; outline-offset: -3px; }
+.sx-skin.on::after { content: "✓"; position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border-radius: 50%; background: #D9A93A; color: #2A1C05; font-size: .72rem; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+.sx-k1, .sx-k1 * { color: #2B2014; } .sx-k1 { background: linear-gradient(160deg,#FBF4E4,#EAD9B4); }
+.sx-k2, .sx-k2 * { color: #F6E7C8; } .sx-k2 { background: radial-gradient(70% 70% at 70% 80%,#5A3A20 0 34%,transparent 35%), radial-gradient(110% 70% at 50% 35%,#2F6B47,#163E29); }
+.sx-k3, .sx-k3 * { color: #F4EBD0; } .sx-k3 { background: radial-gradient(110% 70% at 50% 30%,#1D4A3C,#0A1713); }
+.sx-k4, .sx-k4 * { color: #3A2A55; } .sx-k4 { background: linear-gradient(160deg,#EAF4FF,#F7F1FF 55%,#FFE7D2); }
+.sx-k5, .sx-k5 * { color: #7CF7FF; } .sx-k5 { background: #120A3A; box-shadow: inset 0 0 0 2px #FF2BD6, var(--bx-shadow); }
+.sx-list { background: var(--bx-card); border-radius: 22px; box-shadow: var(--bx-shadow); overflow: hidden; }
+.sx-list .set-row { border-top: 1px solid var(--bx-line); }
+.sx-list .set-row:first-child { border-top: none; }
+.sx-acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.sx-act { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border: none; border-radius: 20px; background: var(--bx-card); box-shadow: var(--bx-shadow); font-size: .78rem; font-weight: 800; color: var(--bx-ink); cursor: pointer; }
+.sx-act .ic { font-size: 1.4rem; }
+/* Arcade: tessere scure come il resto dello stile (testi azzurro neon) */
+html[data-skin="arcade"] .sx-box { --bx-card: rgba(124,247,255,.07); --bx-ink: #D9F7FF; --bx-line: rgba(124,247,255,.22); --bx-shadow: inset 0 0 0 1px rgba(124,247,255,.35); }
+html[data-skin="arcade"] .sx-close { background: #120A3A; box-shadow: inset 0 0 0 1px #7CF7FF; color: #7CF7FF; }
+html[data-skin="arcade"] .sx-close::before { display: none; }
 html.fx3d .set-card { box-shadow:0 3px 0 rgba(120,90,40,.22), 0 6px 10px -4px rgba(90,65,20,.3); }
 html.fx3d .set-close { box-shadow:0 2px 0 rgba(120,90,40,.3); }
 html.fx3d .set-close:active { transform:translateY(2px); box-shadow:none; }
@@ -8125,7 +8160,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.76";
+const APP_VERSION = "v5.77";
 
 let myColor = null;
 let myRoomId = null;
@@ -11027,8 +11062,9 @@ function leaveGameToHome() {
     "Tornare alla schermata iniziale?\n\nLa partita continua per gli altri giocatori: potrai rientrare più tardi con lo stesso codice stanza."
   );
   if (!ok) return;
-  detachFromGameRoom();
-  renderLobby();
+  // v5.77: la tessera STANZA vola dentro le caselle del codice in home (come "Cambia stanza").
+  const tag = [...document.querySelectorAll("#app .gx-room, #app .room-team-room")].find((e) => e.getClientRects().length);
+  vtGo(tag, ".bx-hero .cf-row", () => { detachFromGameRoom(); renderLobby(); });
 }
 
 // Stacca ascolto e presenza del tavolo/stanza in cui si sta giocando, senza
@@ -15181,33 +15217,55 @@ function openSettingsPanel(keepScroll) {
   const prevTop = prev ? prev.scrollTop : 0;
   const dark = currentTheme === "dark";
   const fx = document.documentElement.classList.contains("fx3d");
+  // v5.77: Impostazioni in stile home ("tessere"): tema e rilievo 3D con gli stessi tasti animati
+  // della home, stili grafici come tessere con i loro colori, regole/partita come tre tessere.
+  const skin = document.documentElement.getAttribute("data-skin") || "";
+  const fxBtn = fx3dToggleButton();
   const body = el(
     "div",
-    { class: "choice-box set-box" },
-    el("div", { class: "set-head" }, el("p", { class: "set-title" }, "⚙️ Impostazioni"), el("button", { class: "set-close", "aria-label": "Chiudi", onclick: closePickerAnimated }, "✕")),
-    settingsCard("Aspetto", [
-      settingsRow("☀️", "Modalità chiara", el("span", { class: "set-radio" + (dark ? "" : " on") }), () => { applyTheme("light"); openSettingsPanel(true); }),
-      settingsRow("🌙", "Modalità scura", el("span", { class: "set-radio" + (dark ? " on" : "") }), () => { applyTheme("dark"); openSettingsPanel(true); }),
-      settingsRow("🧊", "Rilievo 3D", settingsToggle(fx, toggleFx3d)),
-    ]),
-    settingsCard("Stile grafico", [
-      ["", "🃏", "Classico"], ["wood", "🪵", "Legno pregiato"], ["night", "🎰", "Notte da casinò"], ["bright", "💎", "Moderno luminoso"], ["arcade", "🕹️", "Arcade retro"],
-    ].map(([k, ic, lab]) => settingsRow(ic, lab, el("span", { class: "set-radio" + ((document.documentElement.getAttribute("data-skin") || "") === k ? " on" : "") }), () => { applySkin(k); openSettingsPanel(true); }))),
-    settingsCard("Suoni", [
+    { class: "choice-box set-box sx-box" },
+    el("div", { class: "sx-head" }, el("h2", {}, "Impostazioni"), el("button", { class: "sx-close", "aria-label": "Chiudi", onclick: closePickerAnimated }, "✕")),
+    el(
+      "div",
+      { class: "sx-grid2" },
+      el("div", { class: "sx-tile bx-icons" }, el("span", { class: "bx-k" }, (dark ? "🌙" : "☀️") + " Tema"), themePill()),
+      el("div", { class: "sx-tile bx-icons" }, el("span", { class: "bx-k" }, "🧊 Rilievo 3D"), fxBtn)
+    ),
+    el("div", { class: "sx-sec" }, "Stile grafico"),
+    el(
+      "div",
+      { class: "sx-skins" },
+      ...[["", "🃏", "Classico", 1], ["wood", "🪵", "Legno pregiato", 2], ["night", "🎰", "Notte da casinò", 3], ["bright", "💎", "Moderno luminoso", 4], ["arcade", "🕹️", "Arcade retro", 5]].map(([k, ic, lab, n]) =>
+        el(
+          "button",
+          { class: "sx-skin sx-k" + n + (skin === k ? " on" : ""), "aria-pressed": skin === k ? "true" : "false", onclick: () => { applySkin(k); openSettingsPanel(true); } },
+          el("span", { class: "ic" }, ic),
+          el("span", { class: "nm" }, lab)
+        )
+      )
+    ),
+    el("div", { class: "sx-sec" }, "Suoni"),
+    el(
+      "div",
+      { class: "sx-list" },
       settingsRow("🔊", "Effetti sonori", settingsToggle(!soundMuted, toggleSoundMuted)),
-      settingsRow("📳", "Vibrazione (turno, pedina mangiata, casa)", settingsToggle(hapticOn, toggleHaptic)),
-    ]),
-    settingsCard("Regole", [
-      settingsRow("📜", "Regolamento completo", null, (ev) => openPickerFrom(ev.currentTarget, () => { closePicker(); openRulesPanel(); })),
-      settingsRow("🎓", "Impara a giocare (tutorial)", null, () => { closePicker(); openTutorial(); }),
-    ]),
-    settingsCard("Partita", [
-      settingsRow("📤", "Condividi il link della stanza", null, () => { closePicker(); shareInviteLink(myRoomId); }),
-    ]),
-    settingsCard("Sviluppo", [
+      settingsRow("📳", "Vibrazione (turno, pedina mangiata, casa)", settingsToggle(hapticOn, toggleHaptic))
+    ),
+    el("div", { class: "sx-sec" }, "Regole e partita"),
+    el(
+      "div",
+      { class: "sx-acts" },
+      el("button", { class: "sx-act", onclick: (ev) => openPickerFrom(ev.currentTarget, () => { closePicker(); openRulesPanel(); }) }, el("span", { class: "ic" }, "📜"), "Regolamento"),
+      el("button", { class: "sx-act", onclick: () => { closePicker(); openTutorial(); } }, el("span", { class: "ic" }, "🎓"), "Impara"),
+      el("button", { class: "sx-act", onclick: () => { closePicker(); shareInviteLink(myRoomId); } }, el("span", { class: "ic" }, "📤"), "Condividi")
+    ),
+    el("div", { class: "sx-sec" }, "Sviluppo"),
+    el(
+      "div",
+      { class: "sx-list" },
       settingsRow("👀", "Mostra le mani (codice)", settingsToggle(handsDebugVisible, toggleHandsDebug)),
-      settingsRow("🏷️", "Versione " + APP_VERSION, el("span", {})),
-    ])
+      settingsRow("🏷️", "Versione " + APP_VERSION, el("span", {}))
+    )
   );
   openPicker(body);
   if (prevTop) {
