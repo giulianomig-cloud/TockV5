@@ -15,7 +15,7 @@
   NIENTE per l'offline (cache.addAll fallisce se manca anche un solo file). Ogni file elencato in APP_SHELL deve esistere.
 
 ## Versione
-- Versione attuale: **v5.80**.
+- Versione attuale: **v5.81**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -142,6 +142,10 @@
   fa una curva girando e si posa un po' storta sul mucchietto (restano le ultime 4); chi vince ha bordo
   oro + etichetta "👑 Mazziere", gli altri riquadri si attenuano. Scartate: "B · Ventaglio" e
   "C · Sollevata". Negli altri stili l'estrazione resta com'era.
+  Dalla v5.81 (scelta "B · mazzo piccolo e leggero", scartata "A · senza mazzo"): mazzetto piccolo crema con bordo oro
+  (40x56), la carta scivola dritta senza giravolte; suono `dealerCard` = fruscio morbido (in tutti gli stili, al posto
+  di `cardFlick` che resta per le carte in partita); il posto della carta (`.dealer-pile`) è riservato da subito, così
+  i riquadri non si allargano alla prima carta.
 - Animazioni "Glassy OTP" (v5.57, da un video TikTok dell'utente): in home il codice stanza si scrive in
   caselle (una per lettera, input vero invisibile sopra; casella attiva oro che "respira", lettera con
   saltello). Dopo "Gioca": rotellina "Cerco la stanza…", le caselle si mettono in cerchio, girano e si
