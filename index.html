@@ -1733,6 +1733,27 @@ html.fx3d .center-discard .card-btn.center-card { transform: none; }
   100% { transform: translate(calc(var(--sx,0) + var(--sd2,4px)),-20px) scale(.2); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .center-flames span, .center-flames::before { animation: none; } .center-flames .spark { display: none; } }
+/* v5.82: niente più emoji 🔥 né alone grande: bordo appena incandescente che respira, fondo
+   bruciacchiato, faville ben visibili e un filo di fumo che sale. */
+.center-flames::before { display: none; }
+.center-flames .spark { width: 5px; height: 5px; background: #fff0b8; box-shadow: 0 0 7px 3px #ff9a2e, 0 0 2px 1px #ffd25a; animation-name: flameSpark2; }
+@keyframes flameSpark2 {
+  0%   { transform: translate(var(--sx,0),16px) scale(1); opacity: 0; }
+  12%  { opacity: 1; }
+  100% { transform: translate(calc(var(--sx,0) + var(--sd2,4px)),-30px) scale(.3); opacity: 0; }
+}
+.center-discard .card-btn.center-card.mini-card-burned { animation: emberSoft 2.6s ease-in-out infinite; }
+@keyframes emberSoft {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(214,120,40,.55), 0 0 8px 1px rgba(255,130,40,.25), inset 0 -16px 14px -9px rgba(80,35,5,.5), 0 2px 5px rgba(0,0,0,.25); }
+  50% { box-shadow: 0 0 0 1px rgba(232,140,50,.75), 0 0 12px 2px rgba(255,140,40,.38), inset 0 -16px 14px -9px rgba(80,35,5,.55), 0 2px 5px rgba(0,0,0,.25); }
+}
+.center-discard:has(.mini-card-burned)::after {
+  content: ""; position: absolute; left: 50%; top: -6px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(140,130,120,.5), rgba(140,130,120,0) 70%); filter: blur(3px);
+  animation: burnSmoke 2.8s ease-out infinite; pointer-events: none;
+}
+@keyframes burnSmoke { 0% { transform: translateY(6px) scale(.6); opacity: 0; } 25% { opacity: .85; } 100% { transform: translate(6px,-26px) scale(1.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .center-discard .card-btn.center-card.mini-card-burned, .center-discard::after { animation: none; } }
 /* Fuoco sull'angolo in basso a destra (chiesto), pallino iniziali su
    quello in basso a sinistra: i due badge stanno affiancati sullo stesso
    bordo inferiore della carta invece che sui due angoli opposti. Era
@@ -2019,17 +2040,23 @@ html.fx3d .center-discard .card-btn.center-card { transform: none; }
 .base-glow { pointer-events: none; fill: none; animation: baseGlow 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 @keyframes baseGlow { 0%,100% { opacity: .85; transform: scale(1); } 50% { opacity: .35; transform: scale(1.12); } }
 @media (prefers-reduced-motion: reduce) { .base-glow { animation: none; } }
+/* v5.82 (scelta "via di mezzo fra A · Brace e B · Cenere"): la carta si consuma dal basso con una
+   sottile riga di brace che sale, si alza un po' e ingiallisce come cenere. --burn = altezza bruciata. */
+@property --burn { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
 .card-btn.card-burning {
   pointer-events: none;
-  animation: cardBurn 0.45s ease-in forwards;
+  position: relative;
+  animation: burnUp .65s cubic-bezier(.4,0,.6,1) forwards, ashLift .65s ease-in forwards;
+  -webkit-mask-image: linear-gradient(to top, transparent var(--burn), #000 calc(var(--burn) + 7%));
+  mask-image: linear-gradient(to top, transparent var(--burn), #000 calc(var(--burn) + 7%));
 }
-@keyframes cardBurn {
-  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-  20% { transform: translateY(0) rotate(-6deg); }
-  40% { transform: translateY(0) rotate(6deg); }
-  60% { transform: translateY(0) rotate(-4deg); opacity: 0.85; }
-  100% { transform: translateY(-6px) scale(0.75) rotate(3deg); opacity: 0; }
+.card-btn.card-burning::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(to top, transparent calc(var(--burn) - 1%), #ffc46b var(--burn), #c2410c calc(var(--burn) + 2.5%), rgba(70,35,10,.5) calc(var(--burn) + 6%), transparent calc(var(--burn) + 14%));
 }
+@keyframes burnUp { from { --burn: -10%; } to { --burn: 110%; } }
+@keyframes ashLift { 0% { transform: none; filter: none; } 100% { transform: translateY(-10px); filter: sepia(.5) blur(.6px); } }
+@media (prefers-reduced-motion: reduce) { .card-btn.card-burning { animation: none; opacity: 0; transition: opacity .3s; } }
 
 .card-corner {
   position: absolute;
@@ -8179,7 +8206,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.81";
+const APP_VERSION = "v5.82";
 
 let myColor = null;
 let myRoomId = null;
@@ -14487,7 +14514,7 @@ function renderCenterDiscard(state) {
     el(
       "div",
       { class: "center-discard", title: `${playerName(state, color)} ha ${burned ? "bruciato" : "giocato"}: ${card}` },
-      burned ? el("div", { class: "center-flames" }, el("span", { class: "fl-b" }, "🔥"), el("span", { class: "fl-c" }, "🔥"), el("span", { class: "fl-a" }, "🔥"), ...[[-30,1.5,0,-4],[-34,1.8,.5,4],[29,1.4,.9,5],[33,2,.3,-4],[-27,1.7,1.1,3],[31,1.6,1.3,-3]].map(([x,d,dl,dx]) => el("span", { class: "spark", style: `--sx:${x}px;--sd:${d}s;--sl:${dl}s;--sd2:${dx}px` }))) : "",
+      burned ? el("div", { class: "center-flames" }, ...[[-30,1.5,0,-4],[-34,1.8,.5,4],[29,1.4,.9,5],[33,2,.3,-4],[-27,1.7,1.1,3],[31,1.6,1.3,-3],[-22,1.9,.7,-2],[24,1.7,1.6,3]].map(([x,d,dl,dx]) => el("span", { class: "spark", style: `--sx:${x}px;--sd:${d}s;--sl:${dl}s;--sd2:${dx}px` }))) : "",
       miniCardVisual(card, burned),
       showJack ? buildJackOverlay(sw) : "",
       el("span", { class: "initial-badge swatch-" + color }, initial)
@@ -14695,7 +14722,7 @@ async function onCardClick(card, evt) {
     // sparisca davvero dallo stato — invece di sparire di scatto.
     if (btn && btn.classList) {
       btn.classList.add("card-burning");
-      await new Promise((resolve) => setTimeout(resolve, 380));
+      await new Promise((resolve) => setTimeout(resolve, 600));
     }
     setMoveInFlight(true);
     try {
@@ -15616,7 +15643,7 @@ function tutApply(T, card, btn, c) {
   T.busy = true;
   T.chipsEl.innerHTML = "";
   if (c.burn) {
-    if (btn) btn.classList.add("tut-burn");
+    if (btn) btn.classList.add("card-burning");
     try { playSound("burn"); } catch (e) {}
     burnOneCard(T.s, "red", card);
     setTimeout(() => { tutRenderHand(T); tutFinish(T, c.done); }, 700);
