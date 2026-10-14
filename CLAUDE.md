@@ -15,7 +15,7 @@
   NIENTE per l'offline (cache.addAll fallisce se manca anche un solo file). Ogni file elencato in APP_SHELL deve esistere.
 
 ## Versione
-- Versione attuale: **v5.81**.
+- Versione attuale: **v5.82**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -203,6 +203,10 @@
 - Tasto 🏠 in partita (v5.77): dopo la conferma la tessera STANZA vola dentro le caselle del codice in home (`vtGo`).
 - Suono della carta bruciata (v5.80): file `sounds/burn.mp3` mandato dall'utente (`SOUND_SAMPLES` + `playSample`,
   si carica allo sblocco dell'audio; se non è pronto suona la vecchia ricetta sintetica). Vale in tutti gli stili.
+- Carta bruciata (v5.82, "via di mezzo fra A · Brace e B · Cenere"; scartate le emoji 🔥 grandi, B da sola, C fiammella):
+  in mano la carta si consuma dal basso con una riga di brace che sale e si alza ingiallendo (`card-burning`, `--burn`,
+  0,65 s; anche nel tutorial); al centro bordo appena incandescente che respira, fondo bruciacchiato, 8 faville ben
+  visibili ("qualche favilla falla intendere") e un filo di fumo.
 - Notte da casinò: proposte A velluto bordeaux / B art déco nero e oro / C luci di Las Vegas SCARTATE (resta com'è).
 - Icona dell'app: resta quella attuale (pedine a tappo su blu). Proposte scartate: logo su crema,
   pedine sul tabellone di legno, carta + pedine, pedine su crema. Non riproporle.
