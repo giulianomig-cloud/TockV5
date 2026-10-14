@@ -8175,7 +8175,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.79";
+const APP_VERSION = "v5.80";
 
 let myColor = null;
 let myRoomId = null;
@@ -11640,6 +11640,7 @@ function unlockAudio() {
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    loadSoundSamples();
     // iOS Safari needs an actual sound node started (not just the context
     // created) during this same tap to truly unlock later playback — a
     // near-silent one-sample blip does the job without being heard.
@@ -11809,10 +11810,36 @@ const SOUND_RECIPES_8BIT = {
   fbFail: () => { beep(330, 0, 100, "square", 0.14); beep(220, 0.1, 200, "square", 0.14); },
 };
 
+// v5.80: suoni registrati (file in sounds/, anche in sw.js). Si caricano allo sblocco dell'audio;
+// finché il file non è pronto (o se non si carica) suona la ricetta sintetica di prima.
+const SOUND_SAMPLES = { burn: { url: "sounds/burn.mp3", gain: 1.8 } }; // burn = suono scelto dall'utente
+const _sampleBufs = {};
+function loadSoundSamples() {
+  if (!audioCtx) return;
+  Object.keys(SOUND_SAMPLES).forEach((name) => {
+    if (_sampleBufs[name] !== undefined) return;
+    _sampleBufs[name] = null; // in caricamento
+    fetch(SOUND_SAMPLES[name].url)
+      .then((r) => r.arrayBuffer())
+      .then((ab) => new Promise((res, rej) => audioCtx.decodeAudioData(ab, res, rej)))
+      .then((buf) => { _sampleBufs[name] = buf; })
+      .catch(() => { delete _sampleBufs[name]; });
+  });
+}
+function playSample(name) {
+  const buf = _sampleBufs[name];
+  if (!buf || !audioCtx) { loadSoundSamples(); return false; }
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const g = audioCtx.createGain(); g.gain.value = SOUND_SAMPLES[name].gain || 1;
+  src.connect(g); g.connect(audioCtx.destination);
+  src.start();
+  return true;
+}
 function playSound(name) {
   if (soundMuted) return;
   if (!audioCtx) return;
   if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+  if (SOUND_SAMPLES[name] && playSample(name)) return;
   const recipe = (isArcade() && SOUND_RECIPES_8BIT[name]) || SOUND_RECIPES[name];
   if (recipe) recipe();
 }

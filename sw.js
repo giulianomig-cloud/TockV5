@@ -9,7 +9,7 @@
 //
 // Cambia CACHE_VERSION ad ogni nuova build pubblicata (tienilo allineato ad
 // APP_VERSION in index.html) così le cache vecchie vengono scartate subito.
-const CACHE_VERSION = "v5-79";
+const CACHE_VERSION = "v5-80";
 const CACHE_NAME = "tock-cache-" + CACHE_VERSION;
 
 const APP_SHELL = [
@@ -22,6 +22,8 @@ const APP_SHELL = [
   "./fonts/plus-jakarta-sans-latin-600-normal.woff2",
   "./fonts/plus-jakarta-sans-latin-700-normal.woff2",
   "./fonts/plus-jakarta-sans-latin-800-normal.woff2",
+  // Suoni registrati (vedi SOUND_SAMPLES in index.html)
+  "./sounds/burn.mp3",
 ];
 
 self.addEventListener("install", (event) => {
