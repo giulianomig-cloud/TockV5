@@ -8206,7 +8206,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.82";
+const APP_VERSION = "v5.83";
 
 let myColor = null;
 let myRoomId = null;
@@ -13766,7 +13766,11 @@ function renderDealerDrawScreen(state) {
   const slotsByColor = {};
   const grid = el("div", { class: "dealer-draw-grid" });
   const dealerNames = {};
-  COLORS.forEach((c) => {
+  // v5.83: riquadri nella STESSA posizione dei colori sul tabellone (rosso in alto a sinistra,
+  // verde in alto a destra, blu in basso a sinistra, giallo in basso a destra, come
+  // STATUS_TOP_ORDER/STATUS_BOTTOM_ORDER). Prima giallo e blu erano scambiati e il giro
+  // dell'estrazione (rosso → verde → giallo → blu = senso orario, come i turni) sembrava a "Z".
+  [...STATUS_TOP_ORDER, ...STATUS_BOTTOM_ORDER].forEach((c) => {
     dealerNames[c] = playerName(state, c);
     // Mostra anche il nome del giocatore (non solo il colore) — playerName
     // ricade già da solo sul nome del colore se non c'è un nome impostato
