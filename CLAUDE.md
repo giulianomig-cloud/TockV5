@@ -15,7 +15,7 @@
   NIENTE per l'offline (cache.addAll fallisce se manca anche un solo file). Ogni file elencato in APP_SHELL deve esistere.
 
 ## Versione
-- Versione attuale: **v5.82**.
+- Versione attuale: **v5.83**.
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -146,6 +146,9 @@
   (40x56), la carta scivola dritta senza giravolte; suono `dealerCard` = fruscio morbido (in tutti gli stili, al posto
   di `cardFlick` che resta per le carte in partita); il posto della carta (`.dealer-pile`) è riservato da subito, così
   i riquadri non si allargano alla prima carta.
+  Dalla v5.83 i 4 riquadri sono messi come i colori sul tabellone (rosso alto-sx, verde alto-dx, blu basso-sx,
+  giallo basso-dx): così il giro dell'estrazione rosso → verde → giallo → blu si vede in senso orario, come i turni
+  (`NEXT_COLOR`). Prima giallo e blu erano scambiati (giro a "Z").
 - Animazioni "Glassy OTP" (v5.57, da un video TikTok dell'utente): in home il codice stanza si scrive in
   caselle (una per lettera, input vero invisibile sopra; casella attiva oro che "respira", lettera con
   saltello). Dopo "Gioca": rotellina "Cerco la stanza…", le caselle si mettono in cerchio, girano e si
