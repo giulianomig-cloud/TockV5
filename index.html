@@ -954,6 +954,59 @@ body:has(#app > .lobby-card), .tut-overlay { background: var(--bx-bg); }
 .bx-play #continue-btn { all: unset; cursor: pointer; background: var(--bx-btn-bg); color: var(--bx-btn-ink); font-weight: 800; border-radius: 14px; padding: 0 20px; -webkit-tap-highlight-color: transparent; }
 .bx-play #continue-btn * { color: var(--bx-btn-ink); }
 .bx-bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+/* v6: "Gioca subito" (accoppiamento automatico) in cima alla home, stanza con
+   gli amici in un riquadro bianco sotto. */
+.bx-quick { position: relative; overflow: hidden; border-radius: 28px; padding: 22px 18px 18px; background: var(--bx-hero); }
+.bx-quick h1 { margin: 0; font-size: 2rem; line-height: 1.05; letter-spacing: -.03em; font-weight: 800; color: var(--bx-ink); text-wrap: balance; }
+.bx-quick > p { margin: 8px 0 16px; color: var(--bx-sub); font-size: .92rem; }
+:root:not([data-theme="dark"]) .bx-quick > p { color: #5A4E42; }
+.bx-quick-go { all: unset; box-sizing: border-box; display: block; width: 100%; text-align: center; cursor: pointer; padding: 17px 20px; border-radius: 18px; background: var(--bx-btn-bg); color: var(--bx-btn-ink); font-weight: 800; font-size: 1.15rem; letter-spacing: -.01em; box-shadow: 0 12px 26px -12px rgba(168,125,34,.75); -webkit-tap-highlight-color: transparent; transition: transform .15s ease, filter .15s ease; }
+.bx-quick-go:active { transform: scale(.98); }
+.bx-quick-go:hover { filter: brightness(1.05); }
+.bx-quick-go, .bx-quick-go * { color: var(--bx-btn-ink); }
+.bx-quick .bx-as { margin: 12px 0 0; text-align: center; font-size: .82rem; }
+.bx-quick .bx-as b { color: var(--bx-ink); }
+.bx-as-link { all: unset; cursor: pointer; color: #B4791E; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+:root[data-theme="dark"] .bx-as-link { color: #F2C45A; }
+.bx-resume-wrap:empty { display: none; }
+.bx-resume { all: unset; box-sizing: border-box; display: flex; width: 100%; justify-content: space-between; align-items: center; margin-top: 12px; padding: 14px 18px; border-radius: 20px; background: var(--bx-card); box-shadow: var(--bx-shadow), inset 0 0 0 2px #3FA77E; color: var(--bx-ink); font-weight: 800; cursor: pointer; }
+.bx-resume b { font-size: 1.3rem; color: #3FA77E; }
+.bx-hero.bx-friends { margin-top: 12px; background: var(--bx-card); box-shadow: var(--bx-shadow); padding: 18px 16px 16px; border-radius: 24px; }
+.bx-hero.bx-friends h1 { font-size: 1.2rem; letter-spacing: -.01em; }
+.bx-hero.bx-friends p { margin: 4px 0 12px; font-size: .85rem; color: var(--bx-sub); }
+.bx-friends .bx-play { box-shadow: none; background: var(--bx-bg); }
+.bx-home .bx-lb { grid-row: auto; }
+.home-meta .home-privacy { color: inherit; }
+/* Attesa di "Gioca subito" */
+.mm-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 22px 16px 18px; background: var(--bx-hero); text-align: center; margin-top: 6px; }
+.mm-hero h1 { margin: 6px 0 0; font-size: 1.6rem; letter-spacing: -.02em; color: var(--bx-ink); }
+.mm-hero > p { margin: 4px 0 16px; color: var(--bx-sub); font-weight: 700; font-variant-numeric: tabular-nums; }
+.mm-radar { position: relative; width: 96px; height: 96px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+.mm-radar span { position: relative; z-index: 1; width: 62px; height: 62px; border-radius: 50%; background: var(--bx-card); box-shadow: var(--bx-shadow); display: flex; align-items: center; justify-content: center; font-size: 1.9rem; animation: mm-bob 1.6s ease-in-out infinite; }
+.mm-radar i { position: absolute; inset: 17px; border-radius: 50%; border: 2px solid #D9A93A; opacity: 0; animation: mm-ping 2.4s ease-out infinite; }
+.mm-radar i:nth-child(2) { animation-delay: .8s; }
+.mm-radar i:nth-child(3) { animation-delay: 1.6s; }
+@keyframes mm-ping { 0% { transform: scale(.7); opacity: .9; } 100% { transform: scale(1.7); opacity: 0; } }
+@keyframes mm-bob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-4px) rotate(6deg); } }
+.mm-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.mm-slot { background: var(--bx-card); border-radius: 18px; padding: 10px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; box-shadow: var(--bx-shadow); min-width: 0; }
+.mm-av { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 1.1rem; background: var(--bx-line); }
+.mm-in .mm-av { animation: mm-pop .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes mm-pop { 0% { transform: scale(.3); } 100% { transform: scale(1); } }
+.mm-me .mm-av { box-shadow: 0 0 0 3px var(--bx-card), 0 0 0 5px #D9A93A; }
+.mm-empty { gap: 3px; }
+.mm-empty i { width: 5px; height: 5px; border-radius: 50%; background: var(--bx-sub); opacity: .35; animation: mm-dot 1.2s ease-in-out infinite; }
+.mm-empty i:nth-child(2) { animation-delay: .2s; }
+.mm-empty i:nth-child(3) { animation-delay: .4s; }
+@keyframes mm-dot { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: .9; transform: translateY(-3px); } }
+.mm-nm { font-size: .78rem; font-weight: 700; color: var(--bx-ink); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
+.mm-slot:not(.mm-in) .mm-nm { color: var(--bx-sub); font-weight: 600; }
+.mm-bots { margin-top: 14px; background: var(--bx-card); border-radius: 22px; padding: 14px; box-shadow: var(--bx-shadow); }
+.mm-bots p { margin: 0 0 10px; font-size: .86rem; color: var(--bx-sub); text-align: center; }
+.mm-bot-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mm-bot-btns button.primary { margin: 0; padding: 13px 8px; font-size: .95rem; }
+.mm-note { margin: 12px 4px 0; font-size: .78rem; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .mm-radar i, .mm-radar span, .mm-empty i { animation: none; } }
 .bx-card { all: unset; box-sizing: border-box; cursor: pointer; background: var(--bx-card); border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--bx-shadow); -webkit-tap-highlight-color: transparent; min-width: 0; }
 .bx-card:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .bx-k { font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--bx-sub); }
@@ -2601,6 +2654,9 @@ html[data-skin="bright"]:not([data-theme="dark"]) .reaction-bar .reaction-btn:ac
 .chat-row.own .chat-bubble-yellow { background: var(--yellow); color: #3B2A0E; }
 .chat-row.own .chat-bubble-blue { background: var(--blue); }
 .chat-input-row { display: flex; gap: 8px; }
+.chat-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.chat-quick-btn { margin: 0; padding: 10px 8px; border-radius: 14px; border: 1px solid var(--panel-border); background: var(--panel); color: var(--ink); font-weight: 700; font-size: .85rem; cursor: pointer; }
+.chat-quick-btn:disabled { opacity: .5; }
 .chat-input-row input {
   flex: 1;
   padding: 11px 14px;
@@ -5145,12 +5201,11 @@ function resetForNewGame(state) {
   state.log = ["Nuova partita nella stessa stanza."];
   state.winnerTeam = null;
   // Segni "vittoria già accreditata in classifica" (vedi
-  // tryClaimLeaderboardCredit / tryClaimTournamentTableCredit): vanno azzerati
+  // tryClaimLeaderboardCredit): vanno azzerati
   // a ogni rivincita, altrimenti dalla 2ª partita nella stessa stanza in poi
   // nessuna vittoria veniva più contata (segnalato: "Francesco ha vinto due
   // partite e non risulta").
   state.leaderboardClaimed = null;
-  state.tournClaimed = null;
   state.stats = null;
   state.lastSwap = null;
   state.lastCapture = null;
@@ -5438,55 +5493,6 @@ async function tryClaimLeaderboardCredit(state) {
   }
 }
 
-// Gemella di tryClaimLeaderboardCredit, ma per la classifica del SINGOLO
-// torneo (tournaments/{code}/classifica/{playerId}) — una stanza-tavolo
-// creata da avviaRound porta `state.torneo`, che la distingue da una
-// stanza normale. Le due classifiche restano indipendenti: questa qui non
-// sostituisce l'accredito alla classifica generale, che scatta comunque
-// in parallelo (qualunque stanza finita conta lì, tavolo di torneo o no).
-async function tryClaimTournamentTableCredit(state, roomId) {
-  const rid = roomId || myRoomId;
-  if (!state || !state.winnerTeam || !state.torneo || !rid) return;
-  if (state.torneo.spareggio) return; // la partita di spareggio non tocca la classifica
-  try {
-    const claimResult = await roomRef(rid)
-      .child("tournClaimed")
-      .transaction((cur) => (cur ? undefined : true));
-    if (!claimResult.committed) return;
-    const winners = COLORS.filter((c) => TEAM_OF[c] === state.winnerTeam);
-    const updates = {};
-    for (const c of winners) {
-      const p = state.players && state.players[c];
-      // Un bot FISSO (aggiunto dall'organizzatore in fase di iscrizione) ha
-      // un playerId stabile e va in classifica come chiunque altro
-      // (richiesto: "i bot rimangono fissi... devono essere messi in
-      // classifica") — solo i bot "usa e getta" che riempiono un posto
-      // scoperto restano esclusi, ma quelli non hanno mai un playerId, quindi
-      // basta il controllo su p.playerId, niente più bisogno di escludere
-      // isBot a parte.
-      if (!p || !p.playerId) continue;
-      updates["tournaments/" + state.torneo.code + "/classifica/" + p.playerId + "/vittorie"] = firebase.database.ServerValue.increment(1);
-      updates["tournaments/" + state.torneo.code + "/classifica/" + p.playerId + "/nome"] = p.name;
-      updates["tournaments/" + state.torneo.code + "/classifica/" + p.playerId + "/isBot"] = !!p.isBot;
-    }
-    // Differenza catture (pedine mangiate - pedine perse) di TUTTI e 4 i
-    // giocatori, sommata su tutto il torneo: primo spareggio a parità di vittorie.
-    for (const c of COLORS) {
-      const p = state.players && state.players[c];
-      if (!p || !p.playerId) continue;
-      const st = (state.stats && state.stats[c]) || {};
-      const d = (st.capt || 0) - (st.lost || 0);
-      const base = "tournaments/" + state.torneo.code + "/classifica/" + p.playerId;
-      if (d !== 0) updates[base + "/diff"] = firebase.database.ServerValue.increment(d);
-      updates[base + "/nome"] = p.name;
-      updates[base + "/isBot"] = !!p.isBot;
-    }
-    if (Object.keys(updates).length > 0) await db.ref().update(updates);
-  } catch (e) {
-    console.error(e);
-  }
-}
-
 // Evita il "Carico…" infinito se il server non risponde: dopo 12 s errore chiaro.
 function withTimeout(promise, ms, what) {
   return Promise.race([
@@ -5503,922 +5509,10 @@ async function loadLeaderboard() {
     .sort((a, b) => b.vittorie - a.vittorie || a.nome.localeCompare(b.nome, "it"));
 }
 
-// Albo d'oro dei TORNEI vinti (quanti tornei ha vinto ciascuno, non quante
-// partite) — gemella di leaderboardRef/loadLeaderboard, scritta da
-// concludeTournament quando un torneo finisce (vedi allTournamentMatchesPlayed).
-function tournamentWinsRef() {
-  return db.ref("tournamentWins");
-}
-async function loadTournamentWinsLeaderboard() {
-  const snap = await tournamentWinsRef().get();
-  const all = snap.val() || {};
-  return Object.entries(all)
-    .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", tornei: (p && p.tornei) || 0 }))
-    .filter((p) => p.tornei > 0)
-    .sort((a, b) => b.tornei - a.tornei || a.nome.localeCompare(b.nome, "it"));
-}
-
-// ---------------- Torneo (v5) — pt.1: creazione + iscrizione --------------
-//
-// Vedi docs/v5-roadmap.md. Questo primo pezzo copre solo: indice unico dei
-// codici, creazione del torneo (l'organizzatore sceglie il formato) e
-// iscrizione libera e autonoma. Round/tavoli/estrazione sono un passo
-// successivo — un torneo appena creato resta in stato "iscrizioni" finché
-// quel pezzo non esiste.
+// Indice dei codici (codes/{codice} = "room"): resta per compatibilità con
+// le regole Firebase e con le stanze già create.
 function codesRef() {
   return db.ref("codes");
-}
-function tournamentsRef() {
-  return db.ref("tournaments");
-}
-
-// Stanze e tornei condividono lo stesso spazio dei nomi (vedi roadmap,
-// "Regola di unicità dei nomi"): un codice appartiene o all'uno o
-// all'altro, mai a entrambi. reserveCode "reclama" il codice con una
-// transazione — riesce (committed:true) solo se il codice non era già
-// preso da nessuno dei due, altrimenti fallisce e chi chiama sa di dover
-// proporre un altro nome o entrare in quello esistente.
-async function reserveCode(code, kind) {
-  const result = await codesRef()
-    .child(code)
-    .transaction((cur) => (cur ? undefined : kind));
-  return result.committed;
-}
-
-function getOrCreateOrganizerToken(tournCode) {
-  const key = "tock-organizer-" + tournCode;
-  try {
-    let token = localStorage.getItem(key);
-    if (!token) {
-      token = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem(key, token);
-    }
-    return token;
-  } catch (e) {
-    return Math.random().toString(36).slice(2) + Date.now().toString(36);
-  }
-}
-
-// Crea un nuovo torneo con quel codice, se libero. Ritorna { ok:true } o
-// { ok:false, reason: "taken" }.
-async function createTournament(code, formato) {
-  const claimed = await reserveCode(code, "tournament");
-  if (!claimed) return { ok: false, reason: "taken" };
-  const organizerToken = getOrCreateOrganizerToken(code);
-  const tournament = {
-    stato: "iscrizioni",
-    formato, // "coppie_fisse" | "rotante_8"
-    pubblico: true,
-    organizerToken,
-    creatoIl: Date.now(),
-    roundCorrente: 0,
-    iscritti: {},
-    // Ordine di iscrizione (playerId), separato da `iscritti` perché
-    // l'ordine delle chiavi di un oggetto non è una garanzia affidabile su
-    // Firebase — serve per assegnare i "posti" 1-8 dello schema fisso del
-    // formato rotante in modo deterministico e stabile round dopo round.
-    ordine: [],
-    // Cronologia degli accoppiamenti già giocati (formato coppie fisse):
-    // "coupleIdA|coupleIdB" (ordinati) -> quante volte si sono già
-    // affrontate — usata per scegliere gli accoppiamenti del round
-    // successivo privilegiando chi si è affrontato meno.
-    storicoAccoppiamenti: {},
-    rounds: {},
-  };
-  await tournamentsRef().child(code).set(tournament);
-  return { ok: true, tournament };
-}
-
-// Iscrizione libera e autonoma: trova-o-crea il nome in rubrica (come già
-// per le stanze) e si aggiunge agli iscritti — una transazione, così due
-// device che si iscrivono nello stesso istante non si sovrascrivono a
-// vicenda. Se il playerId è già iscritto, aggiorna solo il nome/compagno
-// (permette di correggere/ripetere senza creare doppioni). Per il formato
-// "rotante_8" rifiuta il decimo iscritto in più (limite fisso a 8, vedi
-// roadmap) — per "coppie_fisse" nessun limite.
-// Bot "automatici": i posti ancora vuoti di un torneo "tutti con tutti" al
-// momento dell'avvio vengono riempiti con bot FISSI (stesso nome e stesso
-// playerId round dopo round, in classifica come giocatori veri) invece di bot
-// usa e getta con un nome nuovo ogni volta (richiesto: "i bot non dovevano
-// essere sempre gli stessi quando si faceva un torneo?"). Sono marcati
-// id "bot-auto-…" perché cedono il posto: se poi si iscrive una persona (o
-// l'organizzatore aggiunge un bot a sua scelta) e il torneo è "pieno", prende
-// il posto di un bot automatico (stessa posizione in `ordine`).
-function replaceAutoBotSeat(cur, newId) {
-  const autoId = Object.keys(cur.iscritti).find((id) => id.indexOf("bot-auto-") === 0 && cur.iscritti[id]);
-  if (!autoId) return false;
-  const idx = cur.ordine.indexOf(autoId);
-  delete cur.iscritti[autoId];
-  if (idx >= 0) cur.ordine[idx] = newId;
-  else cur.ordine.push(newId);
-  return true;
-}
-
-async function fillRotante8WithBots(code) {
-  try {
-    await fillRotante8WithBotsInner(code);
-  } catch (e) {
-    // Non bloccare il round: in caso di errore restano i bot usa e getta.
-    console.warn("fillRotante8WithBots fallito", e);
-  }
-}
-async function fillRotante8WithBotsInner(code) {
-  await tournamentsRef()
-    .child(code)
-    .transaction((cur) => {
-      if (!cur || cur.formato !== "rotante_8") return cur;
-      if (!cur.iscritti) cur.iscritti = {};
-      if (!Array.isArray(cur.ordine)) cur.ordine = [];
-      while (Object.keys(cur.iscritti).length < 8) {
-        const usedNames = Object.values(cur.iscritti).map((p) => p.nome);
-        // Bot automatico riconoscibile dal prefisso dell'id (NON da un campo
-        // nuovo: le regole Firebase rifiutano campi extra -> permission_denied).
-        const botId = "bot-auto-" + Math.random().toString(36).slice(2, 10);
-        cur.iscritti[botId] = {
-          nome: pickBotName(usedNames),
-          isBot: true,
-          botLevel: "hard",
-          presente_stasera: false,
-          coppiaConId: null,
-        };
-        cur.ordine.push(botId);
-      }
-      return cur;
-    });
-}
-
-async function joinTournament(code, playerId, nome, coppiaConId) {
-  let blockedReason = null;
-  const result = await tournamentsRef()
-    .child(code)
-    .transaction((cur) => {
-      blockedReason = null;
-      if (!cur) {
-        blockedReason = "notFound";
-        return cur;
-      }
-      if (!cur.iscritti) cur.iscritti = {};
-      if (!Array.isArray(cur.ordine)) cur.ordine = [];
-      const already = cur.iscritti[playerId];
-      let seatTaken = false;
-      if (!already && cur.formato === "rotante_8" && Object.keys(cur.iscritti).length >= 8) {
-        // Pieno: si può entrare solo al posto di un bot automatico.
-        if (!replaceAutoBotSeat(cur, playerId)) {
-          blockedReason = "full";
-          return cur;
-        }
-        seatTaken = true;
-      }
-      cur.iscritti[playerId] = {
-        nome,
-        presente_stasera: (already && already.presente_stasera) || false,
-        coppiaConId: coppiaConId || (already && already.coppiaConId) || null,
-      };
-      if (!seatTaken && !cur.ordine.includes(playerId)) cur.ordine.push(playerId);
-      // Collegamento bidirezionale: se il compagno dichiarato è già
-      // iscritto, punta anche lui a noi, così la coppia è coerente da
-      // entrambi i lati anche se le due iscrizioni sono arrivate in
-      // momenti diversi.
-      if (coppiaConId && cur.iscritti[coppiaConId]) {
-        cur.iscritti[coppiaConId].coppiaConId = playerId;
-      }
-      return cur;
-    });
-  if (blockedReason) return { ok: false, reason: blockedReason };
-  if (!result.committed) return { ok: false, reason: "error" };
-  return { ok: true, tournament: result.snapshot.val() };
-}
-
-// Aggiunge un bot FISSO agli iscritti (solo l'organizzatore) — diverso dai
-// bot che riempiono automaticamente i posti scoperti ad ogni round (nome
-// casuale diverso ogni volta, nessun playerId, esclusi dalla classifica: vedi
-// buildTableGameState/tryClaimTournamentTableCredit): questo bot entra in
-// `iscritti`/`ordine` con un playerId stabile e un nome fisso, quindi resta
-// lo stesso "giocatore" round dopo round e accumula vittorie in classifica
-// come una persona vera (richiesto: "i bot rimangono fissi come fossero
-// giocatori e devono essere messi in classifica").
-async function addBotToTournament(code, botLevel) {
-  const level = botLevel === "easy" ? "easy" : "hard";
-  let blockedReason = null;
-  const result = await tournamentsRef()
-    .child(code)
-    .transaction((cur) => {
-      blockedReason = null;
-      if (!cur) {
-        blockedReason = "notFound";
-        return cur;
-      }
-      if (!cur.iscritti) cur.iscritti = {};
-      if (!Array.isArray(cur.ordine)) cur.ordine = [];
-      let seatTaken = false;
-      const botId = "bot-" + Math.random().toString(36).slice(2, 10);
-      if (cur.formato === "rotante_8" && Object.keys(cur.iscritti).length >= 8) {
-        // Pieno: l'organizzatore può sostituire un bot automatico con uno
-        // scelto da lui (es. "normale" invece di "difficile").
-        if (!replaceAutoBotSeat(cur, botId)) {
-          blockedReason = "full";
-          return cur;
-        }
-        seatTaken = true;
-      }
-      const usedNames = Object.values(cur.iscritti).map((p) => p.nome);
-      cur.iscritti[botId] = {
-        nome: pickBotName(usedNames),
-        isBot: true,
-        botLevel: level,
-        presente_stasera: false,
-        coppiaConId: null,
-      };
-      if (!seatTaken) cur.ordine.push(botId);
-      return cur;
-    });
-  if (blockedReason) return { ok: false, reason: blockedReason };
-  if (!result.committed) return { ok: false, reason: "error" };
-  return { ok: true };
-}
-
-// Toglie un bot fisso dagli iscritti (solo l'organizzatore) — non tocca i
-// tavoli/round già generati in passato (restano con lo storico nomi/esiti che
-// avevano), solo le iscrizioni per i round futuri: stesso comportamento di
-// quando un iscritto umano lascia il torneo. Se il bot era il compagno di
-// qualcuno (formato "coppie fisse", vedi assignBotAsPartner), scioglie anche
-// il lato umano della coppia — altrimenti resterebbe agganciato a un
-// compagno sparito, invece di tornare "senza coppia" e riassegnabile.
-async function removeBotFromTournament(code, botId) {
-  await tournamentsRef()
-    .child(code)
-    .transaction((cur) => {
-      if (!cur || !cur.iscritti || !cur.iscritti[botId] || !cur.iscritti[botId].isBot) return cur;
-      const partnerId = cur.iscritti[botId].coppiaConId;
-      delete cur.iscritti[botId];
-      if (partnerId && cur.iscritti[partnerId] && cur.iscritti[partnerId].coppiaConId === botId) {
-        cur.iscritti[partnerId].coppiaConId = null;
-      }
-      if (Array.isArray(cur.ordine)) cur.ordine = cur.ordine.filter((id) => id !== botId);
-      return cur;
-    });
-}
-
-// Assegna un bot FISSO come compagno di un iscritto senza coppia — pensato
-// per il formato "coppie fisse", dove a differenza di "tutti con tutti" un
-// bot da solo non serve a nulla: i tavoli si formano solo abbinando coppie
-// dichiarate (coppiaConId, vedi buildCoppieFisseTables), quindi il bot deve
-// avere qualcuno come compagno per finire davvero a un tavolo. Il
-// collegamento è bidirezionale, come tra due iscritti umani (vedi
-// joinTournament) — richiesto: "facciamo che assegna l'organizzatore per
-// ora" (invece di farli accoppiare in automatico tra loro).
-async function assignBotAsPartner(code, humanId, botLevel) {
-  const level = botLevel === "easy" ? "easy" : "hard";
-  let blockedReason = null;
-  const result = await tournamentsRef()
-    .child(code)
-    .transaction((cur) => {
-      blockedReason = null;
-      if (!cur || !cur.iscritti || !cur.iscritti[humanId]) {
-        blockedReason = "notFound";
-        return cur;
-      }
-      if (cur.iscritti[humanId].coppiaConId) {
-        blockedReason = "giaInCoppia";
-        return cur;
-      }
-      if (!Array.isArray(cur.ordine)) cur.ordine = [];
-      const usedNames = Object.values(cur.iscritti).map((p) => p.nome);
-      const botId = "bot-" + Math.random().toString(36).slice(2, 10);
-      cur.iscritti[botId] = {
-        nome: pickBotName(usedNames),
-        isBot: true,
-        botLevel: level,
-        presente_stasera: false,
-        coppiaConId: humanId,
-      };
-      cur.iscritti[humanId].coppiaConId = botId;
-      cur.ordine.push(botId);
-      return cur;
-    });
-  if (blockedReason) return { ok: false, reason: blockedReason };
-  if (!result.committed) return { ok: false, reason: "error" };
-  return { ok: true };
-}
-
-// Abbina due iscritti UMANI, entrambi ancora senza compagno — il modo
-// principale per formare le coppie ora che ci si iscrive tutti da soli
-// (richiesto: "io farei iscrivere tutti e quando la lista è completa
-// l'organizzatore accoppia i vari giocatori"). Collegamento bidirezionale,
-// stesso schema di joinTournament/assignBotAsPartner.
-async function pairTwoHumans(code, idA, idB) {
-  if (idA === idB) return { ok: false, reason: "stessaPersona" };
-  let blockedReason = null;
-  const result = await tournamentsRef()
-    .child(code)
-    .transaction((cur) => {
-      blockedReason = null;
-      if (!cur || !cur.iscritti || !cur.iscritti[idA] || !cur.iscritti[idB]) {
-        blockedReason = "notFound";
-        return cur;
-      }
-      if (cur.iscritti[idA].coppiaConId || cur.iscritti[idB].coppiaConId) {
-        blockedReason = "giaInCoppia";
-        return cur;
-      }
-      cur.iscritti[idA].coppiaConId = idB;
-      cur.iscritti[idB].coppiaConId = idA;
-      return cur;
-    });
-  if (blockedReason) return { ok: false, reason: blockedReason };
-  if (!result.committed) return { ok: false, reason: "error" };
-  return { ok: true };
-}
-
-// Scioglie una coppia di UMANI (l'organizzatore si è sbagliato ad
-// abbinarli) — non tocca un compagno bot, quello si toglie del tutto con
-// removeBotFromTournament: qui entrambi restano iscritti, solo senza più
-// coppia, riassegnabili.
-async function unpairHumans(code, idA) {
-  await tournamentsRef()
-    .child(code)
-    .transaction((cur) => {
-      if (!cur || !cur.iscritti || !cur.iscritti[idA]) return cur;
-      const idB = cur.iscritti[idA].coppiaConId;
-      if (!idB || !cur.iscritti[idB] || cur.iscritti[idB].isBot) {
-        cur.iscritti[idA].coppiaConId = null;
-        return cur;
-      }
-      cur.iscritti[idA].coppiaConId = null;
-      cur.iscritti[idB].coppiaConId = null;
-      return cur;
-    });
-}
-
-// v5.33: l'organizzatore toglie un iscritto (persona o bot). Come per
-// removeBotFromTournament non tocca tavoli/round già generati (se la persona
-// era a un tavolo del round in corso, l'organizzatore può rigenerarli) né la
-// classifica già accumulata. Nel formato "tutti con tutti" a torneo avviato
-// il suo posto (posizione in `ordine`, che decide lo schema degli 8 posti)
-// passa a un bot automatico, altrimenti gli abbinamenti dei round futuri
-// salterebbero. Il compagno resta iscritto senza coppia; se il compagno era
-// un bot dato apposta a questa persona, viene tolto anche lui.
-async function removePlayerFromTournament(code, playerId) {
-  const myToken = getOrCreateOrganizerToken(code);
-  let blockedReason = null;
-  const result = await tournamentsRef()
-    .child(code)
-    .transaction((cur) => {
-      blockedReason = null;
-      if (!cur || !cur.iscritti || !cur.iscritti[playerId]) return cur;
-      if (cur.organizerToken !== myToken) { blockedReason = "notOrganizer"; return; }
-      if (!Array.isArray(cur.ordine)) cur.ordine = [];
-      const partnerId = cur.iscritti[playerId].coppiaConId;
-      delete cur.iscritti[playerId];
-      const idx = cur.ordine.indexOf(playerId);
-      if (cur.formato === "rotante_8" && cur.stato !== "iscrizioni" && idx >= 0) {
-        const usedNames = Object.values(cur.iscritti).map((p) => p.nome);
-        const botId = "bot-auto-" + Math.random().toString(36).slice(2, 10);
-        cur.iscritti[botId] = { nome: pickBotName(usedNames), isBot: true, botLevel: "hard", presente_stasera: false, coppiaConId: null };
-        cur.ordine[idx] = botId;
-      } else {
-        cur.ordine = cur.ordine.filter((id) => id !== playerId);
-      }
-      const partner = partnerId && cur.iscritti[partnerId];
-      if (partner && partner.coppiaConId === playerId) {
-        if (partner.isBot && cur.formato === "coppie_fisse") {
-          delete cur.iscritti[partnerId];
-          cur.ordine = cur.ordine.filter((id) => id !== partnerId);
-        } else {
-          partner.coppiaConId = null;
-        }
-      }
-      return cur;
-    });
-  if (blockedReason) return { ok: false, reason: blockedReason };
-  return result.committed ? { ok: true } : { ok: false, reason: "error" };
-}
-
-// v5.33: l'organizzatore passa il ruolo a un altro iscritto. Il ruolo è
-// legato al DISPOSITIVO (organizerToken, vedi getOrCreateOrganizerToken),
-// e non sappiamo il token del telefono dell'altro: si scrive quindi
-// "passa:<playerId>" nello stesso campo (nessun campo nuovo: le regole
-// Firebase rifiutano campi extra), e il telefono di quella persona, appena
-// apre la pagina del torneo, lo sostituisce con il proprio token (vedi
-// claimPassedOrganizer). Da subito chi lo passa non è più organizzatore;
-// se l'altro non lo apre mai, si può sempre riprendere con "Diventa
-// organizzatore da questo dispositivo".
-const PASS_ORGANIZER_PREFIX = "passa:";
-async function passOrganizer(code, playerId) {
-  const myToken = getOrCreateOrganizerToken(code);
-  let blockedReason = null;
-  const result = await tournamentsRef()
-    .child(code)
-    .transaction((cur) => {
-      blockedReason = null;
-      if (!cur) { blockedReason = "notFound"; return cur; }
-      if (cur.organizerToken !== myToken) { blockedReason = "notOrganizer"; return; }
-      const p = cur.iscritti && cur.iscritti[playerId];
-      if (!p || p.isBot) { blockedReason = "notFound"; return; }
-      cur.organizerToken = PASS_ORGANIZER_PREFIX + playerId;
-      return cur;
-    });
-  if (blockedReason) return { ok: false, reason: blockedReason };
-  return result.committed ? { ok: true } : { ok: false, reason: "error" };
-}
-
-// Il telefono della persona a cui è stato passato il ruolo lo prende.
-async function claimPassedOrganizer(code, playerId) {
-  const myToken = getOrCreateOrganizerToken(code);
-  const result = await tournamentsRef()
-    .child(code)
-    .child("organizerToken")
-    .transaction((cur) => (cur === PASS_ORGANIZER_PREFIX + playerId ? myToken : undefined));
-  return !!result.committed;
-}
-
-async function loadTournament(code) {
-  const snap = await tournamentsRef().child(code).get();
-  return snap.val();
-}
-
-// "Diventa organizzatore da questo dispositivo": scrive incondizionatamente
-// il token dell'organizzatore su QUESTO device come nuovo organizerToken
-// del torneo. Serve a sbloccare il caso in cui il device che ha creato il
-// torneo non viene più riconosciuto (es. il link è stato aperto nel
-// browser interno di un'app di messaggistica invece che in Safari/PWA —
-// quel browser tiene una memoria locale separata anche sullo stesso
-// telefono, quindi non trova il token salvato lì) — coerente con il resto
-// dell'app, dove il ruolo organizzatore è un controllo leggero legato al
-// device e non una vera autenticazione, quindi non serve altro per
-// riprendersi il controllo.
-async function reclaimOrganizer(code) {
-  const tournament = await loadTournament(code);
-  if (!tournament) return { ok: false, reason: "notFound" };
-  const myToken = getOrCreateOrganizerToken(code);
-  await tournamentsRef().child(code).child("organizerToken").set(myToken);
-  return { ok: true };
-}
-
-// Elenco dei tornei da mostrare in home — solo quelli pubblici e non
-// ancora conclusi (vedi roadmap, "Scoperta senza codice"). L'interruttore
-// pubblico/privato non è ancora selezionabile in creazione, quindi per ora
-// equivale a "tutti i tornei non conclusi".
-async function loadActiveTournaments() {
-  const snap = await tournamentsRef().get();
-  const all = snap.val() || {};
-  const list = Object.entries(all)
-    .filter(([, t]) => t && t.pubblico !== false)
-    .map(([code, t]) => ({ code, ...t }))
-    .sort((a, b) => (b.creatoIl || 0) - (a.creatoIl || 0));
-  // Oltre a quelli attivi resta visibile l'ultimo torneo concluso, così
-  // quando finisce non "sparisce" dalla home (si può rivedere classifica e vincitore).
-  const attivi = list.filter((t) => t.stato !== "concluso");
-  const conclusi = list.filter((t) => t.stato === "concluso").slice(0, 1);
-  return attivi.concat(conclusi);
-}
-
-// ---------------- Torneo (v5) — pt.2: round e tavoli ----------------------
-//
-// Schema fisso per il formato "rotante_8" (vedi docs/v5-roadmap.md,
-// tabella dei 7 round): ogni cella è [postoA1,postoA2,postoB1,postoB2] con
-// i "posti" 1-8 nell'ordine di iscrizione. Un torneo che dura più di 7
-// round ricomincia il ciclo (modulo 7) — resta comunque equo, dato che il
-// ciclo intero copre già ogni coppia/avversario secondo l'obiettivo
-// matematico descritto nella roadmap.
-const ROTATING_8_SCHEDULE = [
-  [[1, 2, 4, 7], [3, 8, 5, 6]],
-  [[1, 3, 5, 7], [2, 8, 4, 6]],
-  [[1, 4, 5, 8], [2, 7, 3, 6]],
-  [[1, 7, 6, 8], [2, 4, 3, 5]],
-  [[1, 6, 3, 4], [2, 5, 7, 8]],
-  [[1, 8, 2, 3], [4, 5, 6, 7]],
-  [[1, 5, 2, 6], [3, 7, 4, 8]],
-];
-
-function tournamentTableRoomCode(tournCode, roundNum, tableIdx) {
-  return (tournCode + "-R" + roundNum + "-T" + (tableIdx + 1)).toUpperCase();
-}
-
-// Costruisce lo stato iniziale di una stanza-tavolo: rosso+giallo = squadra
-// A, verde+blu = squadra B (coerente con TEAM_OF). Ogni "posto" è
-// {playerId, nome} per una persona reale, o null per un posto scoperto
-// (riempito con un bot). embedTorneo collega la stanza al torneo/round/
-// tavolo di provenienza, così a fine partita si può accreditare anche la
-// classifica del torneo (vedi tryClaimTournamentTableCredit), non solo
-// quella generale.
-function buildTableGameState(posti, tournCode, roundNum, tableIdx) {
-  const colorOrder = ["red", "yellow", "green", "blue"]; // [A1,A2,B1,B2]
-  const usedNames = posti.filter(Boolean).map((p) => p.nome);
-  const players = {};
-  const giocatori = [];
-  colorOrder.forEach((color, i) => {
-    const posto = posti[i];
-    if (posto) {
-      players[color] = posto.isBot
-        ? { name: posto.nome, token: "torneo-bot-" + posto.playerId, playerId: posto.playerId, isBot: true, botLevel: posto.botLevel || "hard" }
-        : { name: posto.nome, token: "torneo-" + posto.playerId, playerId: posto.playerId };
-      giocatori.push({ playerId: posto.playerId, nome: posto.nome, colore: color, bot: !!posto.isBot });
-    } else {
-      const botName = pickBotName(usedNames.concat(Object.values(players).map((p) => p.name)));
-      players[color] = { name: botName, token: "BOT-" + color, isBot: true, botLevel: "hard" };
-      giocatori.push({ playerId: null, nome: botName, colore: color, bot: true });
-    }
-  });
-  const state = newGameState(players, "manual");
-  state.torneo = { code: tournCode, round: roundNum, tavolo: tableIdx + 1 };
-  return { state, giocatori };
-}
-
-// Formato "rotante_8": prende i primi 8 iscritti in ordine di iscrizione
-// (ordine), completando con posti vuoti (poi riempiti da bot) se sono di
-// meno — coerente con "Bot per posti scoperti" della roadmap.
-function buildRotante8Tables(tournament, roundIndex1Based) {
-  const schedule = ROTATING_8_SCHEDULE[(roundIndex1Based - 1) % ROTATING_8_SCHEDULE.length];
-  const ordine = (tournament.ordine || []).slice(0, 8);
-  const postoOf = (n) => {
-    // n è 1-indexed nello schema; ordine è 0-indexed.
-    const playerId = ordine[n - 1];
-    if (!playerId) return null;
-    const p = tournament.iscritti && tournament.iscritti[playerId];
-    // isBot/botLevel passati fino a buildTableGameState: un bot fisso
-    // (aggiunto dall'organizzatore) va distinto dai posti scoperti che
-    // buildTableGameState riempie da sé con un bot "usa e getta".
-    return p ? { playerId, nome: p.nome, isBot: !!p.isBot, botLevel: p.botLevel } : null;
-  };
-  return schedule.map(([a1, a2, b1, b2]) => [postoOf(a1), postoOf(a2), postoOf(b1), postoOf(b2)]);
-}
-
-// Formato "coppie fisse": raggruppa gli iscritti in coppie (coppiaConId),
-// poi abbina le coppie privilegiando chi si è affrontato meno finora
-// (storicoAccoppiamenti) — un approccio greedy invece di un calendario
-// round-robin rigido precalcolato, perché il numero di coppie può
-// cambiare da una serata all'altra (iscrizioni libere, presenze
-// variabili — vedi roadmap) e un calendario fisso non si adatta bene a
-// quel caso. Una coppia in eccesso (numero dispari di coppie) salta il
-// turno per questo round.
-function buildCoppieFisseTables(tournament) {
-  const iscritti = tournament.iscritti || {};
-  const seen = new Set();
-  const couples = [];
-  for (const [id, p] of Object.entries(iscritti)) {
-    if (seen.has(id) || !p.coppiaConId || !iscritti[p.coppiaConId]) continue;
-    const partnerId = p.coppiaConId;
-    if (seen.has(partnerId)) continue;
-    seen.add(id);
-    seen.add(partnerId);
-    // Ordine stabile della coppia: playerId più piccolo alfabeticamente
-    // per primo, così l'etichetta "idA|idB" nello storico è sempre la
-    // stessa indipendentemente da chi si è iscritto per primo.
-    const [p1, p2] = id < partnerId ? [id, partnerId] : [partnerId, id];
-    // isBot/botLevel passati fino a buildTableGameState, stesso schema di
-    // buildRotante8Tables — altrimenti un bot fisso assegnato come compagno
-    // (assignBotAsPartner) arriverebbe al tavolo segnato come umano, e
-    // sfuggirebbe sia al pilota automatico (scheduleBotAction controlla
-    // state.players[c].isBot) sia al marcatore 🤖 in classifica.
-    couples.push({
-      id: p1 + "+" + p2,
-      players: [
-        { playerId: p1, nome: iscritti[p1].nome, isBot: !!iscritti[p1].isBot, botLevel: iscritti[p1].botLevel },
-        { playerId: p2, nome: iscritti[p2].nome, isBot: !!iscritti[p2].isBot, botLevel: iscritti[p2].botLevel },
-      ],
-    });
-  }
-  const storico = tournament.storicoAccoppiamenti || {};
-  const timesPlayed = (a, b) => {
-    const key = [a, b].sort().join("|");
-    return storico[key] || 0;
-  };
-  const remaining = couples.slice();
-  const tables = [];
-  while (remaining.length >= 2) {
-    const a = remaining.shift();
-    let bestIdx = 0;
-    let bestCount = Infinity;
-    for (let i = 0; i < remaining.length; i++) {
-      const c = timesPlayed(a.id, remaining[i].id);
-      if (c < bestCount) { bestCount = c; bestIdx = i; }
-    }
-    const b = remaining.splice(bestIdx, 1)[0];
-    tables.push([a.players[0], a.players[1], b.players[0], b.players[1]]);
-  }
-  return tables; // l'eventuale coppia dispari rimasta in `remaining` salta il round
-}
-
-// Vero se il torneo ha esaurito tutti gli incontri previsti dal suo formato
-// (richiesto: "il torneo si conclude quando sono finiti tutti gli
-// incontri") — per "rotante_8" lo schema fisso copre già tutte le coppie
-// di avversari in un ciclo di 7 round (ROTATING_8_SCHEDULE), quindi basta
-// controllare il numero di round; per "coppie_fisse" non c'è un calendario
-// fisso (le coppie possono cambiare serata per serata), quindi si guarda lo
-// storico accoppiamenti: finito quando ogni coppia ATTUALMENTE iscritta ha
-// già affrontato tutte le altre almeno una volta (stesso schema di
-// deduplica coppie di buildCoppieFisseTables).
-function allTournamentMatchesPlayed(tournament) {
-  if (tournament.formato === "rotante_8") {
-    return (tournament.roundCorrente || 0) >= ROTATING_8_SCHEDULE.length;
-  }
-  const iscritti = tournament.iscritti || {};
-  const seen = new Set();
-  const coupleIds = [];
-  for (const [id, p] of Object.entries(iscritti)) {
-    if (seen.has(id) || !p.coppiaConId || !iscritti[p.coppiaConId]) continue;
-    const partnerId = p.coppiaConId;
-    if (seen.has(partnerId)) continue;
-    seen.add(id);
-    seen.add(partnerId);
-    const [p1, p2] = id < partnerId ? [id, partnerId] : [partnerId, id];
-    coupleIds.push(p1 + "+" + p2);
-  }
-  if (coupleIds.length < 2) return false; // meno di due coppie: nessun incontro possibile ancora
-  const storico = tournament.storicoAccoppiamenti || {};
-  for (let i = 0; i < coupleIds.length; i++) {
-    for (let j = i + 1; j < coupleIds.length; j++) {
-      if (!storico[[coupleIds[i], coupleIds[j]].sort().join("|")]) return false;
-    }
-  }
-  return true;
-}
-
-// Chiude il torneo (tutti gli incontri fatti — vedi allTournamentMatchesPlayed
-// sopra, controllato dal chiamante prima di invocare questa): segna
-// stato:"concluso" e il #1 della classifica come vincitore. Se il vincitore
-// è una persona vera (non un bot fisso) accredita anche l'"albo d'oro" dei
-// tornei vinti (tournamentWins/{playerId}) — una classifica NUOVA e
-// separata da quella generale delle vittorie-partita (leaderboard/*),
-// pensata apposta per "i vincitori dei vari tornei" (richiesto).
-// Giocatori in cima alla classifica a pari vittorie (2+ = serve uno spareggio).
-function topTiedPlayers(tournament) {
-  const classifica = Object.entries(tournament.classifica || {})
-    .map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, diff: (p && p.diff) || 0, isBot: !!(p && p.isBot) }))
-    .sort((a, b) => b.vittorie - a.vittorie || b.diff - a.diff || a.nome.localeCompare(b.nome, "it"));
-  if (classifica.length === 0) return { classifica, tied: [], winsTied: [] };
-  // pari a vittorie in testa; tra questi, spareggio 1 = differenza catture
-  const winsTied = classifica.filter((p) => p.vittorie === classifica[0].vittorie);
-  const tied = winsTied.filter((p) => p.diff === winsTied[0].diff);
-  return { classifica, tied, winsTied };
-}
-
-// winnerId: vincitore già deciso (spareggio giocato); altrimenti, se c'è
-// parità, sorteggio tra i pari (solo per 3+ pari, caso raro).
-async function concludeTournament(code, tournament, winnerId, decisoDa) {
-  const { classifica, tied, winsTied } = topTiedPlayers(tournament);
-  let vincitore = classifica[0] || null;
-  if (!winnerId && !decisoDa && winsTied.length > 1 && tied.length === 1) decisoDa = "catture";
-  if (winnerId) vincitore = classifica.find((p) => p.id === winnerId) || vincitore;
-  else if (tied.length > 1) {
-    vincitore = tied[Math.floor(Math.random() * tied.length)];
-    decisoDa = "sorteggio";
-  }
-  const upd = {
-    stato: "concluso",
-    vincitore: vincitore ? { playerId: vincitore.id, nome: vincitore.nome, vittorie: vincitore.vittorie, isBot: vincitore.isBot } : null,
-  };
-  if (decisoDa) upd.decisoDa = decisoDa;
-  await tournamentsRef().child(code).update(upd);
-  // I bot restano fuori dall'albo dei tornei vinti.
-  if (vincitore && !vincitore.isBot) {
-    await tournamentWinsRef()
-      .child(vincitore.id)
-      .transaction((cur) => ({
-        nome: vincitore.nome,
-        tornei: ((cur && cur.tornei) || 0) + 1,
-      }));
-  }
-  return { vincitore, decisoDa };
-}
-
-// Spareggio giocato: i due pari (uno per squadra) con compagni presi dai
-// migliori in classifica dopo di loro. Stanza {CODE}-SP, non entra in classifica.
-async function creaSpareggio(code, tournament, tied, classifica) {
-  const seat = (p) => {
-    const i = (tournament.iscritti && tournament.iscritti[p.id]) || {};
-    return { playerId: p.id, nome: p.nome, isBot: !!p.isBot, botLevel: i.botLevel };
-  };
-  const rest = classifica.filter((p) => !tied.some((t) => t.id === p.id));
-  const posti = [seat(tied[0]), rest[0] ? seat(rest[0]) : null, seat(tied[1]), rest[1] ? seat(rest[1]) : null];
-  const roomCode = (code + "-SP").toUpperCase();
-  const { state, giocatori } = buildTableGameState(posti, code, "SP", 0);
-  state.torneo.spareggio = true;
-  await roomRef(roomCode).set(state);
-  await codesRef().child(roomCode).transaction((cur) => (cur ? cur : "room"));
-  await tournamentsRef().child(code).update({
-    spareggio: { roomCode, giocatori, tied: [tied[0].id, tied[1].id] },
-  });
-}
-
-// Avvia il round successivo: genera i tavoli (in base al formato), crea le
-// stanze di gioco vere e proprie e le collega al torneo. Solo
-// l'organizzatore (verificato tramite il token locale, stesso schema
-// leggero già usato per il resto dell'app — non è una vera autenticazione)
-// può farlo.
-async function avviaRound(code) {
-  let tournament = await loadTournament(code);
-  if (!tournament) return { ok: false, reason: "notFound" };
-  if (tournament.organizerToken !== getOrCreateOrganizerToken(code)) {
-    return { ok: false, reason: "notOrganizer" };
-  }
-  if (tournament.formato === "rotante_8") {
-    await fillRotante8WithBots(code); // posti vuoti -> bot fissi (vedi replaceAutoBotSeat)
-    tournament = await loadTournament(code);
-  }
-  const nextRound = (tournament.roundCorrente || 0) + 1;
-  const postiTables = tournament.formato === "rotante_8"
-    ? buildRotante8Tables(tournament, nextRound)
-    : buildCoppieFisseTables(tournament);
-  const usableTables = postiTables.filter((posti) => posti.filter(Boolean).length >= 1);
-  if (usableTables.length === 0) return { ok: false, reason: "nessunoIscritto" };
-
-  const roundTables = {};
-  const storicoUpdates = {};
-  for (let i = 0; i < usableTables.length; i++) {
-    const posti = usableTables[i];
-    const roomCode = tournamentTableRoomCode(code, nextRound, i);
-    const { state, giocatori } = buildTableGameState(posti, code, nextRound, i);
-    await roomRef(roomCode).set(state);
-    await codesRef().child(roomCode).transaction((cur) => (cur ? cur : "room"));
-    roundTables[i] = { roomCode, giocatori };
-    // Aggiorna lo storico accoppiamenti solo per il formato coppie fisse
-    // (due "posti" = una persona a testa di ciascuna delle due coppie).
-    if (tournament.formato === "coppie_fisse" && posti[0] && posti[2]) {
-      const coupleA = [posti[0].playerId, posti[1].playerId].sort().join("+");
-      const coupleB = [posti[2].playerId, posti[3].playerId].sort().join("+");
-      const key = [coupleA, coupleB].sort().join("|");
-      storicoUpdates[key] = ((tournament.storicoAccoppiamenti || {})[key] || 0) + 1;
-    }
-  }
-
-  await tournamentsRef().child(code).update({
-    stato: "in_corso",
-    roundCorrente: nextRound,
-    ["rounds/" + nextRound]: { tables: roundTables },
-    ...Object.fromEntries(Object.entries(storicoUpdates).map(([k, v]) => ["storicoAccoppiamenti/" + k, v])),
-  });
-  return { ok: true, round: nextRound };
-}
-
-// Vero se tutti i tavoli di un round risultano conclusi (phase:"finished")
-// — un semplice giro di letture one-shot (non realtime: l'organizzatore
-// aggiorna con un bottone "Aggiorna stato", niente listener aggiuntivi da
-// gestire per ogni tavolo).
-async function isRoundComplete(roundTables) {
-  const entries = Object.values(roundTables || {});
-  if (entries.length === 0) return false;
-  for (const t of entries) {
-    const snap = await roomRef(t.roomCode).get();
-    const s = snap.val();
-    if (!s || s.phase !== "finished") return false;
-  }
-  return true;
-}
-
-// Vero se ALMENO UN tavolo del round risulta già concluso — usato per
-// bloccare la rigenerazione del round corrente: se un tavolo ha già
-// finito, la sua vittoria è (forse) già stata accreditata in classifica
-// (tryClaimTournamentTableCredit) e rigenerare cancellerebbe quel tavolo
-// senza annullare il credito già dato, disallineando la classifica.
-// Rigenerare resta sicuro solo finché NESSUN tavolo del round è finito.
-async function roundHasAnyFinishedTable(roundTables) {
-  const entries = Object.values(roundTables || {});
-  for (const t of entries) {
-    const snap = await roomRef(t.roomCode).get();
-    const s = snap.val();
-    if (s && s.phase === "finished") return true;
-  }
-  return false;
-}
-
-// Ricostruisce, da un tavolo già generato, le due chiavi di coppia usate
-// nello storico accoppiamenti (stesso schema di avviaRound: colonna
-// rosso+giallo = coppia A, verde+blu = coppia B) — serve a rigeneraRound
-// per "disfare" il contributo allo storico del round che sta per essere
-// ricreato, prima di ricalcolarlo da capo.
-function storicoKeyForTable(giocatori) {
-  const byColor = {};
-  for (const g of giocatori || []) byColor[g.colore] = g;
-  const a1 = byColor.red, a2 = byColor.yellow, b1 = byColor.green, b2 = byColor.blue;
-  if (!a1 || !a2 || !b1 || !b2 || !a1.playerId || !a2.playerId || !b1.playerId || !b2.playerId) return null;
-  const coupleA = [a1.playerId, a2.playerId].sort().join("+");
-  const coupleB = [b1.playerId, b2.playerId].sort().join("+");
-  return [coupleA, coupleB].sort().join("|");
-}
-
-// Rigenera i tavoli del round CORRENTE (stesso numero di round, non se ne
-// avvia uno nuovo) — pensato per correggere un errore appena dopo l'avvio
-// (es. un iscritto dimenticato, una coppia sbagliata): ricrea da zero le
-// stanze di quel round con la stessa logica di avviaRound. Per sicurezza
-// è permesso SOLO se nessun tavolo del round ha già finito la partita
-// (roundHasAnyFinishedTable) — altrimenti si rischia di disallineare la
-// classifica già accreditata (vedi commento sopra).
-async function rigeneraRoundCorrente(code) {
-  let tournament = await loadTournament(code);
-  if (!tournament) return { ok: false, reason: "notFound" };
-  if (tournament.organizerToken !== getOrCreateOrganizerToken(code)) {
-    return { ok: false, reason: "notOrganizer" };
-  }
-  if (tournament.formato === "rotante_8") {
-    await fillRotante8WithBots(code);
-    tournament = await loadTournament(code);
-  }
-  const round = tournament.roundCorrente || 0;
-  if (round < 1) return { ok: false, reason: "nessunRound" };
-  const oldTables = (tournament.rounds && tournament.rounds[round] && tournament.rounds[round].tables) || {};
-  if (await roundHasAnyFinishedTable(oldTables)) {
-    return { ok: false, reason: "roundGiaFinito" };
-  }
-
-  // Disfa il contributo allo storico accoppiamenti del round che stiamo
-  // per ricreare (solo coppie_fisse), poi ricalcola i tavoli su questa
-  // base "pulita".
-  const storico = Object.assign({}, tournament.storicoAccoppiamenti || {});
-  if (tournament.formato === "coppie_fisse") {
-    for (const t of Object.values(oldTables)) {
-      const key = storicoKeyForTable(t.giocatori);
-      if (key && storico[key]) {
-        storico[key] = storico[key] - 1;
-        if (storico[key] <= 0) delete storico[key];
-      }
-    }
-  }
-  const tournamentForRebuild = Object.assign({}, tournament, { storicoAccoppiamenti: storico });
-
-  const postiTables = tournament.formato === "rotante_8"
-    ? buildRotante8Tables(tournamentForRebuild, round)
-    : buildCoppieFisseTables(tournamentForRebuild);
-  const usableTables = postiTables.filter((posti) => posti.filter(Boolean).length >= 1);
-  if (usableTables.length === 0) return { ok: false, reason: "nessunoIscritto" };
-
-  const roundTables = {};
-  const storicoUpdates = {};
-  for (let i = 0; i < usableTables.length; i++) {
-    const posti = usableTables[i];
-    const roomCode = tournamentTableRoomCode(code, round, i);
-    const { state, giocatori } = buildTableGameState(posti, code, round, i);
-    await roomRef(roomCode).set(state);
-    await codesRef().child(roomCode).transaction((cur) => (cur ? cur : "room"));
-    roundTables[i] = { roomCode, giocatori };
-    if (tournament.formato === "coppie_fisse" && posti[0] && posti[2]) {
-      const coupleA = [posti[0].playerId, posti[1].playerId].sort().join("+");
-      const coupleB = [posti[2].playerId, posti[3].playerId].sort().join("+");
-      const key = [coupleA, coupleB].sort().join("|");
-      storicoUpdates[key] = (storico[key] || 0) + 1;
-    }
-  }
-
-  // Se il numero di tavoli è cambiato rispetto a prima (es. un'iscrizione
-  // tardile ha ridotto i tavoli utilizzabili), i tavoli "in eccesso" della
-  // versione precedente non sono più referenziati da rounds/{round} — vanno
-  // ripuliti esplicitamente, altrimenti restano stanze orfane con il loro
-  // codice bloccato per sempre (vedi anche deleteTournament).
-  for (const t of Object.values(oldTables)) {
-    const stillUsed = Object.values(roundTables).some((nt) => nt.roomCode === t.roomCode);
-    if (!stillUsed) {
-      try {
-        await db.ref().update({ ["games/" + t.roomCode]: null, ["codes/" + t.roomCode]: null });
-      } catch (e) {
-        console.error("Pulizia tavolo orfano fallita (regole Firebase?):", e);
-      }
-    }
-  }
-
-  await tournamentsRef().child(code).update({
-    ["rounds/" + round]: { tables: roundTables },
-    storicoAccoppiamenti: Object.assign({}, storico, storicoUpdates),
-  });
-  return { ok: true, round };
-}
-
-// Elimina un torneo (in qualunque stato, tipicamente uno già concluso):
-// libera anche i codici occupati — quello del torneo stesso e quelli di
-// tutti i tavoli generati nei vari round — e rimuove le stanze di gioco
-// dei tavoli, così non restano stanze orfane in giro. Solo l'organizzatore
-// può farlo. Non tocca la classifica generale (leaderboard/*): le
-// vittorie già accreditate lì restano, coerente con l'essere "tutti i
-// tempi" e indipendente dal singolo torneo.
-async function deleteTournament(code) {
-  const tournament = await loadTournament(code);
-  if (!tournament) return { ok: false, reason: "notFound" };
-  if (tournament.organizerToken !== getOrCreateOrganizerToken(code)) {
-    return { ok: false, reason: "notOrganizer" };
-  }
-  const updates = {};
-  updates["tournaments/" + code] = null;
-  updates["codes/" + code] = null;
-  for (const round of Object.values(tournament.rounds || {})) {
-    for (const t of Object.values(round.tables || {})) {
-      updates["games/" + t.roomCode] = null;
-      updates["codes/" + t.roomCode] = null;
-    }
-  }
-  try {
-    await db.ref().update(updates);
-  } catch (e) {
-    // Le regole Firebase su "codes/$code" ("!data.exists()") permettono di
-    // CREARE un codice solo se libero, ma per come sono scritte bloccano
-    // anche la sua cancellazione quando esiste già — un aggiornamento
-    // multi-path viene rifiutato TUTTO insieme se anche solo un ramo non è
-    // permesso. Se le regole non sono ancora state aggiornate per
-    // permettere anche la liberazione dei codici, l'eliminazione fallisce
-    // qui: lo segnaliamo esplicitamente invece di fallire in silenzio.
-    console.error("deleteTournament fallito (regole Firebase?):", e);
-    return { ok: false, reason: "permessoNegato" };
-  }
-  return { ok: true };
 }
 
 function watchRoom(roomId, callback) {
@@ -8206,7 +7300,7 @@ function renderPawns(svg, board, pawns, lastSwap, lastCapture, lastHomeEntry, la
 // Bumped by hand each time a new build is produced — shown in the lobby so
 // it's obvious at a glance whether you're on the latest version, instead
 // of guessing from a stale browser tab or cache.
-const APP_VERSION = "v5.82";
+const APP_VERSION = "v6.00";
 
 let myColor = null;
 let myRoomId = null;
@@ -8348,6 +7442,8 @@ function renderLobby() {
   const tutTotal = TUT_LESSONS.length;
   const tutFatte = tutDone().filter((id) => TUT_LESSONS.some((l) => l.id === id)).length;
   const podium = el("div", { class: "bx-pod" }, el("span", { class: "bx-muted" }, "Carico…"));
+  const saved = getSavedPlayerShortcut();
+  const resume = el("div", { class: "bx-resume-wrap" });
 
   root.appendChild(
     el(
@@ -8359,76 +7455,33 @@ function renderLobby() {
           soundTestButton(),
           themePill(),
           fx3dToggleButton())),
-      el("div", { class: "bx-hero" },
+      el("div", { class: "bx-quick" },
         el("h1", {}, "Pronto per", el("br"), "una partita?"),
-        el("p", {}, "Scrivi il codice della stanza: se non esiste, la crei tu."),
+        el("p", {}, "Ti trovo altri giocatori in un attimo."),
+        el("button", { id: "quick-btn", class: "bx-quick-go", onclick: startMatchmaking }, "🎲 Gioca subito"),
+        saved && saved.nome
+          ? el("p", { class: "bx-as" }, "Giochi come ", el("b", {}, saved.nome), " · ", el("button", { class: "bx-as-link", onclick: () => vtGo(null, null, renderMatchNameScreen) }, "cambia"))
+          : ""),
+      resume,
+      el("div", { class: "bx-hero bx-friends" },
+        el("h1", {}, "👥 Con gli amici"),
+        el("p", {}, "Scrivi un codice e fallo scrivere agli altri: se la stanza non esiste, la crei tu."),
         el("div", { class: "bx-play cf" },
           el("div", { class: "cf-row notranslate", translate: "no", onclick: () => roomInput.focus() }, roomInput),
-          el("button", { id: "continue-btn", onclick: continueFromRoomCode }, "Gioca →"))),
+          el("button", { id: "continue-btn", onclick: continueFromRoomCode }, "Entra →"))),
       el("div", { class: "bx-bento" },
         el("button", { class: "bx-card bx-lb", onclick: (ev) => vtGo(ev.currentTarget, ".lobby-card", renderLeaderboardScreen) },
           el("span", { class: "bx-k" }, "🏆 Classifica"), el("span", { class: "bx-t" }, "Chi vince di più"), podium),
         el("button", { class: "bx-card bx-imp", onclick: (ev) => vtGo(ev.currentTarget, ".tl-prog", openTutorial) },
           el("span", { class: "bx-k" }, "🎓 Impara"),
-          el("div", { class: "bx-ring" }, bentoRing(tutFatte, tutTotal), el("span", { class: "bx-t" }, `${tutFatte}/${tutTotal}`))),
-        el("button", { class: "bx-card bx-dark", onclick: (ev) => vtGo(ev.currentTarget, "#app .lobby-card", renderTournamentCreateScreen) },
-          el("span", { class: "bx-k" }, "Nuovo"), el("span", { class: "bx-t" }, "+ Organizza un torneo"))),
-      el("div", { class: "bx-sec" }, el("b", {}, "Tornei")),
-      el("div", { id: "tourney-list-wrap", class: "bx-scroll" }, el("div", { class: "tourney-placeholder" }, "Carico i tornei…")),
-      el("p", { class: "app-meta home-meta" }, `Tock by Mig · ${APP_VERSION} · © 2026 Mig`),
+          el("div", { class: "bx-ring" }, bentoRing(tutFatte, tutTotal), el("span", { class: "bx-t" }, `${tutFatte}/${tutTotal}`)))),
+      el("p", { class: "app-meta home-meta" }, `Tock by Mig · ${APP_VERSION} · © 2026 Mig · `, el("a", { href: "privacy.html", class: "home-privacy" }, "Privacy")),
       homeScreenHint()
     )
   );
-  fillActiveTournamentsList();
   fillHomePodium(podium);
+  fillResumeMatch(resume);
   codeBoxesDraw(roomInput.parentNode);
-}
-
-// Carica i tornei attivi e riempie #tourney-list-wrap in home — chiamata
-// da renderLobby(), separata perché async (non si può aspettare dentro la
-// costruzione sincrona della schermata). Se nel frattempo si è già passati
-// a un'altra schermata, il contenitore non esiste più: si esce senza
-// errori (stesso pattern già usato per gli altri pannelli asincroni).
-async function fillActiveTournamentsList() {
-  let list = null;
-  try {
-    list = await loadActiveTournaments();
-  } catch (e) {
-    console.error(e);
-  }
-  const wrap = document.getElementById("tourney-list-wrap");
-  if (!wrap) return;
-  wrap.innerHTML = "";
-  if (!list) {
-    wrap.appendChild(el("div", { class: "tourney-placeholder" }, "Non riesco a caricare i tornei, riprova."));
-    return;
-  }
-  if (list.length === 0) {
-    wrap.appendChild(el("div", { class: "tourney-placeholder" }, "Nessun torneo attivo al momento — organizzane uno tu."));
-    return;
-  }
-  list.forEach((t) => {
-    const n = Object.keys(t.iscritti || {}).length;
-    const statusLabel = t.stato === "concluso" ? "🏆 Concluso" : t.stato === "in_corso" ? "In corso" : "Iscrizioni aperte";
-    wrap.appendChild(
-      el(
-        "button",
-        { class: "tourney-row" + (t.stato === "concluso" ? " tourney-done" : ""), onclick: (ev) => vtGo(ev.currentTarget, ".lobby-card", () => openTournamentByCode(t.code)) },
-        el(
-          "div",
-          { class: "tourney-row-main" },
-          el("span", { class: "tourney-row-code notranslate", translate: "no" }, t.code),
-          el("span", { class: "tourney-row-format" }, t.formato === "rotante_8" ? "Tutti con tutti (8)" : "Coppie fisse")
-        ),
-        el(
-          "div",
-          { class: "tourney-row-side" },
-          el("span", { class: "tourney-row-count" }, n + (t.formato === "rotante_8" ? "/8" : "") + " iscritti"),
-          el("span", { class: "tourney-row-status " + (t.stato === "in_corso" || t.stato === "concluso" ? "status-live" : "status-open") }, statusLabel)
-        )
-      )
-    );
-  });
 }
 
 // Riga di classifica (generale / media / tornei): medaglia metallica per i
@@ -8462,8 +7515,8 @@ function buildLbRow({ rank, name, main, unit, sub, bar, few }) {
 // in grigio ("Poche partite").
 const LB_MIN_PARTITE_MEDIA = 5;
 
-// Classifica generale: tre linguette (Vittorie · Media · Tornei) invece di
-// tre elenchi uno sotto l'altro, e ogni elenco in un unico riquadro con le
+// Classifica generale: due linguette (Vittorie · Media; Tornei tolta nella v6) invece di
+// elenchi uno sotto l'altro, e ogni elenco in un unico riquadro con le
 // righe divise da una linea — molto meno da scorrere. Voce a sé in home,
 // pubblica e cliccabile da chiunque.
 let _lbTab = "vittorie";
@@ -8484,21 +7537,14 @@ async function renderLeaderboardScreen() {
     )
   );
 
-  let list = null, lbError = "", tourneyList = null;
+  let list = null, lbError = "";
   const draw = () => {
     tabs.innerHTML = "";
-    [["vittorie", "🏆 Vittorie"], ["media", "📊 Media"], ["tornei", "🥇 Tornei"]].forEach(([k, label]) => {
+    [["vittorie", "🏆 Vittorie"], ["media", "📊 Media"]].forEach(([k, label]) => {
       tabs.appendChild(el("button", { class: "lb-tab" + (k === _lbTab ? " on" : ""), role: "tab", "aria-selected": k === _lbTab ? "true" : "false", onclick: () => { _lbTab = k; draw(); } }, label));
     });
     body.innerHTML = "";
     const card = (rows) => el("div", { class: "lb-list-card" }, rows);
-    if (_lbTab === "tornei") {
-      body.appendChild(el("p", { class: "muted lb-desc" }, "Quanti tornei ha vinto ciascun giocatore (non le singole partite)."));
-      if (!tourneyList) body.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica, riprova."));
-      else if (tourneyList.length === 0) body.appendChild(el("p", { class: "muted" }, "Nessun torneo concluso ancora."));
-      else body.appendChild(card(tourneyList.map((p, i) => buildLbRow({ rank: i + 1, name: p.nome, main: String(p.tornei), unit: p.tornei === 1 ? "torneo" : "tornei" }))));
-      return;
-    }
     if (!list) {
       body.appendChild(el("p", { class: "muted" }, "Non riesco a caricare la classifica (" + lbError + "). Riprova."));
       return;
@@ -8539,585 +7585,8 @@ async function renderLeaderboardScreen() {
     console.error(e);
     lbError = (e && (e.code || e.message)) ? String(e.code || e.message) : "errore sconosciuto";
   }
-  try {
-    tourneyList = await loadTournamentWinsLeaderboard();
-  } catch (e) {
-    console.error(e);
-  }
   if (!body.isConnected) return; // nel frattempo si è cambiata schermata
   draw();
-}
-
-// ---------------- Torneo (v5) — schermate --------------------------------
-
-function buildTournamentInviteLink(code) {
-  return location.origin + location.pathname + "?torneo=" + encodeURIComponent(code);
-}
-
-// "Organizza un torneo": l'organizzatore sceglie subito il formato (fissato
-// per tutto il torneo, non si ridiscute dopo — vedi roadmap) e un codice.
-function renderTournamentCreateScreen() {
-  const root = $("#app");
-  root.innerHTML = "";
-  const savedPlayer = getSavedPlayerShortcut();
-  const nameField = buildRubricaNameInput("torneo-organizer-name", myName || (savedPlayer && savedPlayer.nome) || "");
-  const codeInput = el("input", { id: "torneo-code-input", placeholder: "codice torneo (es. TORNEO1)", autocapitalize: "characters", autocomplete: "off", autocorrect: "off", spellcheck: "false", "aria-label": "Codice del torneo" });
-  // v5.58: codice a caselle come in home (stessa animazione alla creazione).
-  const codeRow = el("div", { class: "cf-row notranslate", translate: "no", onclick: () => codeInput.focus() }, codeInput);
-  const redrawCode = () => codeBoxesDraw(codeRow);
-  codeInput.addEventListener("input", redrawCode);
-  codeInput.addEventListener("focus", redrawCode);
-  codeInput.addEventListener("blur", redrawCode);
-  let formatoScelto = "coppie_fisse";
-  const formatBtns = {};
-  function selectFormato(f) {
-    formatoScelto = f;
-    for (const key of Object.keys(formatBtns)) formatBtns[key].classList.toggle("mode-btn-selected", key === f);
-  }
-  formatBtns.coppie_fisse = el(
-    "button",
-    { class: "mode-btn mode-btn-selected", onclick: () => selectFormato("coppie_fisse") },
-    el("div", { class: "mt" }, "👥 Coppie fisse"),
-    el("div", { class: "ms" }, "Ci si iscrive già in coppia. Ogni coppia affronta ogni altra coppia — nessun limite di coppie.")
-  );
-  formatBtns.rotante_8 = el(
-    "button",
-    { class: "mode-btn", onclick: () => selectFormato("rotante_8") },
-    el("div", { class: "mt" }, "🔄 Tutti con tutti"),
-    el("div", { class: "ms" }, "Ci si iscrive da soli: il compagno cambia ogni round. Limitato a 8 iscritti.")
-  );
-  root.appendChild(
-    el(
-      "div",
-      { class: "lobby-card" },
-      smallScreenHeader(),
-      el("p", { class: "rj-title" }, "🏆 Organizza un torneo"),
-      el("p", { class: "rj-text" }, "Scegli il formato: vale per tutto il torneo e non si cambia dopo."),
-      el("div", { class: "mode-choice" }, formatBtns.coppie_fisse, formatBtns.rotante_8),
-      el("p", { class: "step-label" }, "Il tuo nome"),
-      nameField.wrap,
-      el("p", { class: "step-label" }, "Codice del torneo"),
-      el("div", { class: "cf-card" }, codeRow),
-      el("button", { class: "primary", onclick: (ev) => submitCreateTournament(codeInput, () => formatoScelto, ev.currentTarget) }, "Crea torneo"),
-      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: () => vtGo(document.querySelector("#app .lobby-card"), ".bx-dark", renderLobby) }, backChevronIcon(), "Annulla")
-    )
-  );
-  codeBoxesDraw(codeRow);
-}
-
-async function submitCreateTournament(codeInput, getFormato, btn) {
-  const code = codeInput.value.trim().toUpperCase();
-  const typed = $("#torneo-organizer-name").value.trim();
-  if (!code) return showToast("Inserisci un codice per il torneo.");
-  if (!typed) return showToast("Inserisci il tuo nome.");
-  const row = codeInput.closest(".cf-row");
-  if (row && row.classList.contains("cf-run")) return; // animazione già partita
-  const card = codeInput.closest(".lobby-card");
-  const fx = codeFxStart({ row, go: btn, title: card && card.querySelector(".rj-title"), sub: card && card.querySelector(".rj-text"), busy: "Creo il torneo…" });
-
-  let created, player;
-  try {
-    player = await resolvePlayerName(typed);
-    myName = player.nome;
-    myPlayerId = player.id;
-    savePlayerShortcut(player.id, player.nome);
-    created = await createTournament(code, getFormato());
-  } catch (e) {
-    console.error(e);
-    showToast("Non riesco a creare il torneo, riprova.");
-    return fx.finish("fail", null, null, "Riprova");
-  }
-  if (!created.ok) {
-    showToast(`Il codice "${code}" è già in uso (stanza o torneo). Scegline un altro.`);
-    return fx.finish("fail", null, null, "Codice già usato");
-  }
-  await joinTournament(code, player.id, player.nome, null);
-  await fx.finish("ok", ["🏆 Torneo", "creato!"], "Ti porto alla pagina del torneo.", "Torneo creato");
-  vtGo(row && row.querySelector(".cf-okx"), ".t-head h1", () => renderTournamentLobby(code));
-}
-
-// Punto di ingresso quando si clicca un torneo dall'elenco in home, o si
-// apre un link/codice che risulta essere un torneo (vedi
-// continueFromRoomCode). Se questo device/playerId risulta già iscritto,
-// va dritto alla sala; altrimenti mostra prima la schermata di iscrizione.
-async function openTournamentByCode(code) {
-  let tournament;
-  try {
-    tournament = await loadTournament(code);
-  } catch (e) {
-    console.error(e);
-    return showToast("Non riesco a contattare il server, riprova.");
-  }
-  if (!tournament) return showToast(`Nessun torneo trovato con codice "${code}".`);
-  const savedPlayer = getSavedPlayerShortcut();
-  if (savedPlayer && tournament.iscritti && tournament.iscritti[savedPlayer.id]) {
-    myPlayerId = savedPlayer.id;
-    myName = savedPlayer.nome;
-    renderTournamentLobby(code);
-    return;
-  }
-  // L'organizzatore entra sempre nella pagina del torneo, anche se non è
-  // iscritto (prima finiva sulla schermata di iscrizione e, a torneo pieno,
-  // non poteva più gestirlo).
-  if (tournament.organizerToken === getOrCreateOrganizerToken(code)) {
-    if (savedPlayer) { myPlayerId = savedPlayer.id; myName = savedPlayer.nome; }
-    renderTournamentLobby(code);
-    return;
-  }
-  renderTournamentJoinScreen(code, tournament);
-}
-
-// Iscrizione sempre individuale, in entrambi i formati (richiesto: "io
-// farei iscrivere tutti e quando la lista è completa l'organizzatore
-// accoppia i vari giocatori" — prima, in "coppie fisse", si chiedeva già il
-// nome del compagno qui in fase di iscrizione; ora quel passo si fa dopo,
-// dall'organizzatore nella pagina del torneo, vedi pairTwoHumans/
-// assignBotAsPartner più sotto e i relativi controlli in renderTournamentLobby).
-function renderTournamentJoinScreen(code, tournament) {
-  const root = $("#app");
-  root.innerHTML = "";
-  const savedPlayer = getSavedPlayerShortcut();
-  const nameField = buildRubricaNameInput("torneo-join-name", myName || (savedPlayer && savedPlayer.nome) || "");
-  const n = Object.keys(tournament.iscritti || {}).length;
-  const formatoLabel = tournament.formato === "rotante_8" ? "Tutti con tutti (max 8)" : "Coppie fisse";
-  const pieno = tournament.formato === "rotante_8" && n >= 8;
-  root.appendChild(
-    el(
-      "div",
-      { class: "lobby-card" },
-      smallScreenHeader("Torneo", code),
-      el("p", { class: "rj-title" }, "Iscriviti al torneo"),
-      el("div", { class: "t-chips" },
-        el("span", { class: "t-chip" }, formatoLabel),
-        el("span", { class: "t-chip t-chip-open" }, `${n}${tournament.formato === "rotante_8" ? "/8" : ""} iscritti`)),
-      // Chi c'è già: aiuta a capire se è il torneo giusto (stesso stile
-      // dell'elenco iscritti nella pagina del torneo).
-      n > 0
-        ? el("div", { class: "t-list", style: "margin-bottom:14px;" },
-            Object.values(tournament.iscritti || {}).map((p) =>
-              el("div", { class: "t-row" },
-                p.isBot ? el("span", { class: "t-av t-av-bot" }, "🤖") : el("span", { class: "t-av", style: `background:${tAvatarColor(p.nome)}` }, String(p.nome || "?").trim().charAt(0).toUpperCase()),
-                el("div", { class: "t-name" }, el("b", {}, p.nome || "?")))))
-        : "",
-      pieno ? "" : el("p", { class: "step-label" }, "Il tuo nome"),
-      pieno ? "" : nameField.wrap,
-      tournament.formato === "coppie_fisse"
-        ? el("p", { class: "muted", style: "font-size:0.76rem; margin-top:-4px;" },
-            "In questo formato le coppie si decidono dopo: iscriviti pure da solo, sarà l'organizzatore ad abbinarti a qualcuno (o a un bot) quando la lista è pronta.")
-        : "",
-      pieno
-        ? el("button", { class: "primary", disabled: true }, "Torneo al completo")
-        : el("button", { class: "primary", onclick: (ev) => submitJoinTournament(code, tournament, ev.currentTarget) }, "Iscriviti"),
-      // Anche senza iscriversi si può aprire la pagina del torneo (tavoli,
-      // classifica) e da lì, in fondo, "Diventa organizzatore da questo
-      // dispositivo" — prima da qui non c'era modo di arrivarci.
-      el("button", { class: "secondary", style: "width:100%;margin-top:10px;", onclick: () => vtGo(null, null, () => renderTournamentLobby(code)) }, "👀 Guarda il torneo senza iscriverti"),
-      el("p", { class: "t-note" }, "Hai creato tu il torneo da un altro telefono? Aprilo qui e in fondo tocca \"👑 Diventa organizzatore da questo dispositivo\"."),
-      el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: vtHome }, backChevronIcon(), "Torna alla home")
-    )
-  );
-}
-
-async function submitJoinTournament(code, tournament, btn) {
-  const typed = $("#torneo-join-name").value.trim();
-  if (!typed) return showToast("Inserisci il tuo nome.");
-  fbBusy(btn, "Ti iscrivo…");
-
-  let result;
-  try {
-    const player = await resolvePlayerName(typed);
-    myName = player.nome;
-    myPlayerId = player.id;
-    savePlayerShortcut(player.id, player.nome);
-    result = await joinTournament(code, player.id, player.nome, null);
-  } catch (e) {
-    console.error(e);
-    result = { ok: false };
-  }
-  if (!result.ok) {
-    if (result.reason === "full") { fbFail(btn, "Torneo pieno"); return showToast("Questo torneo ha già raggiunto il limite di 8 iscritti."); }
-    if (result.reason === "notFound") { fbFail(btn, "Non esiste più"); return showToast("Questo torneo non esiste più."); }
-    fbFail(btn, "Riprova");
-    return showToast("Non riesco a iscriverti, riprova.");
-  }
-  const card = btn && btn.closest(".lobby-card");
-  await cfCelebrate(btn, card && card.querySelector(".rj-title"), null, ["Sei", "iscritto!"], null, "Sei iscritto!");
-  vtGo(document.querySelector(".cf-stage .cf-okx"), ".t-head h1", () => renderTournamentLobby(code));
-}
-
-// Sala del torneo: elenco iscritti in tempo reale, round, tavoli e classifica.
-let _tournamentLobbyListenerCode = null;
-// Pagina del torneo (v5.48, riorganizzata): etichette di stato in alto,
-// azione principale dell'organizzatore, tavoli e classifica in riquadri a
-// righe, iscritti in un unico elenco (tondino, nome, ✕ uguale per tutti,
-// "Aggiungi bot" solo se ci sono posti liberi) e in fondo "Gestione" con
-// Condividi / Passa l'organizzazione / Elimina (non più in alto, dove si
-// toccava per sbaglio). Le funzioni sono le stesse di prima.
-const T_AV_COLORS = ["#D9636B", "#3FA77E", "#E3AC33", "#3E8FCB", "#9C7420", "#8A6BB8"];
-function tAvatarColor(s) {
-  return T_AV_COLORS[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % T_AV_COLORS.length];
-}
-function renderTournamentLobby(code) {
-  if (_tournamentLobbyListenerCode && _tournamentLobbyListenerCode !== code) tournamentsRef().child(_tournamentLobbyListenerCode).off();
-  _tournamentLobbyListenerCode = code;
-  const root = $("#app"); root.innerHTML = "";
-  root.appendChild(el("div", { class: "lobby-card" }, el("div", { class: "t-head" }, el("h1", { class: "notranslate", translate: "no" }, "🏆 " + code)), el("div", { id: "torneo-lobby-body" }, el("p", { class: "muted" }, "Carico…"))));
-  tournamentsRef().child(code).on("value", (snap) => {
-    const t = snap.val();
-    const body = document.getElementById("torneo-lobby-body");
-    if (!body) { tournamentsRef().child(code).off(); return; }
-    if (!t) { body.innerHTML = ""; body.appendChild(el("p", { class: "muted" }, "Questo torneo non esiste più.")); body.appendChild(el("button", { class: "primary", style: "margin-top:10px;", onclick: renderLobby }, "Torna alla home")); return; }
-    const isOrganizer = t.organizerToken === getOrCreateOrganizerToken(code);
-    const passedTo = typeof t.organizerToken === "string" && t.organizerToken.indexOf(PASS_ORGANIZER_PREFIX) === 0 ? t.organizerToken.slice(PASS_ORGANIZER_PREFIX.length) : null;
-    if (passedTo && myPlayerId && passedTo === myPlayerId) { const me = myPlayerId; setTimeout(() => { claimPassedOrganizer(code, me).then((ok) => { if (ok) showToast("👑 Ora sei tu l'organizzatore di questo torneo."); }).catch(() => {}); }, 0); }
-    const passedToName = passedTo && t.iscritti && t.iscritti[passedTo] ? t.iscritti[passedTo].nome : null;
-    const iscritti = Object.entries(t.iscritti || {}).map(([id, p]) => ({ id, ...p }));
-    const currentRound = t.roundCorrente || 0;
-    const currentTables = currentRound > 0 && t.rounds ? (t.rounds[currentRound] && t.rounds[currentRound].tables) || {} : {};
-    setTimeout(() => refreshTableStatuses(body), 0);
-    if (isOrganizer && t.stato === "in_corso") autoPlayBotOnlyTables(currentTables);
-    const aperto = t.stato !== "concluso";
-    const rot = t.formato === "rotante_8";
-    body.innerHTML = "";
-
-    // 1) Etichette di stato
-    body.appendChild(el("div", { class: "t-chips" },
-      el("span", { class: "t-chip" }, rot ? "Tutti con tutti" : "Coppie fisse"),
-      el("span", { class: "t-chip " + (t.stato === "in_corso" ? "t-chip-live" : t.stato === "concluso" ? "" : "t-chip-open") }, t.stato === "concluso" ? "🏆 Concluso" : t.stato === "in_corso" ? `In corso · round ${currentRound}` : "Iscrizioni aperte"),
-      isOrganizer ? el("span", { class: "t-chip t-chip-gold" }, "👑 Organizzatore") : ""));
-    if (passedTo && passedTo !== myPlayerId) body.appendChild(el("p", { class: "t-note", style: "margin:-6px 2px 12px" }, `Organizzazione passata a ${passedToName || "un iscritto"}: diventa attiva quando apre il torneo.`));
-
-    if (t.stato === "concluso") {
-      body.appendChild(el("div", { class: "win-team-banner", style: "background:#F3EBD8; border:1.5px solid var(--gold); border-radius:14px; padding:12px 14px; margin-bottom:14px;" },
-        el("p", { style: "margin:0; font-weight:800;" }, t.vincitore ? `🏆 Vince ${t.vincitore.isBot ? "🤖 " : ""}${t.vincitore.nome}!${t.decisoDa === "catture" ? " (differenza catture)" : t.decisoDa === "spareggio" ? " (dopo lo spareggio)" : t.decisoDa === "sorteggio" ? " (🎲 deciso a sorte)" : ""}` : "🏆 Torneo concluso"),
-        el("p", { class: "muted", style: "margin:4px 0 0; font-size:0.85rem;" }, "Tutti gli incontri sono stati giocati.")));
-    }
-
-    // 2) Azione principale dell'organizzatore
-    if (isOrganizer && aperto) {
-      body.appendChild(el("button", { class: "primary", style: "margin:0;", onclick: () => handleAvviaRound(code, currentRound > 0) }, t.spareggio ? "Concludi torneo (dopo lo spareggio)" : currentRound > 0 ? "Avvia round successivo" : "Avvia il torneo (round 1)"));
-      body.appendChild(el("p", { class: "t-note" }, "Si considerano presenti tutti gli iscritti."));
-      if (currentRound > 0) {
-        body.appendChild(el("button", { class: "secondary", style: "width:100%;margin-top:10px;", onclick: () => handleRigeneraRound(code) }, "↻ Rigenera tavoli del round"));
-        body.appendChild(el("p", { class: "t-note" }, "Se hai sbagliato ad avviarlo o è arrivato qualcuno in ritardo: solo finché nessun tavolo ha finito."));
-      }
-    }
-
-    // 3) Tavoli del round / spareggio
-    if (currentRound > 0) {
-      body.appendChild(el("div", { class: "t-sec" }, el("b", {}, `Tavoli del round ${currentRound}`)));
-      body.appendChild(el("div", { class: "t-list" }, Object.values(currentTables).map((tb) => {
-        const mine = tb.giocatori.some((g) => g.playerId === myPlayerId);
-        return el("div", { class: "t-row" + (mine ? " t-me" : "") },
-          el("div", { class: "t-name" }, el("b", { style: "white-space:normal" }, tb.giocatori.map((g) => g.nome + (g.bot ? " 🤖" : "")).join(" · ")),
-            el("small", { class: "table-status", "data-room": tb.roomCode, "data-allbots": tb.giocatori.every((g) => g.bot) ? "1" : "0" })),
-          mine ? el("button", { class: "t-chipbtn", onclick: () => joinTournamentTable(tb.roomCode) }, "▶️ Il tuo tavolo") : "");
-      })));
-    }
-
-    if (t.spareggio && t.spareggio.giocatori) {
-      const sp = t.spareggio;
-      const mineSp = sp.giocatori.some((g) => g.playerId === myPlayerId);
-      body.appendChild(el("div", { class: "t-sec" }, el("b", {}, "⚔️ Spareggio (decide il vincitore)")));
-      body.appendChild(el("div", { class: "t-list" },
-        el("div", { class: "t-row" + (mineSp ? " t-me" : "") },
-          el("div", { class: "t-name" }, el("b", { style: "white-space:normal" }, sp.giocatori.map((g) => g.nome + (g.bot ? " 🤖" : "") + (sp.tied.indexOf(g.playerId) >= 0 ? " ⭐" : "")).join(" · ")),
-            el("small", { class: "table-status", "data-room": sp.roomCode, "data-allbots": sp.giocatori.every((g) => g.bot) ? "1" : "0" })),
-          mineSp ? el("button", { class: "t-chipbtn", onclick: () => joinTournamentTable(sp.roomCode) }, "▶️ Il tuo tavolo") : "")));
-      body.appendChild(el("p", { class: "t-note" }, "⭐ = i giocatori a pari punti. Vince il torneo chi tra i due vince lo spareggio; i compagni non contano."));
-    }
-
-    // 4) Classifica (con le regole a scomparsa)
-    const classifica = Object.entries(t.classifica || {}).map(([id, p]) => ({ id, nome: (p && p.nome) || "?", vittorie: (p && p.vittorie) || 0, diff: (p && p.diff) || 0, isBot: !!(p && p.isBot) }))
-      .sort((a, b) => b.vittorie - a.vittorie || b.diff - a.diff || a.nome.localeCompare(b.nome, "it"));
-    if (classifica.length > 0) {
-      body.appendChild(el("div", { class: "t-sec" }, el("b", {}, "Classifica del torneo")));
-      body.appendChild(el("div", { class: "lb-list-card" }, classifica.map((p, i) => buildLbRow({ rank: i + 1, name: (p.isBot ? "🤖 " : "") + p.nome, main: String(p.vittorie), unit: p.vittorie === 1 ? "vittoria" : "vittorie", sub: (p.diff > 0 ? "+" : "") + p.diff + " catt." }))));
-      const det = el("details", { class: "t-rules" }, el("summary", {}, "Come si contano i punti"),
-        el("p", {}, "1 vittoria a ciascuno dei 2 giocatori della squadra che vince, con qualsiasi compagno. A pari vittorie conta la differenza catture (pedine mangiate − perse). Se anche quella è pari in testa: spareggio giocato."));
-      body.appendChild(det);
-    }
-
-    // 5) Iscritti
-    const postiLiberi = Math.max(0, 8 - iscritti.length);
-    body.appendChild(el("div", { class: "t-sec" }, el("b", {}, "Iscritti"),
-      rot ? el("span", { style: "display:flex;align-items:center;gap:8px" }, el("span", { class: "t-seats" }, Array.from({ length: 8 }, (_, i) => el("i", { class: i < iscritti.length ? "on" : "" }))), `${iscritti.length}/8`) : el("span", {}, `${iscritti.length} iscritti`)));
-    const unpairedHumans = iscritti.filter((p) => !p.isBot && !p.coppiaConId);
-    const rows = iscritti.map((p) => {
-      const partnerRec = p.coppiaConId && t.iscritti[p.coppiaConId];
-      const senzaCoppia = !rot && !p.isBot && !p.coppiaConId;
-      const me = p.id === myPlayerId;
-      const removeBtn = isOrganizer && aperto
-        ? el("button", { class: "t-x", "aria-label": p.isBot ? "Togli il bot" : "Togli " + p.nome, onclick: () => (p.isBot ? handleRemoveBotFromTournament(code, p.id) : handleRemovePlayer(code, p.id, p.nome, t)) }, "✕") : "";
-      const altri = senzaCoppia ? unpairedHumans.filter((u) => u.id !== p.id) : [];
-      const selectId = "pair-select-" + p.id;
-      return el("div", { class: "t-row" + (me ? " t-me" : "") },
-        p.isBot ? el("span", { class: "t-av t-av-bot" }, "🤖") : el("span", { class: "t-av", style: `background:${tAvatarColor(p.nome)}` }, String(p.nome || "?").trim().charAt(0).toUpperCase()),
-        el("div", { class: "t-name" }, el("b", {}, p.nome, me ? el("span", { class: "lb-you" }, "tu") : ""),
-          el("small", {}, p.isBot ? (p.botLevel === "easy" ? "Bot normale" : "Bot difficile") + (partnerRec ? " · con " + partnerRec.nome : "") : partnerRec ? "con " + partnerRec.nome : senzaCoppia ? "senza compagno" : "")),
-        isOrganizer && partnerRec && !partnerRec.isBot && aperto ? el("button", { class: "t-chipbtn", onclick: () => handleUnpairHumans(code, p.id) }, "Sciogli") : "",
-        removeBtn,
-        senzaCoppia && isOrganizer && aperto ? el("div", { style: "width:100%;display:flex;flex-wrap:wrap;gap:6px;margin-left:42px" },
-          altri.length ? el("div", { class: "t-tool-row", style: "width:100%" }, el("select", { id: selectId }, altri.map((u) => el("option", { value: u.id }, u.nome))), el("button", { class: "t-chipbtn", onclick: () => handlePairHumans(code, p.id, document.getElementById(selectId).value) }, "🤝 Abbina")) : "",
-          el("button", { class: "t-chipbtn", onclick: () => handleAssignBotAsPartner(code, p.id, "easy") }, "🤖 Compagno normale"),
-          el("button", { class: "t-chipbtn", onclick: () => handleAssignBotAsPartner(code, p.id, "hard") }, "🤖 Compagno difficile")) : "");
-    });
-    const list = el("div", { class: "t-list" }, iscritti.length ? rows : el("div", { class: "t-row" }, el("span", { class: "muted" }, "Ancora nessun iscritto.")));
-    if (isOrganizer && rot && aperto && postiLiberi > 0) {
-      list.appendChild(el("div", { class: "t-addbot" }, el("span", {}, "🤖 Aggiungi bot"),
-        el("button", { class: "t-chipbtn", onclick: () => handleAddBotToTournament(code, "easy") }, "Normale"),
-        el("button", { class: "t-chipbtn", onclick: () => handleAddBotToTournament(code, "hard") }, "Difficile")));
-    }
-    body.appendChild(list);
-    if (isOrganizer && rot && aperto && postiLiberi > 0) body.appendChild(el("p", { class: "t-note" }, "Questi bot restano fissi round dopo round ed entrano in classifica."));
-
-    // 6) Strumenti
-    body.appendChild(el("div", { class: "t-sec" }, el("b", {}, isOrganizer ? "Gestione" : "Altro")));
-    const tools = el("div", { class: "t-tools" });
-    tools.appendChild(el("button", { class: "secondary", style: "width:100%", onclick: (ev) => shareTournamentInviteLink(code, ev.currentTarget) }, "🔗 Condividi l'invito"));
-    if (isOrganizer) {
-      const altri = iscritti.filter((p) => !p.isBot && p.id !== myPlayerId);
-      if (altri.length > 0 && aperto) {
-        tools.appendChild(el("div", { class: "t-tool-row" }, el("select", { id: "pass-organizer-select" }, altri.map((u) => el("option", { value: u.id }, u.nome))),
-          el("button", { class: "t-chipbtn", onclick: (ev) => handlePassOrganizer(code, document.getElementById("pass-organizer-select").value, t, ev.currentTarget) }, "👑 Passa l'organizzazione")));
-      }
-      tools.appendChild(el("button", { class: "t-danger-link", onclick: () => handleDeleteTournament(code) }, "🗑️ Elimina torneo"));
-    } else {
-      tools.appendChild(el("button", { class: "secondary", style: "width:100%", onclick: (ev) => handleReclaimOrganizer(code, ev.currentTarget) }, "👑 Diventa organizzatore da questo dispositivo"));
-      tools.appendChild(el("p", { class: "t-note", style: "margin-top:-4px" }, "Usalo se hai creato tu questo torneo ma da qui non risulti organizzatore (es. hai aperto il link da WhatsApp invece che dal browser)."));
-    }
-    body.appendChild(tools);
-    body.appendChild(el("button", { class: "primary", style: "margin-top:18px", onclick: () => { tournamentsRef().child(code).off(); renderLobby(); } }, "Torna alla home"));
-  });
-}
-
-// L'organizzatore clicca "Avvia round": se c'è già un round in corso,
-// controlla prima che tutti i suoi tavoli siano finiti (altrimenti avvisa
-// e non fa nulla — niente round sovrapposti, coerente con "Transizione tra
-// round: sincronizzata" della roadmap).
-async function handleAvviaRound(code, hasCurrentRound) {
-  if (hasCurrentRound) {
-    const t = await loadTournament(code);
-    const tables = (t.rounds && t.rounds[t.roundCorrente] && t.rounds[t.roundCorrente].tables) || {};
-    let complete = await isRoundComplete(tables);
-    if (!complete) {
-      // Forse manca solo il tavolo dei bot: lo si fa giocare (o si aspetta che
-      // finisca) prima di dire che il round non è concluso.
-      const hasBotTable = Object.values(tables).some((tb) => tb.giocatori && tb.giocatori.length && tb.giocatori.every((g) => g.bot));
-      if (hasBotTable) {
-        showToast("🤖 Faccio giocare il tavolo dei bot, un attimo…");
-        await autoPlayBotOnlyTables(tables);
-        complete = await isRoundComplete(tables);
-      }
-    }
-    if (!complete) return showToast("Manca ancora un tavolo con giocatori veri: va finito prima di avviare il round successivo.");
-    // Il round corrente è finito: prima di aprirne uno nuovo, controlla se il
-    // torneo ha già esaurito tutti gli incontri (richiesto: "si conclude
-    // quando sono finiti tutti gli incontri") — in quel caso non se ne apre
-    // un altro, si chiude il torneo e si accredita il vincitore.
-    if (allTournamentMatchesPlayed(t)) {
-      const { classifica, tied } = topTiedPlayers(t);
-      let winnerId = null;
-      let decisoDa = null;
-      if (tied.length === 2) {
-        if (!t.spareggio) {
-          await creaSpareggio(code, t, tied, classifica);
-          showToast(`⚔️ Parità tra ${tied[0].nome} e ${tied[1].nome}: si gioca lo spareggio!`);
-          return;
-        }
-        const snap = await roomRef(t.spareggio.roomCode).get();
-        let sp = snap.val();
-        if (!sp || sp.phase !== "finished") {
-          const allBots = (t.spareggio.giocatori || []).every((g) => g.bot);
-          if (allBots) {
-            showToast("🤖 Faccio giocare lo spareggio dei bot, un attimo…");
-            await autoPlayBotOnlyTables({ sp: { roomCode: t.spareggio.roomCode, giocatori: t.spareggio.giocatori } });
-            sp = (await roomRef(t.spareggio.roomCode).get()).val();
-          }
-          if (!sp || sp.phase !== "finished") return showToast("Lo spareggio non è ancora finito.");
-        }
-        const win = (t.spareggio.giocatori || []).find((g) => TEAM_OF[g.colore] === sp.winnerTeam && t.spareggio.tied.indexOf(g.playerId) >= 0);
-        if (win) { winnerId = win.playerId; decisoDa = "spareggio"; }
-      }
-      const { vincitore, decisoDa: how } = await concludeTournament(code, t, winnerId, decisoDa);
-      showToast(vincitore ? `🏆 Torneo concluso! Vince ${vincitore.nome}${how === "catture" ? " (differenza catture)" : how === "spareggio" ? " (spareggio)" : how === "sorteggio" ? " (sorteggio)" : ""}.` : "Torneo concluso!");
-      return;
-    }
-  }
-  const result = await avviaRound(code);
-  if (!result.ok) {
-    if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può avviare i round.");
-    if (result.reason === "nessunoIscritto") return showToast("Servono almeno due iscritti (in coppia, per il formato coppie fisse) per avviare un round.");
-    return showToast("Non riesco ad avviare il round, riprova.");
-  }
-  showToast(`Round ${result.round} avviato!`);
-}
-
-// L'organizzatore aggiunge/toglie un bot fisso dagli iscritti (vedi
-// addBotToTournament/removeBotFromTournament) — il torneo è realtime
-// (tournamentsRef().on("value", ...) in renderTournamentLobby), quindi non
-// serve ri-renderizzare esplicitamente qui: l'aggiornamento arriva da solo.
-async function handleAddBotToTournament(code, level) {
-  const result = await addBotToTournament(code, level);
-  if (!result.ok) {
-    if (result.reason === "full") return showToast("Il torneo ha già raggiunto il massimo di 8 iscritti.");
-    return showToast("Non riesco ad aggiungere il bot, riprova.");
-  }
-}
-
-async function handleRemoveBotFromTournament(code, botId) {
-  try {
-    await removeBotFromTournament(code, botId);
-  } catch (e) {
-    showToast("Non riesco a togliere il bot, riprova.");
-  }
-}
-
-async function handleAssignBotAsPartner(code, humanId, level) {
-  const result = await assignBotAsPartner(code, humanId, level);
-  if (!result.ok) {
-    if (result.reason === "giaInCoppia") return showToast("Questo iscritto ha già un compagno.");
-    return showToast("Non riesco ad assegnare il bot come compagno, riprova.");
-  }
-}
-
-async function handlePairHumans(code, idA, idB) {
-  if (!idB) return showToast("Scegli con chi abbinarlo.");
-  const result = await pairTwoHumans(code, idA, idB);
-  if (!result.ok) {
-    if (result.reason === "giaInCoppia") return showToast("Uno dei due ha già un compagno.");
-    if (result.reason === "stessaPersona") return showToast("Scegli un compagno diverso.");
-    return showToast("Non riesco ad abbinarli, riprova.");
-  }
-}
-
-async function handleUnpairHumans(code, idA) {
-  try {
-    await unpairHumans(code, idA);
-  } catch (e) {
-    showToast("Non riesco a sciogliere la coppia, riprova.");
-  }
-}
-
-// L'organizzatore rigenera i tavoli del round corrente (es. ha sbagliato
-// ad avviarlo, o un iscritto è arrivato tardi) — chiede sempre conferma
-// perché azzera lo stato di eventuali partite già iniziate a quei tavoli.
-async function handleRigeneraRound(code) {
-  if (!confirm("Rigenerare i tavoli del round corrente? Le partite eventualmente già iniziate a quei tavoli ripartiranno da capo.")) return;
-  const result = await rigeneraRoundCorrente(code);
-  if (!result.ok) {
-    if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può rigenerare i tavoli.");
-    if (result.reason === "roundGiaFinito") return showToast("Non posso rigenerare: almeno un tavolo di questo round ha già finito (la vittoria è già in classifica).");
-    if (result.reason === "nessunoIscritto") return showToast("Servono almeno due iscritti per rigenerare i tavoli.");
-    return showToast("Non riesco a rigenerare il round, riprova.");
-  }
-  showToast(`Round ${result.round} rigenerato.`);
-}
-
-// L'organizzatore elimina il torneo (tipicamente uno già concluso) —
-// conferma esplicita perché è irreversibile: libera i codici e rimuove
-// le stanze dei tavoli, e riporta tutti alla home.
-async function handleDeleteTournament(code) {
-  if (!confirm(`Eliminare definitivamente il torneo "${code}"? L'azione non si può annullare.`)) return;
-  const result = await deleteTournament(code);
-  if (!result.ok) {
-    if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può eliminare il torneo.");
-    if (result.reason === "permessoNegato") return showToast("Le regole del database non permettono ancora questa azione — aggiorna le regole Firebase (vedi indicazioni ricevute) e riprova.");
-    return showToast("Non riesco a eliminare il torneo, riprova.");
-  }
-  showToast("Torneo eliminato.");
-  tournamentsRef().child(code).off();
-  renderLobby();
-}
-
-// v5.33: togliere un iscritto / passare l'organizzazione (vedi
-// removePlayerFromTournament / passOrganizer).
-async function handleRemovePlayer(code, playerId, nome, t) {
-  const rotanteAvviato = t.formato === "rotante_8" && t.stato !== "iscrizioni";
-  const msg = `Togliere ${nome} dal torneo?` +
-    (rotanteAvviato ? " Il suo posto passa a un bot." : "") +
-    (t.roundCorrente > 0 ? " Se è a un tavolo del round in corso, puoi rigenerare i tavoli." : "");
-  if (!confirm(msg)) return;
-  const result = await removePlayerFromTournament(code, playerId);
-  if (!result.ok) {
-    if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può togliere un iscritto.");
-    return showToast("Non riesco a togliere l'iscritto, riprova.");
-  }
-  showToast(`${nome} non è più iscritto.`);
-}
-
-async function handlePassOrganizer(code, playerId, t, btn) {
-  const p = t.iscritti && t.iscritti[playerId];
-  if (!p) return;
-  if (!confirm(`Passare l'organizzazione del torneo a ${p.nome}? Da subito tu non potrai più gestirlo (finché non te la ripassa).`)) return;
-  fbBusy(btn, "Un attimo…");
-  let result;
-  try { result = await passOrganizer(code, playerId); } catch (e) { result = { ok: false }; }
-  if (!result.ok) {
-    fbFail(btn, "Riprova");
-    if (result.reason === "notOrganizer") return showToast("Solo l'organizzatore può passare il ruolo.");
-    return showToast("Non riesco a passare l'organizzazione, riprova.");
-  }
-  fbOk(btn, "Passata");
-  showToast(`👑 Organizzazione passata a ${p.nome}.`);
-}
-
-// Chi non risulta organizzatore da questo dispositivo può "reclamare" il
-// ruolo (es. il device che ha creato il torneo ha aperto il link in un
-// browser diverso e ha perso il riconoscimento — vedi commento su
-// reclaimOrganizer). Conferma esplicita perché toglie il controllo a
-// eventuali altri dispositivi che lo avessero.
-async function handleReclaimOrganizer(code, btn) {
-  if (!confirm("Diventare organizzatore di questo torneo da questo dispositivo? Se un altro dispositivo aveva il controllo, lo perderà.")) return;
-  fbBusy(btn, "Un attimo…");
-  let result;
-  try { result = await reclaimOrganizer(code); } catch (e) { result = { ok: false }; }
-  if (!result.ok) { fbFail(btn, "Riprova"); return showToast("Non riesco a diventare organizzatore, riprova."); }
-  fbOk(btn, "Ora sei l'organizzatore");
-  showToast("Ora sei l'organizzatore di questo torneo.");
-}
-
-// Entra nel proprio tavolo di torneo: a differenza dell'ingresso normale
-// in una stanza, qui colore/nome sono già assegnati da avviaRound (non si
-// sceglie nulla) — si tratta solo di riconoscere il proprio posto e aprire
-// direttamente il tabellone.
-async function joinTournamentTable(roomCode) {
-  let snap;
-  try {
-    snap = await roomRef(roomCode).get();
-  } catch (e) {
-    return showToast("Non riesco a raggiungere il tavolo, riprova.");
-  }
-  const state = normalizeState(snap.val());
-  if (!state) return showToast("Questo tavolo non esiste (più).");
-  const myColorFound = COLORS.find((c) => state.players[c] && state.players[c].playerId === myPlayerId);
-  if (!myColorFound) return showToast("Non risulti assegnato a questo tavolo.");
-  myColor = myColorFound;
-  myName = state.players[myColorFound].name;
-  myRoomId = roomCode;
-  // Il token è deterministico ("torneo-"+playerId, vedi buildTableGameState),
-  // non generato al volo come nell'ingresso normale — salvarlo qui abilita
-  // comunque il normale rientro automatico di continueFromRoomCode se si
-  // ricarica la pagina mentre si gioca un tavolo di torneo.
-  try { localStorage.setItem("tock-claim-" + roomCode + "-" + myColorFound, state.players[myColorFound].token); } catch (e) {}
-  // Prima la shell, poi l'ascolto: con i dati già in cache Firebase può
-  // richiamare onStateChange subito, e senza #start-wrap & co. va in errore
-  // ("Cannot set properties of null", visto su un tavolo di torneo).
-  vtGo(null, null, () => { renderGameShell(); watchRoom(roomCode, onStateChange); });
-}
-
-async function shareTournamentInviteLink(code, btn) {
-  const link = buildTournamentInviteLink(code);
-  const text = `Iscriviti al torneo di Tock ${code}: ${link}`;
-  try {
-    if (navigator.share) { await navigator.share({ title: "Tock", text, url: link }); return; }
-  } catch (e) {}
-  try {
-    await navigator.clipboard.writeText(link);
-    if (btn) { fbOk(btn, "Link copiato"); setTimeout(() => fbReset(btn), 1600); } else showToast("Link copiato!");
-    return;
-  } catch (e) {}
-  prompt("Copia questo link per invitare al torneo:", link);
 }
 
 // Link di invito diretto: chi lo apre arriva già con il codice stanza
@@ -9283,8 +7752,7 @@ function codeFxStart(opts) {
 }
 
 // Esito positivo (cerchi verdi che si allargano, puntini, ✓ disegnata, pulsante
-// verde, scritte che cambiano). Usato dalle caselle del codice e, da solo,
-// dall'iscrizione al torneo (cfCelebrate).
+// verde, scritte che cambiano). Usato dalle caselle del codice.
 async function cfSuccess(row, go, title, sub, h, subText, label) {
   const ring = el("div", { class: "cf-ring" }), ring2 = el("div", { class: "cf-ring" });
   const orb = el("div", { class: "cf-orbit" }, el("i", { style: "left:37px;top:-2px" }), el("i", { style: "right:-2px;top:37px" }), el("i", { style: "left:37px;bottom:-2px" }), el("i", { style: "left:-2px;top:37px" }));
@@ -9312,18 +7780,6 @@ async function cfSuccess(row, go, title, sub, h, subText, label) {
   row.appendChild(ck);
   ck.querySelector("path").animate([{ strokeDashoffset: 30 }, { strokeDashoffset: 0 }], { duration: 450, easing: "ease-out", fill: "forwards" });
   await fbWait(1100);
-}
-
-// Solo l'esito positivo, senza caselle (iscrizione al torneo): un riquadro
-// si apre sopra il pulsante con la casella verde, i cerchi e la ✓.
-async function cfCelebrate(go, title, sub, h, subText, label) {
-  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!go || !go.parentNode || reduce || !go.animate) { fbOk(go, label); await fbWait(600); return; }
-  const row = el("div", { class: "cf-row cf-run cf-stage" }, el("div", { class: "cf-box cf-abs cf-okx" }));
-  go.parentNode.insertBefore(row, go);
-  row.animate([{ height: "0px", opacity: 0 }, { height: "150px", opacity: 1 }], { duration: 400, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" });
-  await fbWait(250);
-  await cfSuccess(row, go, title, sub, h, subText, label);
 }
 
 // v5.61: passaggi tra schermate con un "elemento che vola" (View Transitions
@@ -9378,23 +7834,6 @@ async function continueFromRoomCode() {
   const fxRow = document.querySelector(".bx-hero .cf-row");
   const fx = fxRow ? codeFxStart({ row: fxRow, go: document.getElementById("continue-btn"), title: hero.querySelector("h1"), sub: hero.querySelector("p"), busy: "Cerco la stanza…" }) : null;
 
-  // Stanze e tornei condividono lo stesso spazio dei nomi (vedi roadmap,
-  // "Punto di ingresso nell'app") — chi scrive un codice esistente non
-  // deve scegliere nulla, l'app riconosce da sola a cosa appartiene.
-  // L'indice codes/ non copre le stanze create prima di questa
-  // funzionalità (non retroattivo): se manca lì, si prova comunque come
-  // stanza — comportamento identico a prima.
-  try {
-    const codeSnap = await codesRef().child(roomId).get();
-    if (codeSnap.val() === "tournament") {
-      if (fx) await fx.finish("ok", ["Torneo", "trovato!"], "Ti porto alla pagina del torneo.", "Torneo trovato");
-      vtGo(fx && fxRow.querySelector(".cf-okx"), ".room-tag, .t-head h1", () => openTournamentByCode(roomId));
-      return;
-    }
-  } catch (e) {
-    // indice non raggiungibile: prosegue come stanza, non blocca l'ingresso
-  }
-
   myRoomId = roomId;
 
   let snap;
@@ -9441,7 +7880,7 @@ async function continueFromRoomCode() {
 
   // Avviso: la stanza esiste già e questo dispositivo non ci era seduto
   // (non è un rientro) — evita di finire per sbaglio nella partita di altri.
-  if (!existing.torneo) {
+  {
     const dentro = COLORS.map((c) => existing.players && existing.players[c] && existing.players[c].name).filter(Boolean);
     const chi = dentro.length ? "Dentro ci sono: " + dentro.join(", ") + "." : "Al momento è vuota.";
     const finita = existing.phase === "finished" ? " (partita già finita)" : "";
@@ -10208,11 +8647,8 @@ async function joinManualRoom(roomId) {
   releaseColorPending(roomId, myColor);
 
   // Best-effort: registra il codice come "stanza" nell'indice condiviso
-  // (vedi reserveCode) così un torneo futuro non potrà più usare lo stesso
-  // codice. Non blocca né rallenta l'ingresso se fallisce — a differenza
-  // della creazione di un torneo, qui il codice stanza è già la vera fonte
-  // di verità (games/{roomId}), l'indice serve solo a proteggere i tornei
-  // creati DOPO, non a bloccare l'ingresso in una stanza già esistente.
+  // codes/ (i tornei sono stati tolti nella v6, l'indice resta per
+  // compatibilità). Non blocca né rallenta l'ingresso se fallisce.
   codesRef().child(roomId).transaction((cur) => (cur ? cur : "room")).catch(() => {});
 
   // (l'ascolto della lobby è già stato staccato in cima alla funzione)
@@ -10456,6 +8892,394 @@ function getOrCreateRoomToken(roomId) {
   }
 }
 
+// ================= Gioca subito: accoppiamento automatico (v6) =================
+//
+// "🎲 Gioca subito" in home cerca da solo altri giocatori disponibili. Usa
+// stanze pubbliche con codici fissi (AUTO-1, AUTO-2, …) in modalità
+// "estrazione" (vedi più sotto): niente percorsi nuovi su Firebase.
+//  - si sceglie la stanza più bassa con qualcuno già in attesa, altrimenti
+//    una vuota (o una partita abbandonata da riusare, vedi mmIsAbandoned);
+//  - chi aspetta e chiude l'app sparisce da solo dalla stanza
+//    (onDisconnect toglie draft/players/<token>), così nessun "fantasma"
+//    occupa un posto;
+//  - al 4° giocatore coppie e colori si decidono a caso NELLA STESSA
+//    transazione (mmAutoTeams) e si distribuisce subito: nessuna schermata
+//    di estrazione, si va dritti al tabellone;
+//  - chi non vuole aspettare completa i posti liberi con il computer.
+const MM_PREFIX = "AUTO-";
+const MM_BATCH = 6; // stanze lette insieme a ogni giro della ricerca
+const MM_MAX_ROOMS = 60;
+const MM_ABANDONED_MS = 10 * 60 * 1000; // partita ferma e senza nessuno collegato da 10 minuti
+const MM_LAST_KEY = "tock-last-match";
+
+function isMatchRoom(roomId) {
+  return typeof roomId === "string" && roomId.indexOf(MM_PREFIX) === 0;
+}
+
+let mm = null; // { roomId, token, since, busy } mentre si cerca / si aspetta
+
+function mmDraftCount(st) {
+  return st && st.draft && st.draft.players ? Object.keys(st.draft.players).length : 0;
+}
+function mmIsWaitingRoom(st) {
+  return !!(st && st.roomMode === "draw" && st.phase === "lobby" && st.draft && !st.draft.pairDraw && mmDraftCount(st) < 4);
+}
+// Ultimo segno di vita di una partita: inizio dell'ultimo turno o ultimo messaggio in chat.
+function mmLastActivity(st) {
+  let t = Number(st.turnStartedAt) || 0;
+  (st.chat || []).forEach((m) => { if (m && m.ts > t) t = m.ts; });
+  return t;
+}
+function mmFingerprint(st) {
+  return st.phase + "|" + (st.turnStartedAt || 0) + "|" + (st.log ? st.log.length : 0);
+}
+// Una partita già cominciata si può riusare solo se nessuno è collegato e
+// (è finita, oppure è ferma da più di MM_ABANDONED_MS).
+function mmIsAbandoned(st, presenceVal) {
+  if (!st || st.roomMode !== "draw" || st.phase === "lobby") return false;
+  const someoneOnline = presenceVal && Object.values(presenceVal).some((conns) => conns && typeof conns === "object" && Object.keys(conns).length > 0);
+  if (someoneOnline) return false;
+  if (st.phase === "finished") return true;
+  return Date.now() - mmLastActivity(st) > MM_ABANDONED_MS;
+}
+
+// Cerca la stanza giusta: { roomId, recycle: fingerprint|null }.
+async function mmFindRoom() {
+  for (let start = 1; start <= MM_MAX_ROOMS; start += MM_BATCH) {
+    const ids = [];
+    for (let n = start; n < start + MM_BATCH && n <= MM_MAX_ROOMS; n++) ids.push(MM_PREFIX + n);
+    const snaps = await Promise.all(ids.map((id) => roomRef(id).get()));
+    const states = snaps.map((s) => (s.exists() ? normalizeState(s.val()) : null));
+    // 1) c'è già qualcuno che aspetta? si va con chi è più vicino a 4
+    let best = -1;
+    states.forEach((st, i) => {
+      if (mmIsWaitingRoom(st) && mmDraftCount(st) > 0 && (best < 0 || mmDraftCount(st) > mmDraftCount(states[best]))) best = i;
+    });
+    if (best >= 0) return { roomId: ids[best], recycle: null };
+    // 2) altrimenti la prima libera: vuota, mai usata o abbandonata
+    const started = states.map((st, i) => (st && st.phase !== "lobby" ? i : -1)).filter((i) => i >= 0);
+    const presence = {};
+    await Promise.all(started.map((i) => db.ref("presence/" + ids[i]).get().then((p) => { presence[i] = p.val(); }).catch(() => { presence[i] = { x: { x: 1 } }; })));
+    for (let i = 0; i < ids.length; i++) {
+      const st = states[i];
+      if (!st || mmIsWaitingRoom(st)) return { roomId: ids[i], recycle: null };
+      if (mmIsAbandoned(st, presence[i])) return { roomId: ids[i], recycle: mmFingerprint(st) };
+    }
+  }
+  return null;
+}
+
+function mmFreshToken(roomId) {
+  const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  try { localStorage.setItem("tock-roomtoken-" + roomId, token); } catch (e) {}
+  return token;
+}
+
+// Due sconosciuti possono chiamarsi uguale: il secondo diventa "Marco 2".
+function mmUniqueName(draftPlayers, token, name) {
+  const taken = Object.entries(draftPlayers || {}).filter(([t]) => t !== token).map(([, n]) => String(n || "").trim().toLowerCase());
+  let out = name, k = 2;
+  while (taken.includes(out.trim().toLowerCase())) out = name + " " + k++;
+  return out;
+}
+
+// Prova a sedersi in roomId. Esito: "ok" | "taken" | "error".
+async function mmJoinRoom(roomId, recycle, token) {
+  let outcome = "taken";
+  const res = await roomRef(roomId)
+    .transaction((current) => {
+      outcome = "taken";
+      let st;
+      if (current === null) st = newGameState({}, "draw");
+      else {
+        st = normalizeState(JSON.parse(JSON.stringify(current)));
+        if (recycle && st.phase !== "lobby" && mmFingerprint(st) === recycle) st = newGameState({}, "draw");
+        else if (!(st.draft && st.draft.players && st.draft.players[token]) && !mmIsWaitingRoom(st)) return undefined;
+      }
+      const d = st.draft;
+      if (!d.players[token]) d.order.push(token);
+      d.players[token] = mmUniqueName(d.players, token, myName);
+      if (!d.playerIds) d.playerIds = {};
+      d.playerIds[token] = myPlayerId || null;
+      if (!d.botTokens) d.botTokens = {};
+      maybeStartPairDraw(st);
+      mmAutoTeams(st);
+      outcome = "ok";
+      return st;
+    })
+    .catch((e) => { console.error(e); outcome = "error"; return null; });
+  if (outcome === "ok" && res && res.committed === false) outcome = "taken";
+  return outcome;
+}
+
+// Chi aspetta e perde la connessione (app chiusa, telefono spento) viene
+// tolto dalla stanza dal server stesso.
+function mmArmDisconnect(roomId, token) {
+  const base = roomRef(roomId).child("draft");
+  base.child("players/" + token).onDisconnect().remove().catch(() => {});
+  base.child("playerIds/" + token).onDisconnect().remove().catch(() => {});
+}
+function mmDisarmDisconnect(roomId, token) {
+  if (!roomId || !token) return;
+  const base = roomRef(roomId).child("draft");
+  base.child("players/" + token).onDisconnect().cancel().catch(() => {});
+  base.child("playerIds/" + token).onDisconnect().cancel().catch(() => {});
+}
+
+// Punto d'ingresso dal pulsante "Gioca subito".
+async function startMatchmaking() {
+  unlockAudio();
+  const saved = getSavedPlayerShortcut();
+  if (!saved || !saved.nome) return vtGo(null, null, () => renderMatchNameScreen());
+  myName = saved.nome;
+  myPlayerId = saved.id || null;
+  mmSearch();
+}
+
+function renderMatchNameScreen() {
+  const root = $("#app");
+  root.innerHTML = "";
+  const saved = getSavedPlayerShortcut();
+  const nameField = buildRubricaNameInput("name-input", myName || (saved && saved.nome) || "");
+  const go = el("button", { id: "join-btn", class: "primary" }, "Cerca giocatori", forwardArrowIcon());
+  const submit = async () => {
+    const typed = nameField.input.value.trim();
+    if (!typed) return showToast("Scrivi il tuo nome.");
+    unlockAudio();
+    fbBusy(go, "Un attimo…");
+    let player;
+    try {
+      player = await resolvePlayerName(typed);
+    } catch (e) {
+      fbFail(go, "Nessuna connessione");
+      return;
+    }
+    myName = player.nome;
+    myPlayerId = player.id;
+    savePlayerShortcut(player.id, player.nome);
+    mmSearch();
+  };
+  go.onclick = submit;
+  nameField.input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+  root.appendChild(
+    el(
+      "div",
+      { class: "lobby-card" },
+      smallScreenHeader("", ""),
+      el("p", { class: "rj-title" }, "🎲 Gioca subito"),
+      el("p", { class: "rj-text" }, "Come ti chiami? Il nome lo vedono gli altri giocatori e serve per la classifica."),
+      el("p", { class: "step-label" }, "Il tuo nome"),
+      nameField.wrap,
+      go,
+      el("button", { class: "text-link-btn", style: "margin-top:10px;", onclick: () => vtGo(null, null, renderLobby) }, backChevronIcon(), "Torna alla home")
+    )
+  );
+  setTimeout(() => { try { nameField.input.focus(); } catch (e) {} }, 50);
+}
+
+async function mmSearch() {
+  if (mm && mm.busy) return;
+  mm = { roomId: null, token: null, since: Date.now(), busy: true };
+  renderMatchWaiting(null);
+  try {
+    for (let attempt = 0; attempt < 6 && mm; attempt++) {
+      const found = await mmFindRoom();
+      if (!mm) return; // annullato nel frattempo
+      if (!found) break;
+      const token = mmFreshToken(found.roomId);
+      const outcome = await mmJoinRoom(found.roomId, found.recycle, token);
+      if (!mm) return;
+      if (outcome === "ok") {
+        mm.roomId = found.roomId;
+        mm.token = token;
+        mm.busy = false;
+        myRoomId = found.roomId;
+        myToken = token;
+        mmArmDisconnect(found.roomId, token);
+        incrementStat("matchmaking");
+        watchRoom(found.roomId, onDraftStateChange);
+        return;
+      }
+      if (outcome === "error") throw new Error("join");
+    }
+    throw new Error("nessuna stanza");
+  } catch (e) {
+    console.error(e);
+    mm = null;
+    showToast("Non riesco a cercare giocatori adesso: controlla la connessione e riprova.");
+    renderLobby();
+  }
+}
+
+// Rientra nella stessa stanza se il server ci ha tolto (connessione caduta
+// per un attimo); se nel frattempo la partita è partita senza di noi si
+// ricomincia la ricerca.
+let mmRejoining = false;
+async function mmRejoin() {
+  if (!mm || !mm.roomId || mmRejoining) return;
+  mmRejoining = true;
+  try {
+    const outcome = await mmJoinRoom(mm.roomId, null, mm.token);
+    if (!mm) return;
+    if (outcome === "ok") mmArmDisconnect(mm.roomId, mm.token);
+    else {
+      roomRef(mm.roomId).off("value");
+      mm.busy = false;
+      mmSearch();
+    }
+  } finally {
+    mmRejoining = false;
+  }
+}
+
+async function mmCancel() {
+  const cur = mm;
+  mm = null;
+  if (cur && cur.roomId) {
+    roomRef(cur.roomId).off("value");
+    mmDisarmDisconnect(cur.roomId, cur.token);
+    await roomRef(cur.roomId).transaction((st) => {
+      if (!st || !st.draft || !st.draft.players || st.draft.pairDraw) return undefined;
+      delete st.draft.players[cur.token];
+      if (st.draft.playerIds) delete st.draft.playerIds[cur.token];
+      if (Array.isArray(st.draft.order)) st.draft.order = st.draft.order.filter((t) => t !== cur.token);
+      // rimasti solo computer? si svuota la stanza, così è subito libera
+      if (Object.keys(st.draft.players).every((t) => st.draft.botTokens && st.draft.botTokens[t])) return newGameState({}, "draw");
+      return st;
+    }).catch(() => {});
+  }
+  myRoomId = null;
+  myToken = null;
+  vtGo(null, null, renderLobby);
+}
+
+// Completa tutti i posti liberi con il computer (una sola scrittura).
+async function mmFillWithBots(level, btn) {
+  if (!mm || !mm.roomId) return;
+  if (btn) fbBusy(btn, "Preparo il tavolo…");
+  try {
+    await updateState(mm.roomId, (state) => {
+      const d = state.draft;
+      if (!d || d.pairDraw) return;
+      if (!d.botTokens) d.botTokens = {};
+      while (Object.keys(d.players).length < 4) {
+        const token = "bot-" + Math.random().toString(36).slice(2, 8);
+        d.players[token] = pickBotName(Object.values(d.players));
+        d.order.push(token);
+        d.botTokens[token] = level === "easy" ? "easy" : "hard";
+      }
+      maybeStartPairDraw(state);
+      mmAutoTeams(state);
+    });
+  } catch (e) {
+    if (btn) fbFail(btn, "Riprova");
+    showToast("Non riesco ad aggiungere il computer: " + describeError(e));
+  }
+}
+
+// Al 4° giocatore: coppie, accoppiata di colori e colori a caso, poi si
+// distribuisce subito (stessa transazione di chi completa il tavolo).
+function mmAutoTeams(state) {
+  const d = state.draft;
+  if (!d || !d.pairDraw || d.pairChoice) return;
+  d.pairChoice = { pickIndex: 0, pick: Math.random() < 0.5 ? "RY" : "GB" };
+  assignBotPairColors(state, 0);
+  assignBotPairColors(state, 1);
+  maybeFinalizeDraft(state);
+}
+
+function mmElapsed() {
+  return mm ? formatElapsed(Date.now() - mm.since) : "";
+}
+
+let mmTimer = null;
+function renderMatchWaiting(state) {
+  const root = $("#app");
+  if (!root) return;
+  const d = state && state.draft;
+  const tokens = d ? d.order.filter((t) => d.players[t]) : [];
+  const n = tokens.length || (mm && mm.roomId ? 0 : 1);
+  const slots = [];
+  for (let i = 0; i < 4; i++) {
+    const t = tokens[i];
+    if (t) {
+      const isBot = !!(d.botTokens && d.botTokens[t]);
+      const nm = d.players[t];
+      slots.push(el("div", { class: "mm-slot mm-in" + (t === myToken ? " mm-me" : "") },
+        el("span", { class: "mm-av", style: isBot ? "" : `background:${tAvatarColor(nm)}` }, isBot ? "🤖" : (nm || "?").trim().charAt(0).toUpperCase()),
+        el("span", { class: "mm-nm" }, t === myToken ? "Tu" : nm)));
+    } else if (!d && i === 0) {
+      slots.push(el("div", { class: "mm-slot mm-in mm-me" },
+        el("span", { class: "mm-av", style: `background:${tAvatarColor(myName || "")}` }, (myName || "?").trim().charAt(0).toUpperCase()),
+        el("span", { class: "mm-nm" }, "Tu")));
+    } else {
+      slots.push(el("div", { class: "mm-slot" }, el("span", { class: "mm-av mm-empty" }, el("i"), el("i"), el("i")), el("span", { class: "mm-nm" }, "Libero")));
+    }
+  }
+  const missing = 4 - Math.max(n, tokens.length);
+  const elapsed = el("span", { class: "mm-time" }, mmElapsed());
+  const card = el(
+    "div",
+    { class: "lobby-card mm-card" },
+    smallScreenHeader("", ""),
+    el("div", { class: "mm-hero" },
+      el("div", { class: "mm-radar", "aria-hidden": "true" }, el("i"), el("i"), el("i"), el("span", {}, "🎲")),
+      el("h1", {}, d ? (missing > 0 ? "Cerco giocatori…" : "Si parte!") : "Cerco una stanza…"),
+      el("p", {}, d ? `Siete in ${Math.max(n, tokens.length)} su 4 · ` : "", elapsed),
+      el("div", { class: "mm-slots" }, slots)),
+    d && missing > 0
+      ? el("div", { class: "mm-bots" },
+          el("p", {}, "Non vuoi aspettare? I posti liberi li prende il computer:"),
+          el("div", { class: "mm-bot-btns" },
+            el("button", { class: "primary", onclick: (ev) => mmFillWithBots("easy", ev.currentTarget) }, "🤖 Normale"),
+            el("button", { class: "primary", onclick: (ev) => mmFillWithBots("hard", ev.currentTarget) }, "🤖 Difficile")))
+      : "",
+    el("p", { class: "muted mm-note" }, "Tieni aperta l'app: appena siete in 4 squadre e colori si decidono a caso e la partita parte da sola."),
+    el("button", { class: "text-link-btn", style: "margin-top:6px;", onclick: mmCancel }, backChevronIcon(), "Annulla")
+  );
+  root.innerHTML = "";
+  root.appendChild(card);
+  clearInterval(mmTimer);
+  mmTimer = setInterval(() => {
+    if (!elapsed.isConnected) { clearInterval(mmTimer); return; }
+    elapsed.textContent = mmElapsed();
+  }, 1000);
+}
+
+// Colore dell'iniziale nei tondini (ricavato dal nome, sempre lo stesso).
+function tAvatarColor(s) {
+  const pal = ["#D9636B", "#3FA77E", "#E3AC33", "#3E8FCB", "#9B6BC4", "#D9884A", "#4BA3A8"];
+  let h = 0;
+  for (const ch of String(s || "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return pal[h % pal.length];
+}
+
+// "Torna alla partita" in home: l'ultima partita di "Gioca subito", se è
+// ancora in corso e questo telefono ci è seduto.
+function mmRememberRoom(roomId) {
+  try { localStorage.setItem(MM_LAST_KEY, roomId); } catch (e) {}
+}
+async function fillResumeMatch(box) {
+  let roomId = null;
+  try { roomId = localStorage.getItem(MM_LAST_KEY); } catch (e) {}
+  if (!roomId) return;
+  let st = null;
+  try { const snap = await roomRef(roomId).get(); st = snap.exists() ? normalizeState(snap.val()) : null; } catch (e) { return; }
+  if (!box.isConnected) return;
+  const mine = st && st.phase !== "lobby" && st.phase !== "finished" && COLORS.some((c) => {
+    const p = st.players[c];
+    let saved = null;
+    try { saved = localStorage.getItem("tock-claim-" + roomId + "-" + c); } catch (e) {}
+    return p && p.token && saved && p.token === saved;
+  });
+  if (!mine) { try { localStorage.removeItem(MM_LAST_KEY); } catch (e) {} return; }
+  box.appendChild(el("button", { class: "bx-resume", onclick: () => {
+    const input = document.getElementById("room-input");
+    if (input) { input.value = roomId; codeBoxesDraw(input.parentNode); }
+    continueFromRoomCode();
+  } }, el("span", {}, "▶︎ Torna alla partita in corso"), el("b", {}, "›")));
+}
+
 // ================= Estrazione squadre =================
 //
 // Modalità alternativa alla lobby manuale: si entra con solo il nome, e
@@ -10606,6 +9430,12 @@ function onDraftStateChange(state) {
     // Così un eventuale ricollegamento futuro passa dal normale
     // meccanismo per-colore, condiviso con la modalità manuale.
     try { localStorage.setItem("tock-claim-" + myRoomId + "-" + myColor, myToken); } catch (e) {}
+    if (isMatchRoom(myRoomId)) {
+      mmDisarmDisconnect(myRoomId, myToken);
+      mmRememberRoom(myRoomId);
+      mm = null;
+      clearInterval(mmTimer);
+    }
     // IMPORTANTE: costruisco la shell di gioco PRIMA di agganciare il
     // listener Firebase e prima di chiamare onStateChange a mano. Prima
     // l'ordine era invertito (watchRoom veniva attaccato prima di
@@ -10643,6 +9473,11 @@ function onDraftStateChange(state) {
   }
 
   maybeAdvanceDraft(state);
+  if (isMatchRoom(myRoomId)) {
+    if (mm && mm.roomId === myRoomId && !state.draft.players[myToken]) mmRejoin();
+    renderMatchWaiting(state);
+    return;
+  }
   maybeAdvanceDraftBots(state);
   renderDraftScreen(state);
 }
@@ -10678,6 +9513,7 @@ function maybeAdvanceDraft(state) {
   if (Object.keys(d.players).length === 4 && !d.pairDraw) {
     updateState(myRoomId, (s) => {
       maybeStartPairDraw(s);
+      if (isMatchRoom(myRoomId)) mmAutoTeams(s);
     }).catch(() => {});
     return;
   }
@@ -12568,8 +11404,7 @@ async function botReplyInChat(sourceMsgId, fallbackReply) {
 }
 
 // Un singolo turno del bot sullo stato dato (nessun I/O): usato sia dalla
-// mossa normale in partita (botPlayTurn) sia dalla simulazione dei tavoli di
-// torneo composti da soli bot (simulateBotOnlyGame).
+// mossa normale in partita (botPlayTurn).
 function botTakeTurn(state) {
   if (state.phase !== "playing") return;
   const seat = state.turnColor;
@@ -12596,129 +11431,6 @@ function botTakeTurn(state) {
 
 async function botPlayTurn() {
   await updateState(myRoomId, (state) => botTakeTurn(state));
-}
-
-// Un tavolo di torneo con SOLI bot non ha nessun client umano che ne faccia
-// muovere i bot (i bot giocano solo nel browser di qualcuno che guarda la
-// stanza), quindi restava fermo per sempre e il round non finiva mai
-// (segnalato). Lo gioca da solo, di colpo, il dispositivo dell'organizzatore
-// quando apre la pagina del torneo.
-// `yielder` (opzionale) è una funzione async chiamata ogni tanto per cedere il
-// controllo al browser: una partita intera può richiedere qualche secondo di
-// calcolo e su un telefono bloccherebbe la schermata.
-async function simulateBotOnlyGame(state, yielder) {
-  if (state.phase === "lobby") {
-    state.deck = [];
-    state.firstHandOfCycle = true;
-    state.playedThisCycle = [];
-    if (!state.hasDealtBefore) dealAndRevealDealer(state);
-    else dealNewHand(state);
-  }
-  let guard = 0;
-  while (state.phase !== "finished" && guard++ < 8000) {
-    if (yielder && guard % 12 === 0) await yielder();
-    if (state.phase === "exchanging") {
-      for (const c of COLORS) {
-        if (!state.pendingExchange[c]) submitExchangeCard(state, c, botCardToGiveAway(state, c));
-      }
-    } else if (state.phase === "playing") {
-      botTakeTurn(state);
-    } else {
-      break;
-    }
-  }
-}
-
-// Accanto a ogni tavolo del round: "✅ Finito" / "⏳ In corso", così si vede
-// quale tavolo blocca l'avvio del round successivo ("alcuni tavoli non sono
-// ancora finiti" da solo non dice quale).
-async function refreshTableStatuses(container) {
-  const nodes = container ? Array.from(container.querySelectorAll(".table-status[data-room]")) : [];
-  for (const n of nodes) {
-    try {
-      const snap = await roomRef(n.getAttribute("data-room")).get();
-      const st = snap.val();
-      const allBots = n.getAttribute("data-allbots") === "1";
-      const room = n.getAttribute("data-room");
-      if (st && st.phase === "finished") n.textContent = "✅ Finito";
-      else if (allBots && _botOnlyFailed.has(room)) n.textContent = "⚠️ Errore, premi Avvia per riprovare";
-      else if (allBots) n.textContent = _botOnlyBusy.has(room) ? "🤖 Sta giocando…" : "🤖 In attesa";
-      else if (!st || st.phase === "lobby") n.textContent = "⏳ Da iniziare";
-      else n.textContent = "⏳ In corso";
-    } catch (e) { /* stato non leggibile: lascia vuoto */ }
-  }
-}
-
-const _botOnlyBusy = new Map(); // roomCode -> promise della simulazione in corso
-const _botOnlyDone = new Set();
-const _botOnlyFailed = new Map(); // roomCode -> messaggio dell'ultimo errore
-async function playBotOnlyTable(tb) {
-  const snap = await roomRef(tb.roomCode).get();
-  const cur = snap.val();
-  if (!cur || cur.phase === "finished") { _botOnlyDone.add(tb.roomCode); return; }
-  const sim = normalizeState(JSON.parse(JSON.stringify(cur)));
-  // Si gioca su una copia, a pezzetti (senza bloccare la schermata), e si
-  // scrive UNA volta sola alla fine.
-  await simulateBotOnlyGame(sim, () => new Promise((r) => setTimeout(r, 0)));
-  let finalState = null;
-  // Le transazioni Firebase partono dalla cache locale: se questo dispositivo
-  // non "ascolta" la stanza del tavolo, la cache è vuota e la transazione
-  // si annulla. Un ascoltatore temporaneo la riempie prima di scrivere.
-  const warmRef = roomRef(tb.roomCode);
-  const warmCb = () => {};
-  warmRef.on("value", warmCb);
-  try {
-    await new Promise((r) => setTimeout(r, 600));
-    let lastErr = null;
-    for (let attempt = 0; attempt < 4 && !finalState; attempt++) {
-      try {
-        await updateState(tb.roomCode, (state) => {
-          if (state.phase === "finished") return; // nel frattempo l'ha finita qualcun altro
-          for (const k of Object.keys(state)) delete state[k];
-          Object.assign(state, sim);
-          finalState = state;
-        });
-        lastErr = null;
-        break;
-      } catch (e) {
-        lastErr = e;
-        await new Promise((r) => setTimeout(r, 800));
-      }
-    }
-    if (lastErr) throw lastErr;
-  } finally {
-    try { warmRef.off("value", warmCb); } catch (_) {}
-  }
-  if (finalState && finalState.winnerTeam) await tryClaimTournamentTableCredit(finalState, tb.roomCode);
-  _botOnlyDone.add(tb.roomCode);
-}
-
-// Se un tavolo è già in corso di simulazione ne attende la fine (così
-// "Avvia round successivo" può aspettare invece di rispondere subito "non
-// ancora finiti").
-async function autoPlayBotOnlyTables(tables) {
-  const jobs = [];
-  for (const tb of Object.values(tables || {})) {
-    if (!tb || !tb.roomCode || !tb.giocatori || tb.giocatori.length === 0) continue;
-    if (!tb.giocatori.every((g) => g.bot)) continue;
-    if (_botOnlyDone.has(tb.roomCode)) continue;
-    if (!_botOnlyBusy.has(tb.roomCode)) {
-      _botOnlyFailed.delete(tb.roomCode);
-      const job = playBotOnlyTable(tb)
-        .catch((e) => {
-          console.warn("tavolo solo bot:", e);
-          _botOnlyFailed.set(tb.roomCode, (e && e.message) || String(e));
-        })
-        .finally(() => {
-          _botOnlyBusy.delete(tb.roomCode);
-          // aggiorna subito l'etichetta (Finito / errore) senza aspettare un altro giro
-          refreshTableStatuses(document.getElementById("torneo-lobby-body"));
-        });
-      _botOnlyBusy.set(tb.roomCode, job);
-    }
-    jobs.push(_botOnlyBusy.get(tb.roomCode));
-  }
-  await Promise.all(jobs);
 }
 
 // Tutti i "numeri a occhio" della valutazione del bot, raccolti in un unico
@@ -13709,7 +12421,6 @@ function onStateChange(state) {
     if (!_leaderboardClaimAttempted) {
       _leaderboardClaimAttempted = true;
       tryClaimLeaderboardCredit(state).catch(() => {});
-      tryClaimTournamentTableCredit(state).catch(() => {});
     }
   } else {
     _leaderboardClaimAttempted = false;
@@ -16366,7 +15077,11 @@ function openChatPicker() {
       { class: "choice-box" },
       el("p", { style: "font-weight:800;font-size:1.05rem;margin:0 0 10px;" }, "💬 Chat di stanza"),
       list,
-      el(
+      // v6: con gli sconosciuti di "Gioca subito" solo frasi pronte (niente
+      // testo libero: è la condizione degli store per le chat fra estranei).
+      isMatchRoom(myRoomId)
+        ? el("div", { class: "chat-quick" }, QUICK_CHAT_PHRASES.map((t) => el("button", { class: "chat-quick-btn", onclick: (ev) => sendQuickChat(t, ev.currentTarget) }, t)))
+        : el(
         "div",
         { class: "chat-input-row" },
         input,
@@ -16434,6 +15149,18 @@ function chatLine(m) {
   );
 }
 
+const QUICK_CHAT_PHRASES = ["Ciao a tutti! 👋", "Bella mossa! 👏", "Scusa socio 😅", "Forza squadra! 💪", "Che fortuna! 🍀", "Uff… 😩", "Ben giocato! 🤝", "Grazie! 🙏"];
+async function sendQuickChat(text, btn) {
+  keepAudioAlive();
+  if (btn) { btn.disabled = true; setTimeout(() => { btn.disabled = false; }, 1500); }
+  try {
+    await updateState(myRoomId, (state) => {
+      postChatMessage(state, myColor, text);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
 async function sendChat() {
   keepAudioAlive();
   const input = $("#chat-input");
@@ -16836,18 +15563,7 @@ function renderWinBanner(state) {
     el("p", { class: "muted", style: "margin:-10px 0 16px;font-size:0.85rem;" },
       `In questa stanza: ${TEAM_LABEL.A} ${wins.A} — ${wins.B} ${TEAM_LABEL.B}`),
     buildAwards(state),
-    // Un tavolo di torneo (state.torneo presente) non deve offrire "Nuova
-    // partita": quel pulsante riavvia la STESSA stanza con GLI STESSI 4
-    // giocatori, il che qui è fuorviante (sembra abbia rifatto gli
-    // accoppiamenti del round, mentre è solo la stessa partita rigiocata)
-    // e rompe anche isRoundComplete lato torneo, che aspetta che questa
-    // stanza resti a phase:"finished" per poter avviare il round
-    // successivo (segnalato: "perché la nuova la rifà con gli stessi
-    // accoppiamenti?"). Al suo posto si torna direttamente alla pagina del
-    // torneo, da cui l'organizzatore avvia il round successivo.
-    state.torneo
-      ? el("button", { class: "primary", onclick: () => { detachFromGameRoom(); openTournamentByCode(state.torneo.code); } }, "🏆 Torna al torneo")
-      : el("button", { class: "primary", onclick: (ev) => startNewGame(ev.currentTarget) }, "🔁 Rivincita"),
+    el("button", { class: "primary", onclick: (ev) => startNewGame(ev.currentTarget) }, "🔁 Rivincita"),
     el(
       "button",
       { class: "text-link-btn", style: "display:flex;width:100%;justify-content:center;margin-top:10px;", onclick: () => { location.href = location.pathname; } },
@@ -16974,10 +15690,10 @@ function applyInviteLinkIfPresent() {
   } catch (e) {
     return;
   }
-  const tourneyCode = (params.get("torneo") || "").trim().toUpperCase();
-  if (tourneyCode) {
+  // Scorciatoia dell'icona (manifest.json, "Gioca subito"): parte la ricerca.
+  if (params.get("gioca")) {
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
-    openTournamentByCode(tourneyCode);
+    startMatchmaking();
     return;
   }
   const roomId = (params.get("room") || "").trim().toUpperCase();

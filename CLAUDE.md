@@ -15,7 +15,7 @@
   NIENTE per l'offline (cache.addAll fallisce se manca anche un solo file). Ogni file elencato in APP_SHELL deve esistere.
 
 ## Versione
-- Versione attuale: **v5.82**.
+- Versione attuale: **v6.00** (la v6 è la versione per gli store: Google Play e poi App Store).
 - La numerazione è **ripartita** a un certo punto: le etichette più alte nei commenti
   (es. "v5.175" sulla skin Arcade retro) sono della vecchia numerazione e vanno ignorate.
 - A **ogni** aggiornamento pubblicato, aumenta la versione in entrambi i file, sempre allineati:
@@ -32,13 +32,36 @@
   compagno solo per le sue pedine che possono ricevere i passi avanzati (`sevenMovablePartnerPawns`).
 
 ## Tornei
-- L'organizzatore è riconosciuto dal dispositivo (`organizerToken`), non dal nome.
-- Aprire un torneo (v5.52): se questo telefono è l'organizzatore si va sempre alla pagina del torneo,
-  anche se non è iscritto. La schermata di iscrizione ha "👀 Guarda il torneo senza iscriverti" (da lì,
-  in fondo, "Diventa organizzatore da questo dispositivo") e a torneo pieno "Torneo al completo".
-- Passare l'organizzazione: si scrive `passa:<playerId>` in `organizerToken`; il telefono di
-  quella persona lo sostituisce col proprio token quando apre il torneo.
-- Le regole Firebase rifiutano campi nuovi nei tornei: usare solo i campi esistenti.
+- TOLTI nella v6 (richiesto dall'utente per semplificare): niente più schermate, link `?torneo=`, linguetta
+  "Tornei" in classifica, tavoli di soli bot. Su Firebase restano i vecchi dati `tournaments/`, `tournamentWins/`
+  e l'indice `codes/` (ancora scritto con "room" quando si entra in una stanza). Non riproporre i tornei.
+
+## Gioca subito (accoppiamento automatico, v6)
+- In home il pulsante principale è "🎲 Gioca subito" (`startMatchmaking`); sotto "👥 Con gli amici" con le
+  caselle del codice (stanze private come prima). Se manca il nome si chiede prima (`renderMatchNameScreen`).
+- Usa stanze pubbliche con codici fissi `AUTO-1`, `AUTO-2`, … (`MM_PREFIX`, `isMatchRoom`) in modalità
+  "estrazione" (`roomMode: "draw"`): NESSUN percorso nuovo su Firebase.
+- Ricerca (`mmFindRoom`, a gruppi di 6 fino a 60): prima la stanza con più persone in attesa, poi la prima vuota,
+  mai usata o ABBANDONATA (`mmIsAbandoned`: partita iniziata, nessuno in `presence/` e finita o ferma da 10 minuti),
+  che viene riusata da zero.
+- Chi aspetta e chiude l'app viene tolto dal server (`onDisconnect` su `draft/players/<token>`); se la
+  connessione torna si risiede da solo (`mmRejoin`). Nomi uguali diventano "Marco 2".
+- Al 4° giocatore `mmAutoTeams` decide coppie e colori a caso e distribuisce NELLA STESSA transazione: niente
+  schermate di estrazione, si va dritti al tabellone. "🤖 Normale / Difficile" completa i posti liberi col computer.
+- Schermata d'attesa `renderMatchWaiting` (radar col 🎲, 4 posti, tempo, "Annulla"). In home "▶︎ Torna alla partita
+  in corso" (`fillResumeMatch`, chiave `tock-last-match`). Scorciatoia dell'icona: `index.html?gioca=1`.
+- Nelle stanze `AUTO-` la chat ha SOLO frasi pronte (`QUICK_CHAT_PHRASES`), niente testo libero: è la condizione
+  degli store per le chat fra sconosciuti. Con gli amici la chat resta libera.
+
+## Store (v6)
+- Cartella `store/`: `GUIDA-PUBBLICAZIONE.md` (passi per Google Play con PWABuilder e per l'App Store),
+  `scheda-store.md` (testi, risposte ai questionari), `banner-1024x500.png` (rigenerabile da `banner.html`),
+  `screenshots/` (1080x1920).
+- `privacy.html` (linkata in fondo alla home): contiene `[EMAIL DI CONTATTO]` da sostituire con l'email che
+  l'utente vuole mostrare. È in APP_SHELL di `sw.js`.
+- Per togliere la barra del browser nell'app Android serve `/.well-known/assetlinks.json` alla RADICE del dominio
+  (con GitHub Pages su `utente.github.io/TockV5` va in un repository `utente.github.io` + `.nojekyll`).
+- Ancora da sapere dall'utente: indirizzo del sito, email di contatto, impronte SHA-256 della chiave di firma.
 
 ## Controlli automatici
 - In `tests/` ci sono i controlli delle regole del gioco (mazzo, scambio, movimenti, casa,

@@ -1,7 +1,11 @@
 {
+  "id": "./index.html",
   "name": "Tock",
   "short_name": "Tock",
-  "description": "Tock — gioco da tavolo multiplayer a coppie, stile Non t'arrabbiare, con le carte.",
+  "description": "Tock — gioco da tavolo multiplayer a coppie, stile Non t'arrabbiare, con le carte. Gioca subito con chi è disponibile o con gli amici.",
+  "lang": "it",
+  "dir": "ltr",
+  "categories": ["games", "entertainment"],
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -12,5 +16,14 @@
     { "src": "icon-v3-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-v3-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icon-v3-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Gioca subito",
+      "short_name": "Gioca subito",
+      "description": "Cerca altri giocatori disponibili",
+      "url": "./index.html?gioca=1",
+      "icons": [{ "src": "icon-v3-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
   ]
 }

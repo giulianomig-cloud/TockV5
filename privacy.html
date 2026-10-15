@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tock · Privacy</title>
+<link rel="icon" href="icon-v3-192.png">
+<style>
+  @font-face { font-family: "Plus Jakarta Sans"; font-weight: 500; src: url("fonts/plus-jakarta-sans-latin-500-normal.woff2") format("woff2"); }
+  @font-face { font-family: "Plus Jakarta Sans"; font-weight: 800; src: url("fonts/plus-jakarta-sans-latin-800-normal.woff2") format("woff2"); }
+  :root { --bg: #F5F1EA; --card: #FFFFFF; --ink: #1D1712; --sub: #6E6052; --line: #EFE7DB; --gold: #B4791E; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #14110E; --card: #221C17; --ink: #F3EBDD; --sub: #B8A998; --line: #3A3028; --gold: #F2C45A; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 500 16px/1.55 "Plus Jakarta Sans", system-ui, sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 48px; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  header img { width: 52px; height: 52px; border-radius: 14px; }
+  h1 { font-size: 1.7rem; line-height: 1.1; margin: 0; letter-spacing: -.02em; }
+  .sub { color: var(--sub); margin: 2px 0 0; font-size: .9rem; }
+  section { background: var(--card); border-radius: 22px; padding: 16px 18px; margin: 12px 0; box-shadow: 0 10px 24px -18px rgba(60,40,10,.4); }
+  h2 { font-size: 1.05rem; margin: 0 0 6px; }
+  p, li { color: var(--sub); }
+  ul { padding-left: 20px; margin: 6px 0; }
+  b { color: var(--ink); }
+  a { color: var(--gold); }
+  .back { display: inline-block; margin-top: 18px; font-weight: 800; }
+  .en { border-top: 1px solid var(--line); margin-top: 28px; padding-top: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="icon-v3-192.png" alt="">
+    <div>
+      <h1>Privacy</h1>
+      <p class="sub">Tock · gioco da tavolo a coppie · aggiornata a ottobre 2026</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>In breve</h2>
+    <p>Tock non chiede email, numero di telefono o account. Non mostra pubblicità, non ti traccia e non vende né cede i tuoi dati a nessuno. Servono solo il <b>nome</b> che scegli tu e i dati della partita.</p>
+  </section>
+
+  <section>
+    <h2>Quali dati usiamo</h2>
+    <ul>
+      <li><b>Il nome che scrivi</b> (anche un soprannome): lo vedono gli altri giocatori al tavolo e compare nella classifica.</li>
+      <li><b>I dati della partita</b>: stanza, colore, carte, mosse, messaggi della chat della stanza, vittorie e partite giocate (per la classifica).</li>
+      <li><b>Lo stato "collegato"</b> e la versione dell'app, per mostrare agli altri chi è online.</li>
+      <li><b>Contatori anonimi</b> (per esempio quante partite si giocano in totale), senza nomi.</li>
+    </ul>
+    <p>Sul tuo telefono restano alcune preferenze (tema, suoni, lezioni fatte, il nome usato l'ultima volta). Non escono dal telefono.</p>
+  </section>
+
+  <section>
+    <h2>Dove sono conservati</h2>
+    <p>Le partite passano da <b>Firebase Realtime Database</b> di Google, con i server in Europa (Belgio). Google tratta questi dati per nostro conto, secondo le proprie regole sulla protezione dei dati.</p>
+  </section>
+
+  <section>
+    <h2>Per quanto tempo</h2>
+    <p>Le stanze di gioco restano finché non vengono riusate per nuove partite. Il nome e la classifica restano finché non chiedi di cancellarli.</p>
+  </section>
+
+  <section>
+    <h2>Giocare con sconosciuti</h2>
+    <p>Con "Gioca subito" l'app ti mette al tavolo con altri giocatori disponibili. In queste partite la chat usa solo frasi già pronte ed emoji: non si possono scrivere messaggi liberi. Non usare il tuo nome e cognome veri se preferisci restare anonimo.</p>
+  </section>
+
+  <section>
+    <h2>I tuoi diritti e i contatti</h2>
+    <p>Puoi chiedere in qualsiasi momento di vedere, correggere o cancellare il tuo nome, le tue partite e la tua riga in classifica. Scrivi a <b>[EMAIL DI CONTATTO]</b> indicando il nome usato nell'app.</p>
+    <p>Responsabile dell'app: Mig (sviluppatore di Tock).</p>
+  </section>
+
+  <section>
+    <h2>Bambini</h2>
+    <p>L'app non chiede dati che identificano una persona e non è pensata in modo particolare per i bambini sotto i 13 anni.</p>
+  </section>
+
+  <div class="en">
+    <section>
+      <h2>English summary</h2>
+      <p>Tock needs no account, email or phone number, shows no ads and does not track you or sell data. It only uses the nickname you choose and game data (rooms, moves, room chat, wins for the leaderboard), stored on Google Firebase Realtime Database (EU servers). Games with strangers ("Gioca subito") only allow preset chat phrases. To view or delete your data, write to <b>[EMAIL DI CONTATTO]</b> with the nickname you used.</p>
+    </section>
+  </div>
+
+  <a class="back" href="./">‹ Torna a Tock</a>
+</main>
+</body>
+</html>
