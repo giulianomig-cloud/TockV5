@@ -234,3 +234,10 @@
 - Prima di eliminare un file, controlla che non sia usato in `index.html`, `sw.js` o `manifest.json`.
 - Le conversazioni non si salvano tra una sessione e l'altra: le informazioni importanti
   da ricordare vanno scritte in questo file.
+
+## Appunti per il montaggio video (da approfondire)
+- Strumenti segnati dall'utente per montare video (non ancora usati nel progetto):
+  - **Auto-Editor**: taglia in automatico silenzi e pause dai video.
+  - **FFmpeg**: programma da riga di comando per tagliare, unire, convertire video e audio.
+  - **Parakeet** (NVIDIA): trascrive il parlato in testo (utile per sottotitoli).
+  - **HyperFrames**: crea video a partire da pagine HTML (animazioni, scritte, grafiche).
