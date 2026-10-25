@@ -241,3 +241,4 @@
   - **FFmpeg**: programma da riga di comando per tagliare, unire, convertire video e audio.
   - **Parakeet** (NVIDIA): trascrive il parlato in testo (utile per sottotitoli).
   - **HyperFrames**: crea video a partire da pagine HTML (animazioni, scritte, grafiche).
+  - **Git** (git-scm.com): programma che tiene la storia delle modifiche ai file (lo stesso che usa GitHub).
