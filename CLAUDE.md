@@ -234,3 +234,10 @@
 - Prima di eliminare un file, controlla che non sia usato in `index.html`, `sw.js` o `manifest.json`.
 - Le conversazioni non si salvano tra una sessione e l'altra: le informazioni importanti
   da ricordare vanno scritte in questo file.
+
+## Jukebox (app a parte, cartella `jukebox/`)
+- App separata da Tock chiesta dall'utente: "jukebox che mette i dischi" con link di YouTube e Spotify
+  (lettori ufficiali incorporati: YouTube IFrame API, Spotify Embed iFrame API). Dischi salvati sul telefono
+  (`localStorage`, chiave `jukebox.v1`). Ha un suo `manifest.json` (installabile, "Condividi → Jukebox" su Android).
+- Limiti noti: Spotify senza accesso suona solo 30 s; alcuni video YouTube non si possono incorporare (si salta al prossimo);
+  a schermo spento il telefono può fermare la musica.

@@ -1,0 +1,20 @@
+{
+  "name": "Jukebox",
+  "short_name": "Jukebox",
+  "description": "Il jukebox che mette i dischi da YouTube e Spotify",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b0f0c",
+  "theme_color": "#1b0f0c",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "params": { "title": "title", "text": "text", "url": "url" }
+  }
+}

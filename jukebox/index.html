@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jukebox</title>
+<meta name="theme-color" content="#1b0f0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jukebox">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+/* Caratteri di Tock (cartella ../fonts) */
+@font-face { font-family: 'Permanent Marker'; font-weight: 400; font-display: swap; src: url('../fonts/permanent-marker-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-weight: 500; font-display: swap; src: url('../fonts/plus-jakarta-sans-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-weight: 700; font-display: swap; src: url('../fonts/plus-jakarta-sans-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-display: swap; src: url('../fonts/plus-jakarta-sans-latin-800-normal.woff2') format('woff2'); }
+
+:root {
+  --bg: #1b0f0c;
+  --bg2: #2a1611;
+  --card: #2f1a14;
+  --card2: #3a2119;
+  --line: rgba(255, 214, 150, .14);
+  --ink: #fbeedd;
+  --ink2: #c9ab8f;
+  --gold: #f2b84b;
+  --gold2: #e08a2c;
+  --pink: #ff5c8a;
+  --teal: #36d6c3;
+  --red: #ff6b5b;
+  --yt: #ff3d3d;
+  --sp: #1ed760;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; overflow-x: hidden; }
+body {
+  background:
+    radial-gradient(120% 60% at 50% 0%, #4a1f17 0%, transparent 60%),
+    linear-gradient(180deg, var(--bg2), var(--bg) 40%);
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  min-height: 100vh;
+  padding: max(14px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+}
+.wrap { max-width: 520px; margin: 0 auto; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+
+/* Testata */
+header { display: flex; align-items: center; justify-content: space-between; margin: 4px 2px 14px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand h1 {
+  margin: 0; font-family: 'Permanent Marker', cursive; font-weight: 400; font-size: 32px; letter-spacing: .5px;
+  background: linear-gradient(90deg, var(--pink), var(--gold) 55%, var(--teal));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 10px rgba(255, 120, 90, .35));
+}
+.brand .mini { width: 34px; height: 34px; }
+.count { font-size: 13px; color: var(--ink2); background: rgba(255,255,255,.06); padding: 6px 12px; border-radius: 999px; }
+
+/* Il mobile del jukebox: arco con luce al neon */
+.cabinet {
+  position: relative; border-radius: 160px 160px 26px 26px; padding: 3px;
+  background: linear-gradient(160deg, var(--pink), var(--gold) 45%, var(--teal));
+  box-shadow: 0 0 28px rgba(255, 110, 80, .28), 0 18px 40px rgba(0,0,0,.45);
+}
+.cabinet.playing { animation: neon 2.4s ease-in-out infinite; }
+@keyframes neon {
+  0%, 100% { box-shadow: 0 0 22px rgba(255, 110, 80, .25), 0 18px 40px rgba(0,0,0,.45); }
+  50% { box-shadow: 0 0 40px rgba(255, 190, 90, .5), 0 18px 40px rgba(0,0,0,.45); }
+}
+.cabinet-in {
+  border-radius: 157px 157px 23px 23px; padding: 30px 18px 18px;
+  background: radial-gradient(90% 60% at 50% 20%, #3d2018, #24120e 70%);
+}
+
+/* Giradischi */
+.deck { position: relative; width: min(78vw, 300px); aspect-ratio: 1; margin: 0 auto; }
+.platter {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, #3a3a3a 0 60%, #222 61% 100%);
+  box-shadow: inset 0 0 0 6px #151515, inset 0 0 0 7px rgba(255,255,255,.08), 0 10px 26px rgba(0,0,0,.5);
+}
+.disc {
+  position: absolute; inset: 5%; border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 31%, rgba(255,255,255,.05) 31.5%, transparent 32.5%),
+    repeating-radial-gradient(circle, #111 0 1.6px, #1d1d1d 1.6px 3.2px);
+  box-shadow: 0 2px 10px rgba(0,0,0,.6);
+  animation: spin 1.8s linear infinite; animation-play-state: paused;
+}
+.disc::after { /* riflesso */
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 20deg, transparent 0 10%, rgba(255,255,255,.13) 14%, transparent 20% 60%, rgba(255,255,255,.1) 64%, transparent 70%);
+}
+.deck.spinning .disc { animation-play-state: running; }
+.disc.empty { background: repeating-radial-gradient(circle, #1a1a1a 0 1.6px, #222 1.6px 3.2px); opacity: .55; }
+.disc.drop { animation: drop .55s cubic-bezier(.2,.9,.3,1.2), spin 1.8s linear .55s infinite; }
+.deck.spinning .disc.drop { animation-play-state: running; }
+@keyframes drop { from { transform: translateY(-60%) scale(.7) rotate(-40deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.label {
+  position: absolute; inset: 33%; border-radius: 50%; overflow: hidden;
+  background: var(--gold) center / cover no-repeat;
+  box-shadow: 0 0 0 2px rgba(0,0,0,.4);
+  display: grid; place-items: center;
+}
+.label .lt { font-size: 11px; font-weight: 800; color: #2a1408; text-align: center; padding: 0 10px; line-height: 1.15; }
+.label::after { /* buco centrale */
+  content: ""; position: absolute; width: 9%; height: 9%; border-radius: 50%; background: #111;
+  top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 0 2px rgba(255,255,255,.35);
+}
+/* Braccio */
+.arm {
+  position: absolute; top: -4%; right: -6%; width: 22%; height: 78%;
+  transform-origin: 50% 9%; transform: rotate(-28deg); transition: transform .9s cubic-bezier(.4,1.4,.5,1);
+  pointer-events: none;
+}
+.deck.spinning .arm { transform: rotate(4deg); }
+.arm .base {
+  position: absolute; top: 0; left: 50%; width: 52px; height: 52px; margin-left: -26px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6e2bd, #b88a4a 60%, #6d4a22);
+  box-shadow: 0 4px 10px rgba(0,0,0,.5);
+}
+.arm .rod {
+  position: absolute; top: 24px; left: 50%; width: 7px; margin-left: -3.5px; height: 82%; border-radius: 4px;
+  background: linear-gradient(90deg, #8c8c8c, #f2f2f2 45%, #9a9a9a);
+  transform-origin: top center; transform: rotate(14deg);
+}
+.arm .head {
+  position: absolute; bottom: -6px; left: 50%; width: 20px; height: 32px; margin-left: -10px; border-radius: 4px;
+  background: linear-gradient(90deg, #333, #666 50%, #333); transform: rotate(-30deg);
+}
+
+/* Titolo e comandi */
+.now { text-align: center; margin: 18px 4px 4px; min-height: 58px; }
+.now .t { font-size: 18px; font-weight: 800; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.now .a { font-size: 13px; color: var(--ink2); margin-top: 4px; display: flex; gap: 8px; align-items: center; justify-content: center; }
+.src { font-size: 10.5px; font-weight: 800; letter-spacing: .6px; padding: 3px 7px; border-radius: 6px; text-transform: uppercase; }
+.src.yt { background: rgba(255,61,61,.16); color: #ff8a8a; }
+.src.sp { background: rgba(30,215,96,.15); color: #6cf09c; }
+.controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; }
+.ctl { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.07); transition: transform .12s, background .2s; }
+.ctl:active { transform: scale(.92); }
+.ctl svg { width: 22px; height: 22px; fill: currentColor; }
+.ctl.small { width: 40px; height: 40px; color: var(--ink2); }
+.ctl.small svg { width: 19px; height: 19px; }
+.ctl.on { color: var(--gold); background: rgba(242,184,75,.16); }
+.ctl.play { width: 66px; height: 66px; background: linear-gradient(160deg, #ffd27a, var(--gold2)); color: #2a1408; box-shadow: 0 6px 18px rgba(224,138,44,.45); }
+.ctl.play svg { width: 28px; height: 28px; }
+.ctl .one { position: absolute; font-size: 9px; font-weight: 800; margin: 14px 0 0 14px; }
+.ctl { position: relative; }
+
+/* Schermo del lettore (YouTube / Spotify) */
+.screen { margin-top: 16px; border-radius: 16px; overflow: hidden; background: #000; display: none; }
+.screen.show { display: block; }
+.screen .yt { aspect-ratio: 16 / 9; display: none; }
+.screen .yt iframe, .screen .yt > div { width: 100%; height: 100%; display: block; }
+.screen .sp { display: none; background: #121212; }
+.screen.kind-yt .yt { display: block; }
+.screen.kind-sp .sp { display: block; }
+.note { font-size: 12px; color: var(--ink2); text-align: center; margin: 8px 6px 0; }
+
+/* Riquadri */
+.card { background: var(--card); border-radius: 22px; padding: 16px; margin-top: 18px; box-shadow: 0 10px 26px rgba(0,0,0,.3); }
+.card h2 { margin: 0 0 12px; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); font-weight: 800; display: flex; align-items: center; justify-content: space-between; }
+.add-row { display: flex; gap: 8px; }
+.add-row input {
+  flex: 1; min-width: 0; font: inherit; font-size: 15px; color: var(--ink); background: var(--card2);
+  border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px; outline: none;
+}
+.add-row input:focus { border-color: var(--gold); }
+.add-row input::placeholder { color: #9c7f66; }
+.btn { border-radius: 14px; padding: 0 16px; font-weight: 800; font-size: 15px; white-space: nowrap; }
+.btn.gold { background: linear-gradient(160deg, #ffd27a, var(--gold2)); color: #2a1408; }
+.btn.ghost { background: var(--card2); color: var(--ink); }
+.btn:disabled { opacity: .6; }
+.hint { font-size: 12.5px; color: var(--ink2); margin-top: 10px; line-height: 1.45; }
+.msg { font-size: 13px; margin-top: 8px; min-height: 0; }
+.msg.err { color: var(--red); }
+.msg.ok { color: var(--sp); }
+.link-btn { font-size: 12px; font-weight: 800; letter-spacing: .5px; color: var(--ink2); background: rgba(255,255,255,.06); padding: 6px 12px; border-radius: 999px; text-transform: none; }
+.link-btn.on { color: #2a1408; background: var(--gold); }
+
+/* Dischi (copertine) */
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 12px; }
+.sleeve { position: relative; text-align: left; }
+.sleeve .cover-wrap { position: relative; aspect-ratio: 1; }
+.sleeve .vinyl {
+  position: absolute; top: 6%; left: 6%; width: 88%; height: 88%; border-radius: 50%;
+  background: radial-gradient(circle, var(--gold) 0 18%, #111 19% 21%, transparent 22%), repeating-radial-gradient(circle, #111 0 1.2px, #222 1.2px 2.4px);
+  transition: transform .35s cubic-bezier(.3,1.4,.5,1);
+}
+.sleeve .cover {
+  position: absolute; inset: 0; border-radius: 10px; overflow: hidden;
+  background: var(--card2) center / cover no-repeat;
+  box-shadow: 0 6px 14px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.08);
+  display: grid; place-items: center; transition: transform .2s;
+}
+.sleeve .cover .ph { font-weight: 800; font-size: 13px; text-align: center; padding: 8px; color: rgba(255,255,255,.92); line-height: 1.2; }
+.sleeve .badge { position: absolute; left: 6px; bottom: 6px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+.sleeve .badge svg { width: 10px; height: 10px; fill: #fff; }
+.sleeve .badge.yt { background: var(--yt); }
+.sleeve .badge.sp { background: var(--sp); }
+.sleeve .badge.sp svg { fill: #000; }
+.sleeve .name { font-size: 12.5px; font-weight: 700; margin-top: 7px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sleeve:active .cover { transform: scale(.96); }
+.sleeve.current .vinyl { transform: translateX(22%); }
+.sleeve.current .cover { box-shadow: 0 0 0 2.5px var(--gold), 0 6px 14px rgba(0,0,0,.45); }
+.sleeve.current .name { color: var(--gold); }
+.eq { position: absolute; right: 6px; bottom: 6px; display: none; gap: 2px; align-items: flex-end; height: 14px; padding: 3px 4px; border-radius: 6px; background: rgba(0,0,0,.55); box-sizing: content-box; }
+.eq i { width: 3px; background: var(--gold); border-radius: 2px; animation: eq 0.9s ease-in-out infinite; }
+.eq i:nth-child(2) { animation-delay: -.3s; } .eq i:nth-child(3) { animation-delay: -.6s; }
+@keyframes eq { 0%,100% { height: 3px; } 50% { height: 14px; } }
+.sleeve.current.is-playing .eq { display: flex; }
+/* Modifica */
+.tools { display: none; position: absolute; top: -8px; right: -8px; z-index: 2; }
+.editing .tools { display: flex; gap: 4px; }
+.tools span { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 800; background: #fff; color: #2a1408; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+.tools span.del { background: var(--red); color: #fff; }
+.editing .sleeve .cover { animation: wiggle .3s ease-in-out infinite alternate; }
+@keyframes wiggle { from { transform: rotate(-1.2deg); } to { transform: rotate(1.2deg); } }
+.empty-box { text-align: center; color: var(--ink2); font-size: 14px; padding: 18px 8px 8px; line-height: 1.5; }
+.empty-box b { color: var(--ink); }
+
+.toast {
+  position: fixed; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translate(-50%, 140%);
+  background: #fbeedd; color: #2a1408; font-weight: 700; font-size: 14px; padding: 12px 18px; border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45); transition: transform .35s cubic-bezier(.3,1.3,.5,1); max-width: calc(100% - 32px); text-align: center; z-index: 9;
+}
+.toast.show { transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) {
+  .disc, .disc.drop, .eq i, .cabinet.playing, .editing .sleeve .cover { animation: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="mini" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#111"/><circle cx="32" cy="32" r="22" fill="none" stroke="#2a2a2a" stroke-width="2"/><circle cx="32" cy="32" r="16" fill="none" stroke="#2a2a2a" stroke-width="2"/><circle cx="32" cy="32" r="10" fill="#f2b84b"/><circle cx="32" cy="32" r="2.5" fill="#111"/></svg>
+      <h1>Jukebox</h1>
+    </div>
+    <div class="count" id="count">0 dischi</div>
+  </header>
+
+  <div class="cabinet" id="cabinet">
+    <div class="cabinet-in">
+      <div class="deck" id="deck">
+        <div class="platter"></div>
+        <div class="disc empty" id="disc"><div class="label" id="label"><span class="lt">Scegli un disco</span></div></div>
+        <div class="arm"><div class="rod"><div class="head"></div></div><div class="base"></div></div>
+      </div>
+      <div class="now">
+        <div class="t" id="now-title">Nessun disco sul piatto</div>
+        <div class="a" id="now-sub">Aggiungi un link qui sotto e tocca un disco</div>
+      </div>
+      <div class="controls">
+        <button class="ctl small" id="b-shuffle" aria-label="Ordine casuale"><svg viewBox="0 0 24 24"><path d="M14.8 4H20v5.2l-1.9-1.9-3.4 3.4-1.4-1.4 3.4-3.4L14.8 4zM4 5.4 5.4 4 20 18.6 18.6 20 4 5.4zM20 14.8V20h-5.2l1.9-1.9-2.6-2.6 1.4-1.4 2.6 2.6 1.9-1.9zM9.4 13.2l1.4 1.4L5.4 20 4 18.6l5.4-5.4z"/></svg></button>
+        <button class="ctl" id="b-prev" aria-label="Disco precedente"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+        <button class="ctl play" id="b-play" aria-label="Suona / pausa"><svg viewBox="0 0 24 24" id="play-ico"><path d="M8 5v14l11-7z"/></svg></button>
+        <button class="ctl" id="b-next" aria-label="Disco successivo"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+        <button class="ctl small" id="b-repeat" aria-label="Ripeti"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg><span class="one" id="repeat-one" hidden>1</span></button>
+      </div>
+      <div class="screen" id="screen">
+        <div class="yt"><div id="yt-player"></div></div>
+        <div class="sp"><div id="sp-player"></div></div>
+      </div>
+      <div class="note" id="sp-note" hidden>Spotify: senza accesso a Spotify su questo telefono si sentono solo 30 secondi per canzone.</div>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Aggiungi un disco</h2>
+    <form class="add-row" id="add-form" autocomplete="off">
+      <input id="add-url" type="url" inputmode="url" placeholder="Link di YouTube o Spotify" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <button type="button" class="btn ghost" id="b-paste" aria-label="Incolla">📋</button>
+      <button type="submit" class="btn gold" id="b-add">Aggiungi</button>
+    </form>
+    <div class="msg" id="add-msg"></div>
+    <div class="hint">Su YouTube o Spotify tocca <b>Condividi → Copia link</b>, poi qui <b>📋</b> e <b>Aggiungi</b>. Vanno bene canzoni, video, album e playlist.</div>
+  </section>
+
+  <section class="card" id="coll">
+    <h2><span>I miei dischi</span><button class="link-btn" id="b-edit" hidden>Modifica</button></h2>
+    <div class="grid" id="grid"></div>
+    <div class="empty-box" id="empty">Ancora nessun disco.<br><b>Incolla un link</b> qui sopra per mettere il primo nel jukebox.</div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const STORE_KEY = "jukebox.v1";
+const PALETTE = ["#c2410c", "#b91c1c", "#7c3aed", "#0f766e", "#1d4ed8", "#a16207", "#be185d", "#15803d"];
+const $ = (id) => document.getElementById(id);
+
+const state = { discs: [], cur: -1, shuffle: false, repeat: "off" };
+let playing = false;
+let editing = false;
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (s && Array.isArray(s.discs)) Object.assign(state, s);
+  } catch (e) {}
+  if (state.cur >= state.discs.length) state.cur = -1;
+}
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+/* ---------- Riconoscere i link ---------- */
+function parseLink(raw) {
+  const text = String(raw || "").trim();
+  const sp = text.match(/spotify:(track|album|playlist|episode|show|artist):([A-Za-z0-9]+)/);
+  if (sp) return { kind: "sp", type: sp[1], ref: "spotify:" + sp[1] + ":" + sp[2] };
+  const m = text.match(/https?:\/\/[^\s]+/);
+  if (!m) return null;
+  let u;
+  try { u = new URL(m[0]); } catch (e) { return null; }
+  const host = u.hostname.replace(/^www\.|^m\./, "");
+  if (host === "open.spotify.com" || host === "spotify.link") {
+    const p = u.pathname.match(/(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]+)/);
+    if (p) return { kind: "sp", type: p[1], ref: "spotify:" + p[1] + ":" + p[2], url: "https://open.spotify.com/" + p[1] + "/" + p[2] };
+    return null;
+  }
+  if (/(^|\.)youtube\.com$|^youtu\.be$|^music\.youtube\.com$|^youtube-nocookie\.com$/.test(host)) {
+    let id = null;
+    if (host === "youtu.be") id = u.pathname.slice(1).split("/")[0];
+    else if (u.searchParams.get("v")) id = u.searchParams.get("v");
+    else {
+      const p = u.pathname.match(/\/(shorts|embed|live|v)\/([A-Za-z0-9_-]{6,})/);
+      if (p) id = p[2];
+    }
+    const list = u.searchParams.get("list");
+    if (id && /^[A-Za-z0-9_-]{6,}$/.test(id)) return { kind: "yt", type: "video", ref: id, url: "https://www.youtube.com/watch?v=" + id };
+    if (list) return { kind: "yt", type: "playlist", ref: list, url: "https://www.youtube.com/playlist?list=" + list };
+  }
+  return null;
+}
+
+async function fetchInfo(d) {
+  const ep = d.kind === "yt"
+    ? "https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent(d.url)
+    : "https://open.spotify.com/oembed?url=" + encodeURIComponent(d.url || ("https://open.spotify.com/" + d.type + "/" + d.ref.split(":")[2]));
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 6000);
+    const r = await fetch(ep, { signal: ctl.signal });
+    clearTimeout(t);
+    if (!r.ok) return {};
+    const j = await r.json();
+    return { title: j.title, author: j.author_name, thumb: j.thumbnail_url };
+  } catch (e) { return {}; }
+}
+
+const TYPE_NAME = { video: "Video", playlist: "Playlist", track: "Canzone", album: "Album", episode: "Podcast", show: "Podcast", artist: "Artista" };
+
+async function addFromText(text) {
+  const msg = $("add-msg");
+  const d = parseLink(text);
+  if (!d) { msg.className = "msg err"; msg.textContent = "Questo non sembra un link di YouTube o Spotify."; return false; }
+  if (state.discs.some((x) => x.ref === d.ref)) { msg.className = "msg err"; msg.textContent = "Questo disco c'è già nel jukebox."; return false; }
+  const btn = $("b-add");
+  btn.disabled = true; btn.textContent = "…";
+  const info = await fetchInfo(d);
+  btn.disabled = false; btn.textContent = "Aggiungi";
+  const disc = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    kind: d.kind, type: d.type, ref: d.ref, url: d.url,
+    title: info.title || (d.kind === "yt" ? TYPE_NAME[d.type] + " YouTube" : TYPE_NAME[d.type] + " Spotify"),
+    author: info.author || "",
+    thumb: info.thumb || (d.kind === "yt" && d.type === "video" ? "https://i.ytimg.com/vi/" + d.ref + "/hqdefault.jpg" : ""),
+    color: PALETTE[state.discs.length % PALETTE.length],
+  };
+  state.discs.push(disc);
+  save();
+  if (disc.kind === "yt") loadYT(); else loadSP();
+  msg.className = "msg ok"; msg.textContent = "✓ Aggiunto: " + disc.title;
+  setTimeout(() => { if (msg.textContent.startsWith("✓")) msg.textContent = ""; }, 3500);
+  renderGrid();
+  return true;
+}
+
+/* ---------- Lettore YouTube ---------- */
+let yt = null, ytReady = false, ytPending = null, ytApiAsked = false;
+function loadYT() {
+  if (ytApiAsked) return; ytApiAsked = true;
+  window.onYouTubeIframeAPIReady = () => {
+    yt = new YT.Player("yt-player", {
+      width: "100%", height: "100%",
+      playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+      events: {
+        onReady: () => { ytReady = true; if (ytPending) { const p = ytPending; ytPending = null; ytLoad(p); } },
+        onStateChange: (e) => {
+          if (curDisc()?.kind !== "yt") return;
+          if (e.data === YT.PlayerState.PLAYING) setPlaying(true);
+          else if (e.data === YT.PlayerState.PAUSED) setPlaying(false);
+          else if (e.data === YT.PlayerState.ENDED) onEnded();
+        },
+        onError: () => {
+          if (curDisc()?.kind !== "yt") return;
+          toast("Questo video non si può suonare fuori da YouTube: passo al prossimo.");
+          setPlaying(false);
+          setTimeout(() => next(true), 2200);
+        },
+      },
+    });
+  };
+  const s = document.createElement("script");
+  s.src = "https://www.youtube.com/iframe_api";
+  s.onerror = () => toast("YouTube non risponde: controlla la connessione.");
+  document.head.appendChild(s);
+}
+function ytLoad(d) {
+  if (!ytReady) { ytPending = d; loadYT(); return; }
+  if (d.type === "playlist") yt.loadPlaylist({ list: d.ref, listType: "playlist" });
+  else yt.loadVideoById(d.ref);
+}
+
+/* ---------- Lettore Spotify ---------- */
+let spApi = null, sp = null, spPending = null, spApiAsked = false, spLast = { pos: 0, dur: 0, paused: true };
+function loadSP() {
+  if (spApiAsked) return; spApiAsked = true;
+  window.onSpotifyIframeApiReady = (api) => { spApi = api; if (spPending) { const p = spPending; spPending = null; spLoad(p); } };
+  const s = document.createElement("script");
+  s.src = "https://open.spotify.com/embed/iframe-api/v1";
+  s.onerror = () => toast("Spotify non risponde: controlla la connessione.");
+  document.head.appendChild(s);
+}
+function spLoad(d) {
+  if (!spApi) { spPending = d; loadSP(); return; }
+  if (sp) { sp.loadUri(d.ref); sp.play(); return; }
+  spApi.createController($("sp-player"), { uri: d.ref, width: "100%", height: d.type === "track" || d.type === "episode" ? 152 : 352 }, (c) => {
+    sp = c;
+    c.addListener("ready", () => { if (curDisc()?.kind === "sp") c.play(); });
+    c.addListener("playback_update", (e) => {
+      if (curDisc()?.kind !== "sp") return;
+      const { isPaused, position, duration } = e.data;
+      const wasNearEnd = spLast.dur > 0 && spLast.pos >= spLast.dur - 1500;
+      if (isPaused && !spLast.paused && wasNearEnd && (curDisc().type === "track" || curDisc().type === "episode")) {
+        spLast = { pos: 0, dur: 0, paused: true };
+        onEnded();
+        return;
+      }
+      spLast = { pos: position, dur: duration, paused: isPaused };
+      setPlaying(!isPaused);
+    });
+  });
+}
+
+/* ---------- Comandi ---------- */
+const curDisc = () => state.discs[state.cur];
+
+function playIndex(i) {
+  const d = state.discs[i];
+  if (!d) return;
+  const prev = curDisc();
+  state.cur = i; save();
+  if (prev && prev.kind !== d.kind) {
+    if (prev.kind === "yt" && ytReady) yt.pauseVideo();
+    if (prev.kind === "sp" && sp) sp.pause();
+  }
+  spLast = { pos: 0, dur: 0, paused: true };
+  const screen = $("screen");
+  screen.className = "screen show kind-" + d.kind;
+  $("sp-note").hidden = d.kind !== "sp";
+  if (d.kind === "yt") ytLoad(d); else spLoad(d);
+  setPlaying(true);
+  renderDeck(true);
+  renderGrid();
+  mediaSession(d);
+}
+
+function togglePlay() {
+  const d = curDisc();
+  if (!d) { if (state.discs.length) playIndex(state.shuffle ? randIndex(-1) : 0); else $("add-url").focus(); return; }
+  if (d.kind === "yt") {
+    if (!ytReady) { ytLoad(d); return; }
+    if (yt.getPlayerState() === YT.PlayerState.PLAYING) yt.pauseVideo();
+    else if (yt.getPlayerState() === YT.PlayerState.CUED || yt.getPlayerState() === -1) ytLoad(d);
+    else yt.playVideo();
+  } else {
+    if (!sp) { spLoad(d); return; }
+    sp.togglePlay();
+  }
+}
+
+function randIndex(not) {
+  const n = state.discs.length;
+  if (n <= 1) return 0;
+  let i; do { i = Math.floor(Math.random() * n); } while (i === not);
+  return i;
+}
+function next(auto) {
+  const n = state.discs.length;
+  if (!n) return;
+  if (state.shuffle) return playIndex(randIndex(state.cur));
+  let i = state.cur + 1;
+  if (i >= n) {
+    if (auto && state.repeat === "off") { setPlaying(false); toast("Fine dei dischi 🎶"); return; }
+    i = 0;
+  }
+  playIndex(i);
+}
+function prev() {
+  const n = state.discs.length;
+  if (!n) return;
+  if (state.shuffle) return playIndex(randIndex(state.cur));
+  playIndex(state.cur <= 0 ? n - 1 : state.cur - 1);
+}
+function onEnded() {
+  const d = curDisc();
+  if (state.repeat === "one" && d) { playIndex(state.cur); return; }
+  next(true);
+}
+
+function setPlaying(p) {
+  playing = p;
+  $("deck").classList.toggle("spinning", p);
+  $("cabinet").classList.toggle("playing", p);
+  $("play-ico").innerHTML = p ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+  document.querySelectorAll(".sleeve").forEach((el) => el.classList.toggle("is-playing", p));
+  if ("mediaSession" in navigator) navigator.mediaSession.playbackState = p ? "playing" : "paused";
+}
+
+function mediaSession(d) {
+  if (!("mediaSession" in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: d.title, artist: d.author || "Jukebox", artwork: d.thumb ? [{ src: d.thumb, sizes: "480x360" }] : [] });
+    navigator.mediaSession.setActionHandler("nexttrack", () => next(false));
+    navigator.mediaSession.setActionHandler("previoustrack", () => prev());
+  } catch (e) {}
+}
+
+/* ---------- Disegno ---------- */
+function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+const ICON = {
+  yt: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+  sp: '<svg viewBox="0 0 24 24"><path d="M4 9c5-1.6 11-1 15 1.5l-1 1.8C14.5 10 9.5 9.5 4.6 11zM5 13c4-1.1 8.8-.6 12 1.3l-.9 1.6c-2.8-1.6-7-2-10.6-1zM6 16.6c3-.8 6.4-.4 8.8 1l-.8 1.4c-2-1.1-5-1.5-7.6-.8z"/></svg>',
+};
+
+function renderDeck(drop) {
+  const d = curDisc();
+  const disc = $("disc"), label = $("label");
+  if (!d) {
+    disc.className = "disc empty";
+    label.style.backgroundImage = ""; label.style.backgroundColor = "";
+    label.innerHTML = '<span class="lt">Scegli un disco</span>';
+    $("now-title").textContent = "Nessun disco sul piatto";
+    $("now-sub").textContent = state.discs.length ? "Tocca un disco qui sotto" : "Aggiungi un link qui sotto e tocca un disco";
+    return;
+  }
+  label.style.backgroundColor = d.color;
+  label.style.backgroundImage = d.thumb ? 'url("' + d.thumb + '")' : "";
+  label.innerHTML = d.thumb ? "" : '<span class="lt" style="color:#fff">' + esc(d.title.slice(0, 28)) + "</span>";
+  disc.className = "disc";
+  if (drop) { void disc.offsetWidth; disc.className = "disc drop"; }
+  $("now-title").textContent = d.title;
+  $("now-sub").innerHTML = '<span class="src ' + d.kind + '">' + (d.kind === "yt" ? "YouTube" : "Spotify") + "</span>" +
+    (d.author ? "<span>" + esc(d.author) + "</span>" : "<span>" + TYPE_NAME[d.type] + "</span>");
+}
+
+function renderGrid() {
+  const g = $("grid");
+  const n = state.discs.length;
+  $("count").textContent = n === 1 ? "1 disco" : n + " dischi";
+  $("empty").hidden = n > 0;
+  $("b-edit").hidden = n === 0;
+  if (!n && editing) setEditing(false);
+  g.innerHTML = state.discs.map((d, i) => {
+    const cover = d.thumb
+      ? 'style="background-color:' + d.color + ';background-image:url(&quot;' + esc(d.thumb) + '&quot;)"'
+      : 'style="background:linear-gradient(150deg,' + d.color + ',#1b0f0c)"';
+    return '<button class="sleeve' + (i === state.cur ? " current" + (playing ? " is-playing" : "") : "") + '" data-i="' + i + '">' +
+      '<div class="cover-wrap"><div class="vinyl"></div><div class="cover" ' + cover + '>' + (d.thumb ? "" : '<span class="ph">' + esc(d.title.slice(0, 40)) + "</span>") +
+      '<span class="badge ' + d.kind + '">' + ICON[d.kind] + '</span><span class="eq"><i></i><i></i><i></i></span></div>' +
+      '<div class="tools">' + (i > 0 ? '<span data-act="left">‹</span>' : "") + (i < n - 1 ? '<span data-act="right">›</span>' : "") + '<span class="del" data-act="del">✕</span></div></div>' +
+      '<div class="name">' + esc(d.title) + "</div></button>";
+  }).join("");
+}
+
+function setEditing(on) {
+  editing = on;
+  $("coll").classList.toggle("editing", on);
+  $("b-edit").classList.toggle("on", on);
+  $("b-edit").textContent = on ? "Fatto" : "Modifica";
+}
+
+function move(i, j) {
+  const cur = curDisc();
+  const [d] = state.discs.splice(i, 1);
+  state.discs.splice(j, 0, d);
+  state.cur = cur ? state.discs.indexOf(cur) : -1;
+  save(); renderGrid();
+}
+function removeAt(i) {
+  const d = state.discs[i];
+  if (!confirm('Togliere "' + d.title + '" dal jukebox?')) return;
+  const wasCur = i === state.cur;
+  const cur = curDisc();
+  state.discs.splice(i, 1);
+  if (wasCur) {
+    state.cur = -1;
+    if (d.kind === "yt" && ytReady) yt.stopVideo();
+    if (d.kind === "sp" && sp) sp.pause();
+    setPlaying(false);
+    $("screen").className = "screen";
+    $("sp-note").hidden = true;
+  } else state.cur = cur ? state.discs.indexOf(cur) : -1;
+  save(); renderDeck(false); renderGrid();
+}
+
+let toastTimer;
+function toast(t) {
+  const el = $("toast"); el.textContent = t; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 2800);
+}
+
+function renderModes() {
+  $("b-shuffle").classList.toggle("on", state.shuffle);
+  $("b-repeat").classList.toggle("on", state.repeat !== "off");
+  $("repeat-one").hidden = state.repeat !== "one";
+}
+
+/* ---------- Eventi ---------- */
+$("b-play").onclick = togglePlay;
+$("b-next").onclick = () => next(false);
+$("b-prev").onclick = prev;
+$("b-shuffle").onclick = () => { state.shuffle = !state.shuffle; save(); renderModes(); toast(state.shuffle ? "Ordine casuale acceso" : "Ordine casuale spento"); };
+$("b-repeat").onclick = () => {
+  state.repeat = state.repeat === "off" ? "all" : state.repeat === "all" ? "one" : "off";
+  save(); renderModes();
+  toast({ off: "Ripeti spento", all: "Ripeti tutti i dischi", one: "Ripeti questo disco" }[state.repeat]);
+};
+$("b-edit").onclick = () => setEditing(!editing);
+$("add-form").onsubmit = async (e) => {
+  e.preventDefault();
+  if (await addFromText($("add-url").value)) $("add-url").value = "";
+};
+$("b-paste").onclick = async () => {
+  try {
+    const t = await navigator.clipboard.readText();
+    if (!t) return toast("Negli appunti non c'è niente");
+    $("add-url").value = t;
+    if (await addFromText(t)) $("add-url").value = "";
+  } catch (e) { $("add-url").focus(); toast("Tieni premuto nella casella e scegli Incolla"); }
+};
+$("grid").onclick = (e) => {
+  const s = e.target.closest(".sleeve");
+  if (!s) return;
+  const i = +s.dataset.i;
+  const act = e.target.closest("[data-act]")?.dataset.act;
+  if (editing) {
+    if (act === "del") removeAt(i);
+    else if (act === "left") move(i, i - 1);
+    else if (act === "right") move(i, i + 1);
+    return;
+  }
+  if (i === state.cur) togglePlay(); else playIndex(i);
+};
+
+/* ---------- Avvio ---------- */
+load();
+renderModes();
+renderDeck(false);
+renderGrid();
+// Carico subito i lettori che servono, così il primo tocco suona davvero (i telefoni lo richiedono)
+if (state.discs.some((d) => d.kind === "yt")) loadYT();
+if (state.discs.some((d) => d.kind === "sp")) loadSP();
+// Link arrivato con "Condividi → Jukebox" (Android) o con ?url=
+(function shared() {
+  const q = new URLSearchParams(location.search);
+  const t = [q.get("url"), q.get("text"), q.get("title")].filter(Boolean).join(" ");
+  if (!t) return;
+  history.replaceState(null, "", location.pathname);
+  addFromText(t).then((ok) => { if (ok) toast("Disco aggiunto ✓"); });
+})();
+</script>
+</body>
+</html>
